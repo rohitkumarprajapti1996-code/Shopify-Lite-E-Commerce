@@ -44,7 +44,6 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
-        // Custom high-performance SVG vector icons ensuring zero network delay or broken assets
         const Icon = ({ name, className = "h-5 w-5", ...props }) => {
             const svgProps = {
                 xmlns: "http://www.w3.org/2000/svg",
@@ -265,12 +264,78 @@
                             <line x1="17" y1="16" x2="23" y2="16"></line>
                         </svg>
                     );
+                case 'Copy':
+                    return (
+                        <svg {...svgProps}>
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    );
+                case 'MapPin':
+                    return (
+                        <svg {...svgProps}>
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                    );
                 default:
                     return null;
             }
         };
 
         const INITIAL_PRODUCTS = [
+            {
+                id: 'men-tshirt-budget',
+                title: 'Classic Soft Cotton Crewneck Tee',
+                description: 'Pre-shrunk premium soft cotton crewneck t-shirt. Ideal for daily casual styling. Highly breathable knit fabric with clean neck stitch finishing.',
+                price: 199.00,
+                salePrice: 99.00,
+                category: "Men's Clothing",
+                rating: 4.6,
+                reviewsCount: 428,
+                stock: 60,
+                image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80',
+                tags: ['Tshirt', 'Cotton', 'Budget', 'Sale']
+            },
+            {
+                id: 'elec-powerbank-budget',
+                title: 'BudSync Ultra-Slim 10000mAh Power Bank',
+                description: 'Super portable pocket-sized external power bank featuring high-speed 12W output charging ports. Perfect companion to charge your phones on the go.',
+                price: 399.00,
+                salePrice: 199.00,
+                category: 'Electronics Items',
+                rating: 4.4,
+                reviewsCount: 154,
+                stock: 35,
+                image: 'https://images.unsplash.com/photo-1620288627223-53302f4e8c74?auto=format&fit=crop&w=600&q=80',
+                tags: ['Powerbank', 'Battery', 'Electronics', 'Sale']
+            },
+            {
+                id: 'elec-tws-budget',
+                title: 'BudSync TWS Wireless Bluetooth Earbuds',
+                description: 'Ergonomic in-ear wireless Bluetooth earbuds equipped with punchy rich bass output, multi-touch tap controls, and up to 16 hours of continuous playtime.',
+                price: 599.00,
+                salePrice: 299.00,
+                category: 'Electronics Items',
+                rating: 4.5,
+                reviewsCount: 310,
+                stock: 45,
+                image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80',
+                tags: ['TWS', 'Audio', 'Earbuds', 'Sale']
+            },
+            {
+                id: 'men-jeans-budget',
+                title: 'Classic Slim-Fit Denim Comfort Jeans',
+                description: 'Durable and highly stretchable standard blue denim jeans tailored to dynamic fits. Combines vintage aesthetics with all-day comfortable posture support.',
+                price: 799.00,
+                salePrice: 399.00,
+                category: "Men's Clothing",
+                rating: 4.7,
+                reviewsCount: 289,
+                stock: 25,
+                image: 'https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=600&q=80',
+                tags: ['Jeans', 'Denim', 'Pants', 'Sale']
+            },
             {
                 id: 'men-1',
                 title: 'Premium Tailored Slim Fit Suit',
@@ -283,19 +348,6 @@
                 stock: 15,
                 image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=600&q=80',
                 tags: ['Formal', 'Sale', 'Suit']
-            },
-            {
-                id: 'men-2',
-                title: 'Oversized Organic Cotton Tee',
-                description: 'Ultra-comfortable heavy knit organic cotton tee. Designed with a modern boxy silhouette, dropped shoulders, and a tight ribbed collar.',
-                price: 1999.00,
-                salePrice: null,
-                category: "Men's Clothing",
-                rating: 4.5,
-                reviewsCount: 86,
-                stock: 45,
-                image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80',
-                tags: ['Casual', 'Summer']
             },
             {
                 id: 'women-1',
@@ -408,32 +460,94 @@
             const [onlySales, setOnlySales] = useState(false);
             const [qrError, setQrError] = useState(false);
 
-            // Authentication state controls
-            const [isAuthenticated, setIsAuthenticated] = useState(false);
+            // Verified storage parameters (avoids logging out or order loss on refresh)
+            const [isAuthenticated, setIsAuthenticated] = useState(() => {
+                try {
+                    const local = localStorage.getItem('shopify_lite_auth');
+                    return local === 'true';
+                } catch {
+                    return false;
+                }
+            });
+
+            const [currentUser, setCurrentUser] = useState(() => {
+                try {
+                    const local = localStorage.getItem('shopify_lite_user');
+                    return local ? JSON.parse(local) : null;
+                } catch {
+                    return null;
+                }
+            });
+
+            // Customer profile customized names
+            const [profileDisplayName, setProfileDisplayName] = useState(() => {
+                try {
+                    const local = localStorage.getItem('shopify_lite_profile_name');
+                    return local || '';
+                } catch {
+                    return '';
+                }
+            });
+
+            // Customer Profile customized delivery address
+            const [profileAddress, setProfileAddress] = useState(() => {
+                try {
+                    const local = localStorage.getItem('shopify_lite_profile_address');
+                    return local || 'Flat No. 102, Green Valley Apartments, Gurgaon, Haryana';
+                } catch {
+                    return 'Flat No. 102, Green Valley Apartments, Gurgaon, Haryana';
+                }
+            });
+
             const [authRole, setAuthRole] = useState('customer'); // customer or seller
-            const [currentUser, setCurrentUser] = useState(null);
             const [showAuthModal, setShowAuthModal] = useState(false);
 
-            // Login input state variables
+            // Login inputs
             const [customerPhone, setCustomerPhone] = useState('');
             const [customerPassword, setCustomerPassword] = useState('');
             const [sellerEmail, setSellerEmail] = useState('');
             const [sellerPassword, setSellerPassword] = useState('');
 
-            // Checkout state control parameters
+            // Secure Payment System Parameters
             const [showPaymentGate, setShowPaymentGate] = useState(false);
+            const [isVerifyingUpi, setIsVerifyingUpi] = useState(false);
             const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('upi'); // upi, credit, debit, netbanking
             
-            // Payment Form fields
+            // Payment fields
             const [paymentCardNumber, setPaymentCardNumber] = useState('');
             const [paymentCardName, setPaymentCardName] = useState('');
             const [paymentCardExpiry, setPaymentCardExpiry] = useState('');
             const [paymentCardCvv, setPaymentCardCvv] = useState('');
             const [paymentNetBank, setPaymentNetBank] = useState('State Bank of India');
             const [paymentUpiId, setPaymentUpiId] = useState('rohitkumarprajapti1996-2@okaxis');
-            const [shippingAddressInput, setShippingAddressInput] = useState('45, Sector 15, Connaught Place, New Delhi - 110001');
 
-            // Persistent local states loading logic
+            // Customer Checkout Fields
+            const [checkoutFullName, setCheckoutFullName] = useState('');
+            const [checkoutPhone, setCheckoutPhone] = useState('');
+            const [checkoutAddress, setCheckoutAddress] = useState('');
+            const [checkoutPincode, setCheckoutPincode] = useState('122001');
+
+            // Merchant Bank Settlement Parameters
+            const [merchantBankName, setMerchantBankName] = useState(() => {
+                return localStorage.getItem('shopify_lite_merchant_bank') || '';
+            });
+            const [merchantAccountNo, setMerchantAccountNo] = useState(() => {
+                return localStorage.getItem('shopify_lite_merchant_account') || '';
+            });
+            const [merchantIfsc, setMerchantIfsc] = useState(() => {
+                return localStorage.getItem('shopify_lite_merchant_ifsc') || '';
+            });
+            const [isPayoutTransferring, setIsPayoutTransferring] = useState(false);
+            const [payoutsList, setPayoutsList] = useState(() => {
+                try {
+                    const local = localStorage.getItem('shopify_lite_payouts');
+                    return local ? JSON.parse(local) : [];
+                } catch {
+                    return [];
+                }
+            });
+
+            // Persistent products, cart, and orders
             const [products, setProducts] = useState(() => {
                 try {
                     const local = localStorage.getItem('shopify_lite_products');
@@ -467,26 +581,9 @@
                         total: 11999.00,
                         date: '2026-06-11',
                         status: 'Shipped',
-                        shippingAddress: 'Flat 102, Green Valley Apartments, Gurgaon, Haryana',
+                        shippingAddress: 'Flat 102, Green Valley Apartments, Gurgaon, Haryana, PIN: 122001',
                         paymentMethod: 'UPI (QR Code)',
                         transactionId: 'TXN8274921048'
-                    },
-                    {
-                        id: 'ORD-2108',
-                        customerName: 'PRIYA SEN',
-                        customerPhone: '9123456789',
-                        customerEmail: 'priya.beauty@yahoo.com',
-                        items: [
-                            { id: 'beauty-1', title: 'Glow Radiance Vitamin C Serum', price: 1499.00, quantity: 2 }
-                        ],
-                        subtotal: 2540.68,
-                        gstAmount: 457.32,
-                        total: 2998.00,
-                        date: '2026-06-08',
-                        status: 'Delivered',
-                        shippingAddress: 'Block C, House 54, Salt Lake, Kolkata, West Bengal',
-                        paymentMethod: 'Credit Card',
-                        transactionId: 'TXN9184729482'
                     }
                 ];
                 try {
@@ -497,7 +594,12 @@
                 }
             });
 
-            // Synchronization triggers with client localStorage
+            // Syncing states to localStorage inside React Effects
+            useEffect(() => {
+                localStorage.setItem('shopify_lite_auth', isAuthenticated);
+                localStorage.setItem('shopify_lite_user', currentUser ? JSON.stringify(currentUser) : '');
+            }, [isAuthenticated, currentUser]);
+
             useEffect(() => {
                 localStorage.setItem('shopify_lite_products', JSON.stringify(products));
             }, [products]);
@@ -510,19 +612,45 @@
                 localStorage.setItem('shopify_lite_orders', JSON.stringify(orders));
             }, [orders]);
 
-            // Workspace state view parameters
+            useEffect(() => {
+                localStorage.setItem('shopify_lite_payouts', JSON.stringify(payoutsList));
+            }, [payoutsList]);
+
+            useEffect(() => {
+                localStorage.setItem('shopify_lite_merchant_bank', merchantBankName);
+                localStorage.setItem('shopify_lite_merchant_account', merchantAccountNo);
+                localStorage.setItem('shopify_lite_merchant_ifsc', merchantIfsc);
+            }, [merchantBankName, merchantAccountNo, merchantIfsc]);
+
+            useEffect(() => {
+                localStorage.setItem('shopify_lite_profile_name', profileDisplayName);
+            }, [profileDisplayName]);
+
+            useEffect(() => {
+                localStorage.setItem('shopify_lite_profile_address', profileAddress);
+            }, [profileAddress]);
+
+            // Sync checkout user state with auth credentials on login
+            useEffect(() => {
+                if (currentUser && currentUser.role === 'customer') {
+                    setCheckoutFullName(profileDisplayName || currentUser.name);
+                    setCheckoutPhone(currentUser.phone);
+                    setCheckoutAddress(profileAddress);
+                }
+            }, [currentUser, profileDisplayName, profileAddress]);
+
             const [viewingInvoiceOrder, setViewingInvoiceOrder] = useState(null);
             const [toast, setToast] = useState(null);
 
-            // Integrated Smart AI Assistant states
+            // Smart AI Assistant
             const [showAiAssistant, setShowAiAssistant] = useState(false);
             const [chatMessages, setChatMessages] = useState([
-                { sender: 'assistant', text: 'Namaste! Welcome to Shopify-Lite. I can help you find premium suits, running shoes, beauty serums, or organic cosmetics. Ask me for recommendations or check our latest clearance sales!' }
+                { sender: 'assistant', text: 'Namaste! Welcome to Shopify-Lite. I can help you find premium suits, running shoes, power banks, earbuds, and budget-friendly apparel. Ask me for recommendations!' }
             ]);
             const [userChatInput, setUserChatInput] = useState('');
             const [isAiTyping, setIsAiTyping] = useState(false);
 
-            const [sellerActiveTab, setSellerActiveTab] = useState('inventory'); // inventory, add-listing, payments, fulfillment
+            const [sellerActiveTab, setSellerActiveTab] = useState('inventory'); // inventory, add-listing, payments, fulfillment, bank-settlement
 
             const [newProduct, setNewProduct] = useState({
                 title: '',
@@ -537,7 +665,7 @@
 
             useEffect(() => {
                 if (toast) {
-                    const timer = setTimeout(() => setToast(null), 4000);
+                    const timer = setTimeout(() => setToast(null), 4500);
                     return () => clearTimeout(timer);
                 }
             }, [toast]);
@@ -557,7 +685,6 @@
                 });
             }, [products, searchTerm, selectedCategory, onlySales]);
 
-            // Simplified Authentication submit handler
             const handleAuthSubmit = (e) => {
                 e.preventDefault();
 
@@ -567,9 +694,13 @@
                         return;
                     }
 
+                    // Look up if user already saved a custom display name in localStorage
+                    const savedName = localStorage.getItem('shopify_lite_profile_name') || `CUSTOMER-${customerPhone.slice(-4)}`;
+                    setProfileDisplayName(savedName);
+
                     const userEmailMock = `${customerPhone}@shopify-lite.in`;
                     const userData = {
-                        name: `CUSTOMER-${customerPhone.slice(-4)}`,
+                        name: savedName,
                         phone: customerPhone,
                         email: userEmailMock,
                         role: 'customer'
@@ -606,6 +737,21 @@
                 setSellerPassword('');
             };
 
+            const handleSaveProfile = (e) => {
+                e.preventDefault();
+                if (!profileDisplayName.trim()) {
+                    triggerToast("Profile name cannot be blank.", "error");
+                    return;
+                }
+                if (!profileAddress.trim()) {
+                    triggerToast("Address detail cannot be blank.", "error");
+                    return;
+                }
+                const updatedUser = { ...currentUser, name: profileDisplayName.trim() };
+                setCurrentUser(updatedUser);
+                triggerToast("Your account profile details have been updated successfully!");
+            };
+
             const handleLogout = () => {
                 setIsAuthenticated(false);
                 setCurrentUser(null);
@@ -627,6 +773,10 @@
                     updatedCart[existingIndex].quantity += quantity;
                     setCart(updatedCart);
                 } else {
+                    if (quantity > product.stock) {
+                        triggerToast(`Sorry, only ${product.stock} items left in stock!`, 'error');
+                        return;
+                    }
                     setCart([...cart, { ...product, quantity, activePrice }]);
                 }
                 triggerToast(`Added ${product.title} to your cart.`);
@@ -636,7 +786,7 @@
                 const updatedCart = cart.map(item => {
                     if (item.id === productId) {
                         const newQty = item.quantity + change;
-                        const inventoryStock = products.find(p => p.id === productId)?.stock || 10;
+                        const inventoryStock = products.find(p => p.id === productId)?.stock || 0;
                         if (newQty > inventoryStock) {
                             triggerToast(`Only ${inventoryStock} items of this product exist in our store!`, 'error');
                             return item;
@@ -654,6 +804,16 @@
                 triggerToast("Item removed from your shopping bag.", "error");
             };
 
+            const copyToClipboard = (text) => {
+                const el = document.createElement('textarea');
+                el.value = text;
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                triggerToast("UPI ID Copied to Clipboard!");
+            };
+
             const cartSubtotal = useMemo(() => {
                 return cart.reduce((total, item) => total + (item.activePrice * item.quantity), 0);
             }, [cart]);
@@ -666,7 +826,58 @@
                 return cartSubtotal + calculatedGSTAmount;
             }, [cartSubtotal, calculatedGSTAmount]);
 
-            // Process payments on final order forms
+            // Settlement payout calculation
+            const merchantTotalIncoming = useMemo(() => {
+                return orders.reduce((acc, o) => acc + o.total, 0);
+            }, [orders]);
+
+            const merchantPayoutSettled = useMemo(() => {
+                return payoutsList.reduce((acc, p) => acc + p.amount, 0);
+            }, [payoutsList]);
+
+            const merchantPayoutPending = useMemo(() => {
+                return Math.max(0, merchantTotalIncoming - merchantPayoutSettled);
+            }, [merchantTotalIncoming, merchantPayoutSettled]);
+
+            const handleSaveBankPayoutDetails = (e) => {
+                e.preventDefault();
+                if (!merchantBankName.trim() || !merchantAccountNo.trim() || !merchantIfsc.trim()) {
+                    triggerToast("Please fill all banking fields.", "error");
+                    return;
+                }
+                localStorage.setItem('shopify_lite_merchant_bank', merchantBankName.trim());
+                localStorage.setItem('shopify_lite_merchant_account', merchantAccountNo.trim());
+                localStorage.setItem('shopify_lite_merchant_ifsc', merchantIfsc.trim());
+                triggerToast("Bank payout details saved securely!");
+            };
+
+            const handleInstantBankTransfer = () => {
+                if (!merchantBankName || !merchantAccountNo || !merchantIfsc) {
+                    triggerToast("Please configure and save your bank account credentials first!", "error");
+                    return;
+                }
+                if (merchantPayoutPending <= 0) {
+                    triggerToast("No unsettled balance available for transfer.", "warning");
+                    return;
+                }
+
+                setIsPayoutTransferring(true);
+
+                setTimeout(() => {
+                    const newPayout = {
+                        id: 'SETTLE-' + Math.floor(100000 + Math.random() * 900000),
+                        date: new Date().toISOString().split('T')[0],
+                        bankName: merchantBankName,
+                        accountNo: merchantAccountNo.slice(-4).padStart(12, '*'),
+                        amount: merchantPayoutPending,
+                        referenceId: 'UTR' + Math.floor(1000000000 + Math.random() * 9000000000)
+                    };
+                    setPayoutsList([newPayout, ...payoutsList]);
+                    setIsPayoutTransferring(false);
+                    triggerToast(`Successfully transferred ₹${newPayout.amount.toLocaleString('en-IN')} to bank account ending in ${newPayout.bankName}!`);
+                }, 2000);
+            };
+
             const handleProcessPayment = (e) => {
                 e.preventDefault();
 
@@ -675,69 +886,98 @@
                     return;
                 }
 
+                // Mandatory fields validation
+                if (!checkoutFullName.trim() || !checkoutPhone.trim() || !checkoutAddress.trim() || !checkoutPincode.trim()) {
+                    triggerToast("Please fill all customer information fields.", "error");
+                    return;
+                }
+
+                if (checkoutPincode.trim().length !== 6 || isNaN(checkoutPincode)) {
+                    triggerToast("Please enter a valid 6-digit Pincode.", "error");
+                    return;
+                }
+
+                // Live inventory check
+                for (const item of cart) {
+                    const currentProduct = products.find(p => p.id === item.id);
+                    if (!currentProduct || currentProduct.stock < item.quantity) {
+                        triggerToast(`Order failed! "${item.title}" just ran out of stock or does not have ${item.quantity} units left.`, "error");
+                        return;
+                    }
+                }
+
                 if (selectedPaymentMethod === 'upi' && !paymentUpiId.trim()) {
-                    triggerToast("Please enter a valid UPI ID to verify payment.", "error");
+                    triggerToast("Please enter a valid UPI ID.", "error");
                     return;
                 }
 
                 if ((selectedPaymentMethod === 'credit' || selectedPaymentMethod === 'debit') && 
                     (!paymentCardNumber || !paymentCardName || !paymentCardExpiry || !paymentCardCvv)) {
-                    triggerToast("Please complete your card credentials.", "error");
+                    triggerToast("Please complete your card details.", "error");
                     return;
                 }
 
-                const txNumber = 'TXN' + Math.floor(1000000000 + Math.random() * 9000000000);
-                const orderNumber = 'ORD-' + Math.floor(1000 + Math.random() * 9000);
-                
-                const paymentModeLabel = {
-                    upi: 'UPI Wallet / QR Code',
-                    credit: 'Credit Card (Paid)',
-                    debit: 'Debit Card (Paid)',
-                    netbanking: `Net Banking (${paymentNetBank})`
-                }[selectedPaymentMethod];
+                setIsVerifyingUpi(true);
 
-                const newOrder = {
-                    id: orderNumber,
-                    customerName: currentUser?.name || 'STORE BUYER',
-                    customerPhone: currentUser?.phone || '9876543210',
-                    customerEmail: currentUser?.email || 'buyer@shopify-lite.in',
-                    items: cart.map(item => ({ 
-                        id: item.id, 
-                        title: item.title, 
-                        price: item.activePrice, 
-                        quantity: item.quantity 
-                    })),
-                    subtotal: cartSubtotal,
-                    gstAmount: calculatedGSTAmount,
-                    total: cartGrandTotal,
-                    date: new Date().toISOString().split('T')[0],
-                    status: 'Ordered',
-                    shippingAddress: shippingAddressInput,
-                    paymentMethod: paymentModeLabel,
-                    transactionId: txNumber
-                };
+                setTimeout(() => {
+                    const txNumber = 'TXN' + Math.floor(1000000000 + Math.random() * 9000000000);
+                    const orderNumber = 'ORD-' + Math.floor(1000 + Math.random() * 9000);
+                    
+                    const paymentModeLabel = {
+                        upi: 'UPI Wallet / QR Code',
+                        credit: 'Credit Card (Paid)',
+                        debit: 'Debit Card (Paid)',
+                        netbanking: `Net Banking (${paymentNetBank})`
+                    }[selectedPaymentMethod];
 
-                const updatedProducts = products.map(prod => {
-                    const cartItem = cart.find(c => c.id === prod.id);
-                    if (cartItem) {
-                        return { ...prod, stock: Math.max(0, prod.stock - cartItem.quantity) };
-                    }
-                    return prod;
-                });
+                    const finalAddress = `${checkoutAddress.trim()}, PIN: ${checkoutPincode.trim()}`;
 
-                setProducts(updatedProducts);
-                setOrders([newOrder, ...orders]);
-                setCart([]);
-                setShowPaymentGate(false);
-                
-                setPaymentCardNumber('');
-                setPaymentCardName('');
-                setPaymentCardExpiry('');
-                setPaymentCardCvv('');
-                setPaymentUpiId('rohitkumarprajapti1996-2@okaxis');
+                    const newOrder = {
+                        id: orderNumber,
+                        customerName: checkoutFullName.trim(),
+                        customerPhone: checkoutPhone.trim(),
+                        customerEmail: currentUser?.email || `${checkoutPhone.trim()}@shopify-lite.in`,
+                        items: cart.map(item => ({ 
+                            id: item.id, 
+                            title: item.title, 
+                            price: item.activePrice, 
+                            quantity: item.quantity 
+                        })),
+                        subtotal: cartSubtotal,
+                        gstAmount: calculatedGSTAmount,
+                        total: cartGrandTotal,
+                        date: new Date().toISOString().split('T')[0],
+                        status: 'Ordered',
+                        shippingAddress: finalAddress,
+                        paymentMethod: paymentModeLabel,
+                        transactionId: txNumber
+                    };
 
-                setCurrentView('customer-dashboard');
-                triggerToast(`Payment Received via ${paymentModeLabel}! Your order has been placed.`);
+                    const updatedProducts = products.map(prod => {
+                        const cartItem = cart.find(c => c.id === prod.id);
+                        if (cartItem) {
+                            return { ...prod, stock: Math.max(0, prod.stock - cartItem.quantity) };
+                        }
+                        return prod;
+                    });
+
+                    setProducts(updatedProducts);
+                    setOrders([newOrder, ...orders]);
+                    setCart([]);
+                    setIsVerifyingUpi(false);
+                    setShowPaymentGate(false);
+                    
+                    setPaymentCardNumber('');
+                    setPaymentCardName('');
+                    setPaymentCardExpiry('');
+                    setPaymentCardCvv('');
+
+                    // Update local default delivery addresses as a courtesy helper
+                    setProfileAddress(checkoutAddress.trim());
+
+                    setCurrentView('customer-dashboard');
+                    triggerToast(`Payment Received via ${paymentModeLabel}! Your order has been placed.`);
+                }, 2500); // 2.5s network verification simulation
             };
 
             const handleUpdateOrderStatus = (orderId, newStatus) => {
@@ -803,44 +1043,37 @@
 
                 setTimeout(() => {
                     const promptLower = userMsg.toLowerCase();
-                    let reply = "I can help you browse through our dynamic storefront! ";
+                    let reply = "I can help you browse through our store catalog! ";
                     
                     if (promptLower.includes('sale') || promptLower.includes('discount') || promptLower.includes('cheap') || promptLower.includes('deal')) {
                         const saleItems = products.filter(p => p.salePrice !== null);
-                        reply = `We have active clearance sales on select products today:\n\n` + 
+                        reply = `We have active clearance sales on budget-friendly products today:\n\n` + 
                                 saleItems.map(p => `• **${p.title}** - Special Price: ₹${p.salePrice} (M.R.P. ₹${p.price}!)`).join('\n');
                     } 
-                    else if (promptLower.includes('jewel') || promptLower.includes('gold') || promptLower.includes('pendant') || promptLower.includes('necklace') || promptLower.includes('earring')) {
+                    else if (promptLower.includes('tws') || promptLower.includes('earbuds') || promptLower.includes('headphone') || promptLower.includes('bud')) {
+                        reply = "Check out our premium TWS audio selections:\n" +
+                                "• **BudSync TWS Wireless Earbuds**: Special pricing at only **₹299**! Excellent battery backup & rich bass.\n" +
+                                "• **SoundWave ANC Wireless Headphones**: Advanced active noise cancellation at ₹8,999.";
+                    }
+                    else if (promptLower.includes('powerbank') || promptLower.includes('battery') || promptLower.includes('charging') || promptLower.includes('power bank')) {
+                        reply = "Check out our dynamic portable charger:\n" +
+                                "• **BudSync Ultra-Slim 10000mAh Power Bank**: Listed at an unbelievable price of only **₹199**! Pocket-sized convenience.";
+                    }
+                    else if (promptLower.includes('tshirt') || promptLower.includes('tee') || promptLower.includes('t-shirt')) {
+                        reply = "Upgrade your casual apparel:\n" +
+                                "• **Classic Soft Cotton Crewneck Tee**: Incredibly comfortable fit, available for only **₹99**!";
+                    }
+                    else if (promptLower.includes('jeans') || promptLower.includes('denim')) {
+                        reply = "Classic blue comfort stretch jeans:\n" +
+                                "• **Classic Slim-Fit Denim Comfort Jeans**: Vintage finish comfort jeans available for **₹399**!";
+                    }
+                    else if (promptLower.includes('jewel') || promptLower.includes('gold') || promptLower.includes('necklace')) {
                         const items = products.filter(p => p.category === 'Artificial Jewellery');
                         reply = `Discover our shining Artificial Jewellery collection:\n\n` + 
-                                items.map(p => `• **${p.title}** - ₹${p.salePrice || p.price}`).join('\n') + `\n\nThese lightweight pieces are hypoallergenic and perfect for weddings or casual outings.`;
-                    }
-                    else if (promptLower.includes('shoe') || promptLower.includes('sneaker') || promptLower.includes('runner') || promptLower.includes('footwear')) {
-                        const items = products.filter(p => p.category === 'Shoes');
-                        reply = `Step up with our Shoes catalog:\n\n` + 
-                                items.map(p => `• **${p.title}** - ₹${p.salePrice || p.price}`).join('\n') + `\n\nIncludes free shipping and simple size replacements across India!`;
-                    }
-                    else if (promptLower.includes('man') || promptLower.includes('men') || promptLower.includes('suit') || promptLower.includes('shirt')) {
-                        const items = products.filter(p => p.category === "Men's Clothing");
-                        reply = `For Men's Fashion, check out these tailored items:\n\n` + 
                                 items.map(p => `• **${p.title}** - ₹${p.salePrice || p.price}`).join('\n');
                     }
-                    else if (promptLower.includes('woman') || promptLower.includes('women') || promptLower.includes('dress') || promptLower.includes('coat')) {
-                        const items = products.filter(p => p.category === "Women's Clothing");
-                        reply = `For Women's Style, check out these trending arrivals:\n\n` + 
-                                items.map(p => `• **${p.title}** - ₹${p.salePrice || p.price}`).join('\n');
-                    }
-                    else if (promptLower.includes('beauty') || promptLower.includes('serum') || promptLower.includes('skincare')) {
-                        const items = products.filter(p => p.category === 'Beauty Products');
-                        reply = `Achieve perfect skin radiance with our beauty selections:\n\n` + 
-                                items.map(p => `• **${p.title}** - ₹${p.salePrice || p.price}`).join('\n');
-                    }
-                    else if (promptLower.includes('electronic') || promptLower.includes('headphone') || promptLower.includes('audio') || promptLower.includes('tech')) {
-                        const items = products.filter(p => p.category === 'Electronics Items');
-                        reply = `Upgrade your daily tech experience! Check out our Electronics:\n\n` + 
-                                items.map(p => `• **${p.title}** - ₹${p.salePrice || p.price}`).join('\n');
-                    } else {
-                        reply = "I couldn't quite find that match. Try asking me for 'sale items', 'beauty serums', 'designer jewellery', 'men apparel' or 'electronics'!";
+                    else {
+                        reply = "I couldn't find a direct match. Try asking me for 'budget items under 400', 'Earbuds', 'Power Bank', 'Tshirt', or 'Jeans'!";
                     }
 
                     setChatMessages(prev => [...prev, { sender: 'assistant', text: reply }]);
@@ -851,13 +1084,12 @@
             return (
                 <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800 antialiased select-none">
                     
-                    {/* Top Alert Bar */}
-                    <div className="bg-gradient-to-r from-indigo-700 via-purple-700 to-indigo-900 text-white text-xs font-semibold py-2 px-4 text-center flex items-center justify-center gap-2">
+                    {/* Header Strip */}
+                    <div className="bg-gradient-to-r from-indigo-700 via-purple-700 to-indigo-900 text-white text-xs font-semibold py-2 px-4 text-center flex items-center justify-center gap-2 no-print">
                         <Icon name="Percent" className="h-4 w-4 animate-bounce" />
                         <span>FESTIVE SALE! Save big with 18% GST benefits and free PAN-India express home delivery on all order checkouts today!</span>
                     </div>
 
-                    {/* Navigation Header */}
                     <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm no-print">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
                             
@@ -879,7 +1111,7 @@
                                 <Icon name="Search" className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                                 <input
                                     type="text"
-                                    placeholder="Search designer clothes, cosmetics, necklaces, running shoes..."
+                                    placeholder="Search clothes, earbuds, powerbanks, running shoes..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition"
@@ -940,7 +1172,7 @@
                                     </button>
                                 )}
 
-                                {/* Shopping Cart Trigger */}
+                                {/* Shopping Cart */}
                                 <div className="relative">
                                     <button 
                                         onClick={() => setCurrentView('cart')}
@@ -959,13 +1191,13 @@
                         </div>
                     </header>
 
-                    {/* Mobile Search Input */}
+                    {/* Mobile Search */}
                     <div className="md:hidden block bg-white px-4 py-2.5 border-b border-gray-200 no-print">
                         <div className="relative">
                             <Icon name="Search" className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="Search footwear, beauty, clothes..."
+                                placeholder="Search clothes, earbuds, powerbanks..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-9 pr-8 py-2 border border-gray-300 rounded-full text-xs"
@@ -980,9 +1212,9 @@
                         </div>
                     </div>
 
-                    {/* Notification System */}
+                    {/* Toast Notification System */}
                     {toast && (
-                        <div className="fixed bottom-4 left-4 z-50 animate-bounce no-print">
+                        <div className="fixed bottom-4 left-4 z-50 no-print">
                             <div className={`shadow-2xl rounded-xl p-4 flex items-center gap-3 border ${
                                 toast.type === 'error' ? 'bg-red-50 border-red-200 text-red-800' :
                                 toast.type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' :
@@ -993,10 +1225,9 @@
                         </div>
                     )}
 
-                    {}
                     <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
                         
-                        {/* 1. Main storefront catalog view */}
+                        {/* 1. Main Storefront Catalog View */}
                         {currentView === 'home' && (
                             <>
                                 {/* Large Promotional Campaign Slide */}
@@ -1006,10 +1237,10 @@
                                             Festive Special Offers
                                         </span>
                                         <h1 className="text-3xl sm:text-4xl font-black tracking-tight mt-4 leading-tight">
-                                            Premium Fashion & Electronics
+                                            Premium Fashion & Tech Bargains
                                         </h1>
                                         <p className="text-gray-300 mt-2 text-sm sm:text-base leading-relaxed">
-                                            Discover tailored outfits, elegant jewellery, certified clean cosmetics, and high-spec sound accessories now with direct GST invoicing options.
+                                            Check our new ultra-value budget-range starting at only ₹99! Discover smart ear buds, cotton apparel, clean serums, and jewellery with GST invoice support.
                                         </p>
                                         <div className="mt-6 flex flex-wrap gap-3">
                                             <button 
@@ -1049,7 +1280,7 @@
                                     </div>
                                 </div>
 
-                                {/* Sliding filter pills */}
+                                {/* Sliding Filter Pills */}
                                 <div className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-hide">
                                     {CATEGORIES.map((category) => (
                                         <button
@@ -1099,7 +1330,7 @@
                                                     >
                                                         {isOnSale && (
                                                             <span className="absolute top-3 left-3 bg-red-500 text-white font-black text-[9px] px-2 py-0.5 rounded-full z-10 flex items-center gap-0.5 shadow-sm">
-                                                                <Icon name="Percent" className="h-2.5 w-2.5" /> FESTIVE DISCOUNT
+                                                                <Icon name="Percent" className="h-2.5 w-2.5" /> SPECIAL DISCOUNT
                                                             </span>
                                                         )}
 
@@ -1110,6 +1341,10 @@
                                                             <img 
                                                                 src={product.image} 
                                                                 alt={product.title}
+                                                                onError={(e) => {
+                                                                    e.target.onerror = null;
+                                                                    e.target.src = `https://placehold.co/600x480/4f46e5/ffffff?text=${encodeURIComponent(product.title)}`;
+                                                                }}
                                                                 className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                                                             />
                                                         </div>
@@ -1126,10 +1361,22 @@
                                                                 {product.title}
                                                             </h3>
 
-                                                            <div className="flex items-center gap-1 text-amber-500 mt-2">
-                                                                <Icon name="Star" className="h-3.5 w-3.5" fill="currentColor" />
-                                                                <span className="text-xs font-bold text-gray-700">{product.rating}</span>
-                                                                <span className="text-[10px] text-gray-400">({product.reviewsCount} reviews)</span>
+                                                            <div className="flex items-center justify-between mt-2">
+                                                                <div className="flex items-center gap-1 text-amber-500">
+                                                                    <Icon name="Star" className="h-3.5 w-3.5" fill="currentColor" />
+                                                                    <span className="text-xs font-bold text-gray-700">{product.rating}</span>
+                                                                    <span className="text-[10px] text-gray-400">({product.reviewsCount})</span>
+                                                                </div>
+                                                                
+                                                                {product.stock > 0 ? (
+                                                                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                                                                        {product.stock} left
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded">
+                                                                        Out of Stock
+                                                                    </span>
+                                                                )}
                                                             </div>
 
                                                             <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between gap-2 mt-auto">
@@ -1151,7 +1398,7 @@
                                                                 </div>
 
                                                                 {product.stock === 0 ? (
-                                                                    <span className="bg-red-50 text-red-600 text-[10px] font-bold px-2 py-1 rounded">
+                                                                    <span className="bg-red-50 text-red-600 text-[10px] font-bold px-2 py-1.5 rounded">
                                                                         Sold Out
                                                                     </span>
                                                                 ) : (
@@ -1174,8 +1421,7 @@
                             </>
                         )}
 
-                        {}
-                        {/* 2. Detailed Single product specs card */}
+                        {/* 2. Detailed Single Product Page */}
                         {currentView === 'detail' && selectedProduct && (
                             <div className="bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-sm p-4 sm:p-8 max-w-4xl mx-auto mt-4">
                                 <button 
@@ -1190,6 +1436,10 @@
                                         <img 
                                             src={selectedProduct.image} 
                                             alt={selectedProduct.title}
+                                            onError={(e) => {
+                                                e.target.onerror = null;
+                                                e.target.src = `https://placehold.co/600x480/4f46e5/ffffff?text=${encodeURIComponent(selectedProduct.title)}`;
+                                            }}
                                             className="w-full h-full object-cover"
                                         />
                                         {selectedProduct.salePrice && (
@@ -1214,7 +1464,7 @@
                                                     <Icon key={s} name="Star" className="h-4 w-4" fill="currentColor" />
                                                 ))}
                                                 <span className="text-xs font-bold text-gray-700 ml-1">{selectedProduct.rating} Stars</span>
-                                                <span className="text-xs text-gray-400">({selectedProduct.reviewsCount} verified reviews)</span>
+                                                <span className="text-xs text-gray-400">({selectedProduct.reviewsCount} reviews)</span>
                                             </div>
 
                                             <div className="my-4 pt-3 pb-3 border-y border-gray-100">
@@ -1278,8 +1528,7 @@
                             </div>
                         )}
 
-                        {}
-                        {/* 3. Shopping cart list layout */}
+                        {/* 3. Shopping Cart Panel */}
                         {currentView === 'cart' && (
                             <div className="max-w-4xl mx-auto mt-4">
                                 <h1 className="text-2xl font-extrabold text-gray-900 mb-6 flex items-center gap-2">
@@ -1303,7 +1552,7 @@
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                        {/* Cart listings */}
+                                        {/* Cart Listings */}
                                         <div className="lg:col-span-2 space-y-4">
                                             {cart.map((item) => (
                                                 <div 
@@ -1311,7 +1560,15 @@
                                                     className="bg-white rounded-2xl border border-gray-200 p-4 flex gap-4 items-center"
                                                 >
                                                     <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-50 flex-shrink-0">
-                                                        <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                                                        <img 
+                                                            src={item.image} 
+                                                            alt={item.title} 
+                                                            onError={(e) => {
+                                                                e.target.onerror = null;
+                                                                e.target.src = `https://placehold.co/120x120/4f46e5/ffffff?text=${encodeURIComponent(item.title)}`;
+                                                            }}
+                                                            className="w-full h-full object-cover" 
+                                                        />
                                                     </div>
 
                                                     <div className="flex-1 min-w-0">
@@ -1349,7 +1606,7 @@
                                             ))}
                                         </div>
 
-                                        {/* Bill breakdown calculations */}
+                                        {/* Bill Breakdown */}
                                         <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm h-fit">
                                             <h3 className="font-bold text-gray-900 text-base mb-4">Order Summary</h3>
                                             
@@ -1363,7 +1620,7 @@
                                                     <span>+ ₹{calculatedGSTAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span>Delivery charges</span>
+                                                    <span>Delivery Charges</span>
                                                     <span className="text-emerald-600 font-bold">FREE EXPRESS</span>
                                                 </div>
                                             </div>
@@ -1399,22 +1656,66 @@
                             </div>
                         )}
 
-                        {}
-                        {/* 4. Customer workspace order panel */}
+                        {/* 4. Customer Workspace Dashboard */}
                         {currentView === 'customer-dashboard' && (
-                            <div className="max-w-4xl mx-auto mt-4">
-                                <div className="bg-gradient-to-r from-purple-800 to-indigo-800 rounded-2xl p-6 text-white mb-8 shadow">
-                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                                        <div>
-                                            <span className="text-xs font-bold uppercase tracking-widest text-purple-200">Buyer Workspace</span>
-                                            <h1 className="text-2xl font-black mt-1">Namaste, {currentUser?.name || "Premium Guest"}</h1>
-                                            <p className="text-xs text-purple-100 mt-1">Manage, view, and track your orders. Download instant GST Invoices.</p>
+                            <div className="max-w-4xl mx-auto mt-4 space-y-6">
+                                <div className="bg-gradient-to-r from-purple-800 to-indigo-800 rounded-2xl p-6 text-white shadow">
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+                                        <div className="space-y-3">
+                                            <span className="text-xs font-bold uppercase tracking-widest text-purple-200">Buyer Account Center</span>
+                                            <h1 className="text-2xl font-black mt-1 leading-tight">Namaste, {currentUser?.name || "Premium Guest"}</h1>
+                                            
+                                            {/* Delivery Address Visual Placement in Greeting Box */}
+                                            <div className="flex items-start gap-2.5 text-xs text-purple-100 max-w-xl bg-purple-900/30 p-3 rounded-xl border border-purple-700/40 shadow-inner">
+                                                <Icon name="MapPin" className="h-4 w-4 mt-0.5 text-amber-400 flex-shrink-0" />
+                                                <div className="min-w-0">
+                                                    <strong className="text-[10px] uppercase tracking-wider font-extrabold text-purple-200 block mb-0.5">Shipping Address Coordinates:</strong>
+                                                    <span className="font-medium break-words leading-relaxed">{profileAddress || "Please register your primary address in settings below."}</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl text-xs space-y-1.5 min-w-[224px] border border-white/10">
+                                        <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl text-xs space-y-1.5 min-w-[224px] border border-white/10 h-fit">
                                             <div className="flex items-center gap-1.5"><Icon name="Smartphone" className="h-3.5 w-3.5" /> <span>{currentUser?.phone}</span></div>
                                             <div className="flex items-center gap-1.5"><Icon name="Mail" className="h-3.5 w-3.5" /> <span>{currentUser?.email}</span></div>
                                         </div>
                                     </div>
+                                </div>
+
+                                {/* PROFILE SETTINGS HUB WITH ADDRESS CONFIG */}
+                                <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                                    <h3 className="font-extrabold text-gray-900 text-sm mb-3 flex items-center gap-1.5 border-b border-gray-100 pb-2">
+                                        <Icon name="User" className="h-4.5 w-4.5 text-indigo-600" /> Account Profile Settings
+                                    </h3>
+                                    <form onSubmit={handleSaveProfile} className="space-y-4 max-w-lg">
+                                        <div>
+                                            <label className="block text-[10px] font-extrabold text-gray-400 uppercase mb-1">Set Display Name</label>
+                                            <input 
+                                                type="text" 
+                                                required
+                                                placeholder="Enter display name (e.g., Rohit Kumar)" 
+                                                value={profileDisplayName}
+                                                onChange={(e) => setProfileDisplayName(e.target.value)}
+                                                className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 bg-white"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-extrabold text-gray-400 uppercase mb-1">Default Shipping/Delivery Address</label>
+                                            <textarea 
+                                                required
+                                                placeholder="Enter flat address, area/landmark, city, state" 
+                                                value={profileAddress}
+                                                onChange={(e) => setProfileAddress(e.target.value)}
+                                                rows="2"
+                                                className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 bg-white"
+                                            />
+                                        </div>
+                                        <button 
+                                            type="submit"
+                                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-xl text-xs"
+                                        >
+                                            Save Profile Details
+                                        </button>
+                                    </form>
                                 </div>
 
                                 <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -1531,28 +1832,27 @@
                             </div>
                         )}
 
-                        {}
-                        {/* 5. Merchant Dashboard */}
+                        {/* 5. Merchant Command Center Panel */}
                         {currentView === 'seller-dashboard' && (
                             <div className="space-y-8 mt-4">
                                 <div className="bg-gradient-to-r from-slate-900 to-indigo-950 rounded-2xl p-6 text-white shadow-lg border border-slate-800">
                                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                         <div>
                                             <span className="bg-indigo-500/20 text-indigo-300 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded inline-block">
-                                                Merchant Command Center
+                                                Merchant Workspace
                                             </span>
-                                            <h1 className="text-2xl font-black mt-2">Welcome Back, {currentUser?.name || "Global Seller"}</h1>
-                                            <p className="text-xs text-gray-300">Oversee store listings, audit GST tax filings, track customer payments, and manage shipping dispatchments.</p>
+                                            <h1 className="text-2xl font-black mt-2">Welcome Back, {currentUser?.name || "Merchant Admin"}</h1>
+                                            <p className="text-xs text-gray-300">Oversee store listings, track incoming customer transfers, print tax invoices, and configure banking details.</p>
                                         </div>
                                         <div className="flex gap-2 text-xs">
                                             <div className="bg-white/10 px-4 py-2.5 rounded-xl border border-white/5 text-center">
-                                                <span className="text-gray-400 block text-[10px]">TOTAL PRODUCTS</span>
+                                                <span className="text-gray-400 block text-[10px]">TOTAL LISTINGS</span>
                                                 <strong className="text-base text-white">{products.length} Items</strong>
                                             </div>
                                             <div className="bg-white/10 px-4 py-2.5 rounded-xl border border-white/5 text-center">
-                                                <span className="text-gray-400 block text-[10px]">TOTAL REVENUES</span>
+                                                <span className="text-gray-400 block text-[10px]">TOTAL STORE EARNINGS</span>
                                                 <strong className="text-base text-amber-400">
-                                                    ₹{orders.reduce((acc, o) => acc + o.total, 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                                                    ₹{merchantTotalIncoming.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                                                 </strong>
                                             </div>
                                         </div>
@@ -1577,7 +1877,13 @@
                                         onClick={() => setSellerActiveTab('payments')}
                                         className={`px-4 py-2 text-xs font-bold whitespace-nowrap rounded-lg transition ${sellerActiveTab === 'payments' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
                                     >
-                                        Payments Received Tab
+                                        Payments Received ({orders.length})
+                                    </button>
+                                    <button 
+                                        onClick={() => setSellerActiveTab('bank-settlement')}
+                                        className={`px-4 py-2 text-xs font-bold whitespace-nowrap rounded-lg transition ${sellerActiveTab === 'bank-settlement' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                                    >
+                                        Bank payout Setup
                                     </button>
                                     <button 
                                         onClick={() => setSellerActiveTab('fulfillment')}
@@ -1601,7 +1907,15 @@
                                                     className="flex flex-wrap items-center justify-between p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition text-xs gap-4"
                                                 >
                                                     <div className="flex items-center gap-3 min-w-0">
-                                                        <img src={item.image} alt={item.title} className="w-10 h-10 object-cover rounded-md" />
+                                                        <img 
+                                                            src={item.image} 
+                                                            alt={item.title} 
+                                                            onError={(e) => {
+                                                                e.target.onerror = null;
+                                                                e.target.src = `https://placehold.co/80x80/4f46e5/ffffff?text=${encodeURIComponent(item.title)}`;
+                                                            }}
+                                                            className="w-10 h-10 object-cover rounded-md" 
+                                                        />
                                                         <div className="min-w-0">
                                                           <h4 className="font-bold text-gray-900 truncate">{item.title}</h4>
                                                           <span className="text-[10px] text-indigo-600 uppercase font-semibold">{item.category}</span>
@@ -1636,7 +1950,6 @@
                                     </div>
                                 )}
 
-                                {}
                                 {/* Subtab 2: Form to register a new product */}
                                 {sellerActiveTab === 'add-listing' && (
                                     <div className="bg-white rounded-2xl border border-gray-200 p-6 max-w-2xl mx-auto">
@@ -1752,16 +2065,15 @@
                                     </div>
                                 )}
 
-                                {}
-                                {/* Subtab 3: Payments received and GST audits tab */}
+                                {/* Subtab 3: Payments received tracker */}
                                 {sellerActiveTab === 'payments' && (
                                     <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-xs space-y-6">
                                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 pb-4">
                                             <div>
                                                 <h3 className="font-extrabold text-gray-900 text-base flex items-center gap-1.5">
-                                                    <Icon name="QrCode" className="h-5 w-5 text-indigo-600" /> Payments Received Hub
+                                                    <Icon name="QrCode" className="h-5 w-5 text-indigo-600" /> Store Receipts & Tax Ledger
                                                 </h3>
-                                                <p className="text-[10px] text-gray-500 mt-0.5">Real-time breakdown of completed sales, integrated GST calculations, and payment types</p>
+                                                <p className="text-[10px] text-gray-500 mt-0.5">Real-time audited transaction history containing 18% GST collection indicators</p>
                                             </div>
                                             
                                             <div className="flex items-center gap-3">
@@ -1772,9 +2084,9 @@
                                                     </strong>
                                                 </div>
                                                 <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-center">
-                                                    <span className="text-[9px] text-emerald-600 font-extrabold block uppercase tracking-wider">Net Store Revenues</span>
+                                                    <span className="text-[9px] text-emerald-600 font-extrabold block uppercase tracking-wider">Net Store Revenue</span>
                                                     <strong className="text-sm font-black text-emerald-900">
-                                                        ₹{orders.reduce((acc, o) => acc + o.total, 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                                                        ₹{merchantTotalIncoming.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                                                     </strong>
                                                 </div>
                                             </div>
@@ -1817,9 +2129,9 @@
                                                             <td className="p-3 text-center">
                                                                 <button
                                                                     onClick={() => setViewingInvoiceOrder(ord)}
-                                                                    className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 underline"
+                                                                    className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 hover:underline"
                                                                 >
-                                                                    Invoice
+                                                                    Tax Invoice
                                                                 </button>
                                                             </td>
                                                         </tr>
@@ -1830,8 +2142,123 @@
                                     </div>
                                 )}
 
-                                {}
-                                {/* Subtab 4: Order fulfillment updates tab */}
+                                {/* Subtab 4: Bank Payout Setup & Settlement hub */}
+                                {sellerActiveTab === 'bank-settlement' && (
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                        <div className="lg:col-span-1 bg-white rounded-2xl border border-gray-200 p-6 shadow-xs h-fit space-y-4">
+                                            <h3 className="font-extrabold text-gray-900 text-base flex items-center gap-1.5 border-b border-gray-100 pb-2">
+                                                <Icon name="Building" className="h-5 w-5 text-indigo-600" /> Bank Payout Account
+                                            </h3>
+                                            <p className="text-xs text-gray-500 leading-relaxed">
+                                                Register your active bank details here. All incoming funds from client card/UPI transactions will accumulate and be available for payout.
+                                            </p>
+                                            <form onSubmit={handleSaveBankPayoutDetails} className="space-y-4 pt-2">
+                                                <div>
+                                                    <label className="block text-[10px] font-extrabold text-gray-500 uppercase mb-1">Bank Name *</label>
+                                                    <input 
+                                                        type="text" 
+                                                        required
+                                                        placeholder="e.g. State Bank of India" 
+                                                        value={merchantBankName}
+                                                        onChange={(e) => setMerchantBankName(e.target.value)}
+                                                        className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 bg-white"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-extrabold text-gray-500 uppercase mb-1">Account Number *</label>
+                                                    <input 
+                                                        type="text" 
+                                                        required
+                                                        placeholder="e.g. 349284029482" 
+                                                        value={merchantAccountNo}
+                                                        onChange={(e) => setMerchantAccountNo(e.target.value)}
+                                                        className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 bg-white"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-extrabold text-gray-500 uppercase mb-1">IFSC Code *</label>
+                                                    <input 
+                                                        type="text" 
+                                                        required
+                                                        placeholder="e.g. SBIN0001032" 
+                                                        value={merchantIfsc}
+                                                        onChange={(e) => setMerchantIfsc(e.target.value.toUpperCase())}
+                                                        className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 bg-white font-mono"
+                                                    />
+                                                </div>
+                                                <button 
+                                                    type="submit"
+                                                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-xl text-xs transition"
+                                                >
+                                                    Save Banking Configuration
+                                                </button>
+                                            </form>
+                                        </div>
+
+                                        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6 shadow-xs space-y-6">
+                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 pb-4">
+                                                <div>
+                                                    <h3 className="font-extrabold text-gray-900 text-base">Store Ledger Settlement Balance</h3>
+                                                    <p className="text-xs text-gray-500 mt-1">Pending payout balance generated from online client payments.</p>
+                                                </div>
+                                                <div className="bg-amber-50 rounded-xl p-4 border border-amber-100 text-center flex-shrink-0">
+                                                    <span className="text-[10px] font-bold text-amber-700 block uppercase tracking-wider">Unsettled Balance</span>
+                                                    <strong className="text-xl font-black text-amber-950">₹{merchantPayoutPending.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</strong>
+                                                </div>
+                                            </div>
+
+                                            <div className="p-4 bg-gray-50 rounded-2xl border border-gray-150 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+                                                <div className="space-y-1">
+                                                    <h4 className="font-bold text-gray-800">Transfer Funds Instantly</h4>
+                                                    <p className="text-[10px] text-gray-500 leading-snug">
+                                                        Deploy payout directly to registered bank account ending in **{merchantAccountNo ? merchantAccountNo.slice(-4) : "None"}.
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={handleInstantBankTransfer}
+                                                    disabled={isPayoutTransferring || merchantPayoutPending <= 0}
+                                                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-5 rounded-xl transition flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed text-xs h-fit"
+                                                >
+                                                    {isPayoutTransferring ? (
+                                                        <>
+                                                            <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></div>
+                                                            <span>Settling...</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Icon name="ShieldCheck" className="h-4 w-4" />
+                                                            <span>Transfer Instantly</span>
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                <h4 className="font-extrabold text-gray-800 text-sm">Settlement History Ledger</h4>
+                                                {payoutsList.length === 0 ? (
+                                                    <p className="text-xs text-gray-400 py-4 text-center">No successful transfers found.</p>
+                                                ) : (
+                                                    <div className="space-y-2">
+                                                        {payoutsList.map((p) => (
+                                                            <div key={p.id} className="p-3 border border-gray-100 rounded-xl bg-gray-50/50 flex justify-between items-center text-xs">
+                                                                <div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full text-[10px]">{p.id}</span>
+                                                                        <span className="font-bold text-gray-800">{p.bankName}</span>
+                                                                    </div>
+                                                                    <p className="text-[10px] text-gray-400 mt-1">Ref ID: {p.referenceId} • Date: {p.date}</p>
+                                                                </div>
+                                                                <span className="font-black text-gray-900 text-sm">₹{p.amount.toLocaleString('en-IN')}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Subtab 5: Order fulfillment updates tab */}
                                 {sellerActiveTab === 'fulfillment' && (
                                     <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-xs">
                                         <h3 className="font-extrabold text-gray-900 text-base mb-4 flex items-center gap-1.5">
@@ -1889,11 +2316,10 @@
                         )}
                     </main>
 
-                    {}
                     {/* Checkout & Secure Payment Gate Popup */}
                     {showPaymentGate && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto no-print">
-                            <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 relative shadow-2xl border border-gray-100 my-8">
+                            <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 relative shadow-2xl border border-gray-100 my-8">
                                 <button 
                                     onClick={() => setShowPaymentGate(false)}
                                     className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition"
@@ -1901,36 +2327,110 @@
                                     <Icon name="X" className="h-5 w-5" />
                                 </button>
 
-                                <div className="text-center mb-6">
+                                <div className="text-center mb-4">
                                     <span className="bg-indigo-50 text-indigo-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                                        Shopify-Lite Secure Gateway
+                                        Secure Gateway Check-out
                                     </span>
-                                    <h2 className="text-xl font-black text-gray-900 mt-2">Choose Payment Option</h2>
-                                    <p className="text-xs text-gray-500 mt-1">Please select your preferred payment mode below</p>
-                                </div>
-
-                                <div className="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-100 flex items-center justify-between text-xs">
-                                    <div>
-                                        <span className="text-gray-400 block">Total Due (Incl. 18% GST)</span>
-                                        <strong className="text-base text-gray-900">₹{cartGrandTotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</strong>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className="text-gray-400 block">GST Component Included</span>
-                                        <strong className="text-indigo-700 font-bold">₹{calculatedGSTAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</strong>
-                                    </div>
+                                    <h2 className="text-xl font-black text-gray-900 mt-2">Confirm Order & Payment</h2>
+                                    <p className="text-xs text-gray-500 mt-1">Please provide shipping details and choose your payment mode</p>
                                 </div>
 
                                 <form onSubmit={handleProcessPayment} className="space-y-6">
-                                    <div>
-                                        <label className="block text-[10px] font-extrabold text-gray-400 uppercase mb-1 tracking-wider">Confirm Shipping Address</label>
-                                        <textarea 
-                                            required
-                                            rows="2"
-                                            value={shippingAddressInput}
-                                            onChange={(e) => setShippingAddressInput(e.target.value)}
-                                            className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500"
-                                            placeholder="Enter full shipping address with PIN code"
-                                        />
+                                    {/* MANDATORY CUSTOMER DETAILS SECTION */}
+                                    <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200/80 space-y-3">
+                                        <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider border-b border-gray-200 pb-1.5 flex items-center gap-1.5">
+                                            <Icon name="User" className="h-4 w-4 text-indigo-600" /> Mandatory Customer Information
+                                        </h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="block text-[10px] font-extrabold text-gray-500 uppercase mb-1">Full Name *</label>
+                                                <input 
+                                                    type="text" 
+                                                    required 
+                                                    placeholder="Enter your full name" 
+                                                    value={checkoutFullName}
+                                                    onChange={(e) => setCheckoutFullName(e.target.value)}
+                                                    className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 bg-white"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-extrabold text-gray-500 uppercase mb-1">Phone Number *</label>
+                                                <input 
+                                                    type="tel" 
+                                                    required 
+                                                    placeholder="e.g. 9876543210" 
+                                                    value={checkoutPhone}
+                                                    onChange={(e) => setCheckoutPhone(e.target.value)}
+                                                    className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 bg-white"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                            <div className="sm:col-span-2">
+                                                <label className="block text-[10px] font-extrabold text-gray-500 uppercase mb-1">Complete Address *</label>
+                                                <input 
+                                                    type="text" 
+                                                    required 
+                                                    placeholder="House, Building, Area/Street Address" 
+                                                    value={checkoutAddress}
+                                                    onChange={(e) => setCheckoutAddress(e.target.value)}
+                                                    className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 bg-white"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-extrabold text-gray-500 uppercase mb-1">6-Digit Pincode *</label>
+                                                <input 
+                                                    type="text" 
+                                                    required 
+                                                    maxLength="6"
+                                                    pattern="[0-9]{6}"
+                                                    placeholder="e.g. 110001" 
+                                                    value={checkoutPincode}
+                                                    onChange={(e) => setCheckoutPincode(e.target.value)}
+                                                    className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 bg-white font-mono"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* LIVE STOCK VIEW FOR SELECTED PRODUCTS */}
+                                    <div className="bg-indigo-50/50 rounded-2xl p-4 border border-indigo-100/80 space-y-2">
+                                        <h4 className="text-[10px] font-extrabold text-indigo-900 uppercase tracking-wider">Live Inventory Audit at Checkout</h4>
+                                        <div className="divide-y divide-indigo-100/50 max-h-24 overflow-y-auto pr-1">
+                                            {cart.map((item) => {
+                                                const currentStock = products.find(p => p.id === item.id)?.stock || 0;
+                                                const isStockAvailable = currentStock >= item.quantity;
+                                                return (
+                                                    <div key={item.id} className="py-1.5 flex justify-between items-center text-xs">
+                                                        <span className="text-gray-800 font-medium truncate max-w-[70%]">
+                                                            {item.title} <span className="text-gray-400">x{item.quantity}</span>
+                                                        </span>
+                                                        <div className="flex items-center gap-1.5">
+                                                            {isStockAvailable ? (
+                                                                <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold">
+                                                                    {currentStock} units in stock
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-[10px] text-red-700 bg-red-50 px-2 py-0.5 rounded-full font-bold">
+                                                                    Insufficient stock (Only {currentStock} left)
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-gray-100 rounded-2xl p-3 flex items-center justify-between text-xs font-bold text-gray-800">
+                                        <div>
+                                            <span className="text-gray-400 block font-normal">Total Due (Incl. 18% GST)</span>
+                                            <strong className="text-base text-gray-900 font-black">₹{cartGrandTotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</strong>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-gray-400 block font-normal">Total GST Component Included</span>
+                                            <strong className="text-indigo-700 font-black">₹{calculatedGSTAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</strong>
+                                        </div>
                                     </div>
 
                                     <div>
@@ -2008,12 +2508,20 @@
                                                     <p className="text-[10px] text-gray-500 leading-relaxed">
                                                         Open Google Pay, PhonePe, Paytm, BHIM, or your mobile banking application to scan the QR code and complete your transfer.
                                                     </p>
-                                                    <div className="pt-2 space-y-1">
-                                                        <div className="text-[10px] font-extrabold text-indigo-700 bg-white border border-indigo-100 rounded px-2 py-0.5 inline-block">
+                                                    <div className="pt-2 space-y-2">
+                                                        <div className="text-[10px] font-extrabold text-indigo-700 bg-white border border-indigo-100 rounded px-2.5 py-1 inline-block">
                                                             Payee: Rohit Kumar Prajapti
                                                         </div>
-                                                        <div className="text-[10px] font-mono text-gray-600 block">
-                                                            UPI ID: <span className="font-bold text-gray-900 select-all font-sans">rohitkumarprajapti1996-2@okaxis</span>
+                                                        <div className="flex items-center gap-1.5 text-[10px] text-gray-600">
+                                                            <span>UPI ID: <strong className="text-gray-950 font-mono select-all">rohitkumarprajapti1996-2@okaxis</strong></span>
+                                                            <button 
+                                                                type="button" 
+                                                                onClick={() => copyToClipboard('rohitkumarprajapti1996-2@okaxis')}
+                                                                className="text-indigo-600 hover:text-indigo-800"
+                                                                title="Copy UPI ID"
+                                                            >
+                                                                <Icon name="Copy" className="h-3 w-3" />
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -2042,7 +2550,7 @@
                                                     placeholder="e.g. ARJUN MEHTA"
                                                     value={paymentCardName}
                                                     onChange={(e) => setPaymentCardName(e.target.value.toUpperCase())}
-                                                    className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500"
+                                                    className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 bg-white"
                                                 />
                                             </div>
 
@@ -2054,7 +2562,7 @@
                                                     placeholder="XXXX - XXXX - XXXX - XXXX"
                                                     value={paymentCardNumber}
                                                     onChange={(e) => setPaymentCardNumber(e.target.value)}
-                                                    className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500"
+                                                    className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 bg-white"
                                                 />
                                             </div>
 
@@ -2067,7 +2575,7 @@
                                                         maxLength="5"
                                                         value={paymentCardExpiry}
                                                         onChange={(e) => setPaymentCardExpiry(e.target.value)}
-                                                        className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 text-center"
+                                                        className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 text-center bg-white"
                                                     />
                                                 </div>
                                                 <div>
@@ -2078,7 +2586,7 @@
                                                         maxLength="3"
                                                         value={paymentCardCvv}
                                                         onChange={(e) => setPaymentCardCvv(e.target.value)}
-                                                        className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 text-center"
+                                                        className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 text-center bg-white"
                                                     />
                                                 </div>
                                             </div>
@@ -2094,7 +2602,7 @@
                                                     placeholder="e.g. PRIYA ARORA"
                                                     value={paymentCardName}
                                                     onChange={(e) => setPaymentCardName(e.target.value.toUpperCase())}
-                                                    className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500"
+                                                    className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 bg-white"
                                                 />
                                             </div>
 
@@ -2106,7 +2614,7 @@
                                                     placeholder="4000 - XXXX - XXXX - XXXX"
                                                     value={paymentCardNumber}
                                                     onChange={(e) => setPaymentCardNumber(e.target.value)}
-                                                    className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500"
+                                                    className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 bg-white"
                                                 />
                                             </div>
 
@@ -2119,7 +2627,7 @@
                                                         maxLength="5"
                                                         value={paymentCardExpiry}
                                                         onChange={(e) => setPaymentCardExpiry(e.target.value)}
-                                                        className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 text-center"
+                                                        className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 text-center bg-white"
                                                     />
                                                 </div>
                                                 <div>
@@ -2130,7 +2638,7 @@
                                                         maxLength="3"
                                                         value={paymentCardCvv}
                                                         onChange={(e) => setPaymentCardCvv(e.target.value)}
-                                                        className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 text-center"
+                                                        className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 text-center bg-white"
                                                     />
                                                 </div>
                                             </div>
@@ -2158,20 +2666,35 @@
                                         </div>
                                     )}
 
+                                    {/* Security Shield Warnings & Network Verifier */}
+                                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center gap-2.5 text-[11px] text-blue-800">
+                                        <Icon name="ShieldCheck" className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                                        <span>Protected by 256-bit SSL banking-grade encryption protocol.</span>
+                                    </div>
+
                                     <button
                                         type="submit"
-                                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-1.5"
+                                        disabled={isVerifyingUpi}
+                                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <Icon name="ShieldCheck" className="h-5 w-5" />
-                                        <span>Confirm Payment of ₹{cartGrandTotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                                        {isVerifyingUpi ? (
+                                            <>
+                                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                                <span>Verifying Transaction Ledger...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Icon name="ShieldCheck" className="h-5 w-5" />
+                                                <span>Confirm Payment of ₹{cartGrandTotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                                            </>
+                                        )}
                                     </button>
                                 </form>
                             </div>
                         </div>
                     )}
 
-                    {}
-                    {/* GST invoice presentation overlays */}
+                    {/* Tax Invoice Presentation Overlay */}
                     {viewingInvoiceOrder && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
                             <div className="bg-white rounded-2xl max-w-2xl w-full p-6 sm:p-8 relative shadow-2xl border border-gray-100 my-8">
@@ -2200,8 +2723,7 @@
                                         <div>
                                             <h3 className="font-extrabold text-gray-400 uppercase text-[9px] mb-1">Sold By (Merchant)</h3>
                                             <strong className="text-gray-900 block font-bold">SHOPIFY-LITE MARKETPLACE</strong>
-                                            <span className="text-gray-500 block">Warehouse Hub 4A, Connaught Place</span>
-                                            <span className="text-gray-500 block">New Delhi, Delhi - 110001</span>
+                                            <span className="text-gray-500 block leading-tight">RWH - Mail Hub Plot No-23, Tower-2 Ground floor Navi Mumbai -400703</span>
                                         </div>
                                         <div>
                                             <h3 className="font-extrabold text-gray-400 uppercase text-[9px] mb-1">Billing To (Buyer)</h3>
@@ -2251,7 +2773,7 @@
                                             </div>
                                             <div className="flex justify-between border-t border-gray-200 pt-1.5 font-bold text-gray-900 text-sm">
                                                 <span>Grand Total (Incl. Tax)</span>
-                                                <span className="text-indigo-700">₹{viewingInvoiceOrder.total.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                                                <span className="text-indigo-700 font-black">₹{viewingInvoiceOrder.total.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -2285,11 +2807,10 @@
                         </div>
                     )}
 
-                    {}
                     {/* Unified Customer/Merchant Login Popups */}
                     {showAuthModal && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 no-print">
-                            <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 relative shadow-2xl border border-gray-100 animate-in fade-in zoom-in duration-200">
+                            <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 relative shadow-2xl border border-gray-100">
                                 <button 
                                     onClick={() => setShowAuthModal(false)}
                                     className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition"
@@ -2340,7 +2861,7 @@
                                                         placeholder="e.g. 9876543210"
                                                         value={customerPhone}
                                                         onChange={(e) => setCustomerPhone(e.target.value)}
-                                                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-xs focus:ring-1 focus:ring-indigo-500"
+                                                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-xs focus:ring-1 focus:ring-indigo-500 bg-white"
                                                     />
                                                 </div>
                                             </div>
@@ -2355,7 +2876,7 @@
                                                         placeholder="••••••••"
                                                         value={customerPassword}
                                                         onChange={(e) => setCustomerPassword(e.target.value)}
-                                                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-xs focus:ring-1 focus:ring-indigo-500"
+                                                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-xs focus:ring-1 focus:ring-indigo-500 bg-white"
                                                     />
                                                 </div>
                                             </div>
@@ -2374,7 +2895,7 @@
                                                         placeholder="merchant@shopify-lite.in"
                                                         value={sellerEmail}
                                                         onChange={(e) => setSellerEmail(e.target.value)}
-                                                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-xs focus:ring-1 focus:ring-indigo-500"
+                                                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-xs focus:ring-1 focus:ring-indigo-500 bg-white"
                                                     />
                                                 </div>
                                             </div>
@@ -2389,7 +2910,7 @@
                                                         placeholder="••••••••"
                                                         value={sellerPassword}
                                                         onChange={(e) => setSellerPassword(e.target.value)}
-                                                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-xs focus:ring-1 focus:ring-indigo-500"
+                                                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-xs focus:ring-1 focus:ring-indigo-500 bg-white"
                                                     />
                                                 </div>
                                             </div>
@@ -2415,7 +2936,6 @@
                         </div>
                     )}
 
-                    {}
                     {/* Floating Smart AI Chat Widget */}
                     <div className="fixed bottom-6 right-6 z-40 no-print">
                         {!showAiAssistant ? (
@@ -2492,7 +3012,7 @@
                                 <div className="bg-gray-100 p-1.5 rounded text-gray-500">
                                     <Icon name="ShoppingBag" className="h-4 w-4" />
                                 </div>
-                                <span>© 2026 Shopify.Lite India. All tax invoicing calculations comply with standard CGST / SGST regulations.</span>
+                                <span>© 2026 Shopify.Lite India. RWH - Mail Hub Plot No-23, Tower-2 Ground floor Navi Mumbai -400703. All tax invoicing calculations comply with standard CGST / SGST regulations.</span>
                             </div>
                             <div className="flex gap-4 justify-center">
                                 <span className="hover:text-indigo-600 cursor-pointer">Security Center</span>
