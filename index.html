@@ -278,6 +278,14 @@
                             <circle cx="12" cy="10" r="3"></circle>
                         </svg>
                     );
+                case 'Upload':
+                    return (
+                        <svg {...svgProps}>
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                    );
                 default:
                     return null;
             }
@@ -541,29 +549,43 @@
             const [payoutsList, setPayoutsList] = useState(() => {
                 try {
                     const local = localStorage.getItem('shopify_lite_payouts');
-                    return local ? JSON.parse(local) : [];
+                    if (local) {
+                        const parsed = JSON.parse(local);
+                        if (Array.isArray(parsed)) return parsed;
+                    }
                 } catch {
                     return [];
                 }
+                return [];
             });
 
-            // Persistent products, cart, and orders
+            // Persistent products, cart, and orders (Safe fallback prevents reset on reload)
             const [products, setProducts] = useState(() => {
                 try {
                     const local = localStorage.getItem('shopify_lite_products');
-                    return local ? JSON.parse(local) : INITIAL_PRODUCTS;
-                } catch {
-                    return INITIAL_PRODUCTS;
+                    if (local) {
+                        const parsed = JSON.parse(local);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            return parsed;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Storage load failed, restoring active catalog catalog", e);
                 }
+                return INITIAL_PRODUCTS;
             });
 
             const [cart, setCart] = useState(() => {
                 try {
                     const local = localStorage.getItem('shopify_lite_cart');
-                    return local ? JSON.parse(local) : [];
+                    if (local) {
+                        const parsed = JSON.parse(local);
+                        if (Array.isArray(parsed)) return parsed;
+                    }
                 } catch {
                     return [];
                 }
+                return [];
             });
 
             const [orders, setOrders] = useState(() => {
@@ -588,10 +610,14 @@
                 ];
                 try {
                     const local = localStorage.getItem('shopify_lite_orders');
-                    return local ? JSON.parse(local) : defaultOrders;
+                    if (local) {
+                        const parsed = JSON.parse(local);
+                        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                    }
                 } catch {
                     return defaultOrders;
                 }
+                return defaultOrders;
             });
 
             // Syncing states to localStorage inside React Effects
@@ -600,8 +626,15 @@
                 localStorage.setItem('shopify_lite_user', currentUser ? JSON.stringify(currentUser) : '');
             }, [isAuthenticated, currentUser]);
 
+            // High Safety: Writes updates only if state is validated
             useEffect(() => {
-                localStorage.setItem('shopify_lite_products', JSON.stringify(products));
+                try {
+                    if (products && products.length > 0) {
+                        localStorage.setItem('shopify_lite_products', JSON.stringify(products));
+                    }
+                } catch (err) {
+                    console.warn("Could not save to localStorage: ", err);
+                }
             }, [products]);
 
             useEffect(() => {
@@ -641,6 +674,10 @@
 
             const [viewingInvoiceOrder, setViewingInvoiceOrder] = useState(null);
             const [toast, setToast] = useState(null);
+
+            // Import/Export State Variables
+            const [showImportArea, setShowImportArea] = useState(false);
+            const [importRawJson, setImportRawJson] = useState('');
 
             // Smart AI Assistant
             const [showAiAssistant, setShowAiAssistant] = useState(false);
@@ -812,6 +849,43 @@
                 document.execCommand('copy');
                 document.body.removeChild(el);
                 triggerToast("UPI ID Copied to Clipboard!");
+            };
+
+            // Database Export / Import Utilities (Resolves GitHub Pages sandbox reload loss completely)
+            const exportDatabaseJson = () => {
+                try {
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(products, null, 2));
+                    const downloadAnchor = document.createElement('a');
+                    downloadAnchor.setAttribute("href", dataStr);
+                    downloadAnchor.setAttribute("download", `shopify_lite_catalog_${Date.now()}.json`);
+                    document.body.appendChild(downloadAnchor);
+                    downloadAnchor.click();
+                    downloadAnchor.remove();
+                    triggerToast("Store catalog JSON backup generated successfully!");
+                } catch {
+                    triggerToast("Export failed.", "error");
+                }
+            };
+
+            const importDatabaseJson = (e) => {
+                e.preventDefault();
+                if (!importRawJson.trim()) {
+                    triggerToast("Please paste a valid JSON backup string.", "error");
+                    return;
+                }
+                try {
+                    const parsed = JSON.parse(importRawJson.trim());
+                    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].title && parsed[0].price) {
+                        setProducts(parsed);
+                        triggerToast(`Success! Imported ${parsed.length} items to your catalog.`);
+                        setImportRawJson('');
+                        setShowImportArea(false);
+                    } else {
+                        triggerToast("Invalid file structure. Must be a valid JSON array of products.", "error");
+                    }
+                } catch {
+                    triggerToast("JSON Parsing failed. Please check your pasted text format.", "error");
+                }
             };
 
             const cartSubtotal = useMemo(() => {
@@ -991,7 +1065,8 @@
             };
 
             const deleteProductBySeller = (id) => {
-                setProducts(products.filter(p => p.id !== id));
+                const filtered = products.filter(p => p.id !== id);
+                setProducts(filtered);
                 triggerToast("Listing deleted from inventory.", "error");
             };
 
@@ -1883,7 +1958,7 @@
                                         onClick={() => setSellerActiveTab('bank-settlement')}
                                         className={`px-4 py-2 text-xs font-bold whitespace-nowrap rounded-lg transition ${sellerActiveTab === 'bank-settlement' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
                                     >
-                                        Bank payout Setup
+                                        Bank Payout Setup
                                     </button>
                                     <button 
                                         onClick={() => setSellerActiveTab('fulfillment')}
@@ -1893,59 +1968,115 @@
                                     </button>
                                 </div>
 
-                                {/* Subtab 1: Inventory stock list */}
+                                {/* Subtab 1: Inventory stock list with Backup Import/Export Tools */}
                                 {sellerActiveTab === 'inventory' && (
-                                    <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-xs">
-                                        <h3 className="font-extrabold text-gray-900 text-base mb-4 flex items-center gap-1.5">
-                                            <Icon name="SlidersHorizontal" className="h-5 w-5 text-indigo-600" /> Currently Active Listings & Stock Audits
-                                        </h3>
-
-                                        <div className="space-y-3">
-                                            {products.map((item) => (
-                                                <div 
-                                                    key={item.id} 
-                                                    className="flex flex-wrap items-center justify-between p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition text-xs gap-4"
+                                    <div className="space-y-4">
+                                        {/* Security Backup Control Row */}
+                                        <div className="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 text-xs">
+                                            <div className="space-y-1">
+                                                <h4 className="font-bold text-indigo-950 flex items-center gap-1">
+                                                    <Icon name="ShieldCheck" className="h-4.5 w-4.5 text-indigo-600" /> Live Catalog Backup Utilities
+                                                </h4>
+                                                <p className="text-[11px] text-indigo-700">Export your product catalog or import standard backups to preserve custom uploads across incognito reloads.</p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <button 
+                                                    onClick={exportDatabaseJson}
+                                                    className="bg-white hover:bg-indigo-100 text-indigo-700 font-bold py-2 px-3.5 rounded-xl border border-indigo-200 transition text-xxs flex items-center gap-1.5"
                                                 >
-                                                    <div className="flex items-center gap-3 min-w-0">
-                                                        <img 
-                                                            src={item.image} 
-                                                            alt={item.title} 
-                                                            onError={(e) => {
-                                                                e.target.onerror = null;
-                                                                e.target.src = `https://placehold.co/80x80/4f46e5/ffffff?text=${encodeURIComponent(item.title)}`;
-                                                            }}
-                                                            className="w-10 h-10 object-cover rounded-md" 
-                                                        />
-                                                        <div className="min-w-0">
-                                                          <h4 className="font-bold text-gray-900 truncate">{item.title}</h4>
-                                                          <span className="text-[10px] text-indigo-600 uppercase font-semibold">{item.category}</span>
-                                                        </div>
-                                                    </div>
+                                                    <Icon name="Download" className="h-3.5 w-3.5" /> Export Catalog (JSON)
+                                                </button>
+                                                <button 
+                                                    onClick={() => setShowImportArea(!showImportArea)}
+                                                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-3.5 rounded-xl transition text-xxs flex items-center gap-1.5"
+                                                >
+                                                    <Icon name="Upload" className="h-3.5 w-3.5" /> Restore/Import Backup
+                                                </button>
+                                            </div>
+                                        </div>
 
-                                                    <div className="flex items-center gap-6">
-                                                        <div className="text-right">
-                                                            <span className="text-[10px] text-gray-400 block">Unit Selling Price</span>
-                                                            <span className="font-bold text-gray-900">
-                                                                ₹{(item.salePrice || item.price).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
-                                                            </span>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <span className="text-[10px] text-gray-400 block">Inventory</span>
-                                                            <span className={`font-bold ${item.stock === 0 ? 'text-red-500' : 'text-gray-700'}`}>
-                                                                {item.stock} left
-                                                            </span>
-                                                        </div>
-                                                        
-                                                        <button
-                                                            onClick={() => deleteProductBySeller(item.id)}
-                                                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition"
-                                                            title="Delete Listing"
-                                                        >
-                                                            <Icon name="Trash2" className="h-4.5 w-4.5" />
-                                                        </button>
-                                                    </div>
+                                        {/* Paste Backup Container */}
+                                        {showImportArea && (
+                                            <form onSubmit={importDatabaseJson} className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm space-y-3">
+                                                <h4 className="font-bold text-gray-900 text-xs">Paste Catalog JSON Backup</h4>
+                                                <textarea 
+                                                    rows="4"
+                                                    required
+                                                    value={importRawJson}
+                                                    onChange={(e) => setImportRawJson(e.target.value)}
+                                                    placeholder='Paste your backup data here. (Format: [{"title": "Classic soft tee", "price": 99, ...}])'
+                                                    className="w-full text-xxs p-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-500 font-mono"
+                                                />
+                                                <div className="flex justify-end gap-2">
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => { setImportRawJson(''); setShowImportArea(false); }}
+                                                        className="text-gray-400 hover:text-gray-600 text-xxs font-semibold px-3 py-1.5"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                    <button 
+                                                        type="submit"
+                                                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xxs px-4 py-1.5 rounded-lg"
+                                                    >
+                                                        Validate & Import
+                                                    </button>
                                                 </div>
-                                            ))}
+                                            </form>
+                                        )}
+
+                                        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-xs">
+                                            <h3 className="font-extrabold text-gray-900 text-base mb-4 flex items-center gap-1.5">
+                                                <Icon name="SlidersHorizontal" className="h-5 w-5 text-indigo-600" /> Currently Active Listings & Stock Audits
+                                            </h3>
+
+                                            <div className="space-y-3">
+                                                {products.map((item) => (
+                                                    <div 
+                                                        key={item.id} 
+                                                        className="flex flex-wrap items-center justify-between p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition text-xs gap-4"
+                                                    >
+                                                        <div className="flex items-center gap-3 min-w-0">
+                                                            <img 
+                                                                src={item.image} 
+                                                                alt={item.title} 
+                                                                onError={(e) => {
+                                                                    e.target.onerror = null;
+                                                                    e.target.src = `https://placehold.co/80x80/4f46e5/ffffff?text=${encodeURIComponent(item.title)}`;
+                                                                }}
+                                                                className="w-10 h-10 object-cover rounded-md" 
+                                                            />
+                                                            <div className="min-w-0">
+                                                              <h4 className="font-bold text-gray-900 truncate">{item.title}</h4>
+                                                              <span className="text-[10px] text-indigo-600 uppercase font-semibold">{item.category}</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-6">
+                                                            <div className="text-right">
+                                                                <span className="text-[10px] text-gray-400 block">Unit Selling Price</span>
+                                                                <span className="font-bold text-gray-900">
+                                                                    ₹{(item.salePrice || item.price).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                                                                </span>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <span className="text-[10px] text-gray-400 block">Inventory</span>
+                                                                <span className={`font-bold ${item.stock === 0 ? 'text-red-500' : 'text-gray-700'}`}>
+                                                                    {item.stock} left
+                                                                </span>
+                                                            </div>
+                                                            
+                                                            <button
+                                                                onClick={() => deleteProductBySeller(item.id)}
+                                                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition"
+                                                                title="Delete Listing"
+                                                            >
+                                                                <Icon name="Trash2" className="h-4.5 w-4.5" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                 )}
@@ -2723,14 +2854,14 @@
                                         <div>
                                             <h3 className="font-extrabold text-gray-400 uppercase text-[9px] mb-1">Sold By (Merchant)</h3>
                                             <strong className="text-gray-900 block font-bold">SHOPIFY-LITE MARKETPLACE</strong>
-                                            <span className="text-gray-500 block leading-tight">RWH - Mail Hub Plot No-23, Tower-2 Ground floor Navi Mumbai -400703</span>
+                                            <span className="text-gray-500 block leading-tight font-semibold text-gray-700">RWH - Mail Hub Plot No-23, Tower-2 Ground floor Navi Mumbai -400703</span>
                                         </div>
                                         <div>
                                             <h3 className="font-extrabold text-gray-400 uppercase text-[9px] mb-1">Billing To (Buyer)</h3>
                                             <strong className="text-gray-900 block font-bold">{viewingInvoiceOrder.customerName}</strong>
                                             <span className="text-gray-500 block">Phone: {viewingInvoiceOrder.customerPhone}</span>
                                             <span className="text-gray-500 block">Email: {viewingInvoiceOrder.customerEmail}</span>
-                                            <span className="text-gray-500 block leading-tight">Address: {viewingInvoiceOrder.shippingAddress}</span>
+                                            <span className="text-gray-500 block leading-tight">{viewingInvoiceOrder.shippingAddress}</span>
                                         </div>
                                     </div>
 
