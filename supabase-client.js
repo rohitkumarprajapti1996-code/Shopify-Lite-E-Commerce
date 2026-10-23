@@ -1,7 +1,7 @@
 /* Shopify-Lite Supabase client. Publishable key is safe for browser use; RLS protects data. */
 (function () {
   const SUPABASE_URL = "https://flquftroiodugeqvmrhm.supabase.co";
-  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_7oZomBiJG6yC-xW-9X1cng_WGgQiVT6";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_P2faaLLjkVZlT4CeUNTDiQ_nWT6kp9X";
   if (!window.supabase || !window.supabase.createClient) {
     console.error("Supabase JS did not load.");
     return;
