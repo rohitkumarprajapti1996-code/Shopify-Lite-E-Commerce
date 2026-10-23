@@ -866,12 +866,33 @@
                             if (!/^\d{6,8}$/.test(authOtp.trim())) throw new Error('Enter the verification code sent to the admin email.');
                             if (sellerPassword.length < 8) throw new Error('Create a password with at least 8 characters.');
                             if (sellerPassword !== confirmPassword) throw new Error('Passwords do not match.');
-                            const verified = await auth.auth.verifyOtp({ email, token:authOtp.trim(), type:'email' });
-                            if (verified.error) throw verified.error;
+                            // Reuse a verified session if a previous click consumed the OTP
+                            // but the password update failed.
+                            const sessionResult = await auth.auth.getSession();
+                            let activeUser = sessionResult.data?.session?.user;
+                            if (!activeUser || (activeUser.email || '').toLowerCase() !== email) {
+                                const verified = await auth.auth.verifyOtp({ email, token:authOtp.trim(), type:'email' });
+                                if (verified.error) throw new Error('Email code verification failed: ' + verified.error.message);
+                                activeUser = verified.data?.user || verified.data?.session?.user;
+                                if (verified.data?.session) {
+                                    const savedSession = await auth.auth.setSession({
+                                        access_token: verified.data.session.access_token,
+                                        refresh_token: verified.data.session.refresh_token
+                                    });
+                                    if (savedSession.error) throw new Error('Email verified but session could not be saved: ' + savedSession.error.message);
+                                }
+                            }
+                            if (!activeUser || (activeUser.email || '').toLowerCase() !== email) {
+                                const refreshed = await auth.auth.getUser();
+                                if (refreshed.error || !refreshed.data?.user || (refreshed.data.user.email || '').toLowerCase() !== email) {
+                                    throw new Error('Email code was verified, but no admin session was found. Request a new code and try again.');
+                                }
+                            }
                             const changed = await auth.auth.updateUser({ password:sellerPassword });
-                            if (changed.error) throw changed.error;
+                            if (changed.error) throw new Error('Email verified, but saving the password failed: ' + changed.error.message);
                             setAuthMode('login'); setEmailOtpSent(false); setAuthOtp(''); setSellerPassword(''); setConfirmPassword('');
-                            triggerToast('Admin password created/updated. Sign in with your password.');
+                            await auth.auth.signOut();
+                            triggerToast('Admin password created successfully. Now sign in using your email and new password.');
                             return;
                         }
                         const result = await auth.auth.signInWithPassword({ email, password:sellerPassword });
