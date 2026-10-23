@@ -634,9 +634,13 @@
             useEffect(() => {
                 let alive = true;
                 if (!isAuthenticated || !currentUser || !currentUser.id) return () => { alive = false; };
-                window.ShopifySupabase.loadOrders().then((remoteOrders) => {
+                (async () => {
+                    const { data, error } = await window.ShopifySupabase.client.auth.getSession();
+                    if (error) throw error;
+                    if (!data.session) return;
+                    const remoteOrders = await window.ShopifySupabase.loadOrders();
                     if (alive) setOrders(remoteOrders);
-                }).catch((err) => console.warn('Could not load saved Shopify orders:', err));
+                })().catch((err) => console.warn('Could not load saved Shopify orders:', err));
                 return () => { alive = false; };
             }, [isAuthenticated, currentUser && currentUser.id]);
 
@@ -1013,7 +1017,7 @@
                         id: orderNumber,
                         customerName: checkoutFullName.trim(),
                         customerPhone: checkoutPhone.trim(),
-                        customerEmail: currentUser?.email || `${checkoutPhone.trim()}@shopify-lite.in`,
+                        customerEmail: currentUser?.email || '',
                         items: cart.map(item => ({ 
                             id: item.id, 
                             title: item.title, 
