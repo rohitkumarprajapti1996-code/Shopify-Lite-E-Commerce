@@ -83,16 +83,30 @@
       return data;
     },
     async loadOrders() {
-      const { data, error } = await client.from("shopify_lite_orders").select("*, shopify_lite_order_items(*)").order("created_at", { ascending: false });
+      const { data, error } = await client.from("shopify_lite_orders")
+        .select("*, shopify_lite_order_items(*)").order("created_at", { ascending: false });
       if (error) throw error;
-      return data || [];
+      return (data || []).map(o => ({
+        id: o.order_number, databaseId: o.id, customerName: o.customer_name || "",
+        customerPhone: o.customer_phone || "", customerEmail: o.customer_email || "",
+        items: (o.shopify_lite_order_items || []).map(i => ({
+          id: i.product_id || i.id, title: i.product_title, price: Number(i.unit_price),
+          quantity: Number(i.quantity), sku: i.sku || ""
+        })),
+        subtotal: Number(o.subtotal || 0), gstAmount: Number(o.gst_amount || 0),
+        total: Number(o.total || 0), date: (o.created_at || "").slice(0, 10),
+        status: o.status || "Pending", shippingAddress: o.shipping_address || "",
+        paymentMethod: o.payment_method || "COD", paymentStatus: o.payment_status || "pending",
+        transactionId: o.transaction_reference || ""
+      }));
     },
-        async updateOrderStatus(orderId, status) {
+    async updateOrderStatus(orderId, status) {
       if (!/^[0-9a-f-]{36}$/i.test(String(orderId))) return;
-      const allowed = ["Pending", "Confirmed", "Packed", "Dispatched", "Shipped", "Delivered", "Cancelled"];
+      const allowed = ["Pending", "Confirmed", "Packed", "Dispatched", "Shipped", "Delivered", "Cancelled", "Returned"];
       const normalized = status === "Ordered" ? "Pending" : status;
       if (!allowed.includes(normalized)) return;
-      const { error } = await client.from("shopify_orders").update({ status: normalized, updated_at: new Date().toISOString() }).eq("id", orderId);
+      const { error } = await client.from("shopify_lite_orders")
+        .update({ status: normalized, updated_at: new Date().toISOString() }).eq("id", orderId);
       if (error) throw error;
     }
   };
