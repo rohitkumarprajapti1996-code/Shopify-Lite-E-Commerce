@@ -1086,7 +1086,11 @@
                     tags: newProduct.tags ? newProduct.tags.split(',').map(t => t.trim()) : ['New Listing']
                 };
 
-                setProducts([createdProduct, ...products]);
+                try {
+                    if (!currentUser || currentUser.role !== 'admin') throw new Error('Admin sign-in is required to upload products.');
+                    const savedProduct = await window.ShopifySupabase.addProduct(createdProduct, currentUser.id);
+                    setProducts([savedProduct, ...products]);
+                } catch (err) { triggerToast(err.message || 'Could not save product.', 'error'); return; }
                 triggerToast(`Successfully added: ${createdProduct.title}`);
                 
                 setNewProduct({
