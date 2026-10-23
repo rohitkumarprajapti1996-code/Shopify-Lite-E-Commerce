@@ -100,6 +100,30 @@
         transactionId: o.transaction_reference || ""
       }));
     },
+    async createRazorpayOrder(customer, items) {
+      const { data, error } = await client.functions.invoke("razorpay-create-order", {
+        body: {
+          customer: { name: customer.name, phone: customer.phone, email: customer.email || "", address: customer.address },
+          items: items.map(item => ({ id: item.id, quantity: Number(item.quantity) }))
+        }
+      });
+      if (error) throw new Error(error.message || "Could not start Razorpay checkout.");
+      if (!data || !data.razorpayOrderId) throw new Error(data?.error || "Payment order was not created.");
+      return data;
+    },
+    async verifyRazorpayPayment(orderId, response) {
+      const { data, error } = await client.functions.invoke("razorpay-verify-payment", {
+        body: {
+          orderId,
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_signature: response.razorpay_signature
+        }
+      });
+      if (error) throw new Error(error.message || "Could not verify Razorpay payment.");
+      if (!data || data.status !== "paid") throw new Error(data?.message || data?.error || "Payment is not captured yet.");
+      return data;
+    },
     async updateOrderStatus(orderId, status) {
       if (!/^[0-9a-f-]{36}$/i.test(String(orderId))) return;
       const allowed = ["Pending", "Confirmed", "Packed", "Dispatched", "Shipped", "Delivered", "Cancelled", "Returned"];
