@@ -2664,12 +2664,12 @@ setIsVerifyingUpi(true);
                                         {isVerifyingUpi ? (
                                             <>
                                                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                                                <span>Verifying Transaction Ledger...</span>
+                                                <span>Opening secure checkout...</span>
                                             </>
                                         ) : (
                                             <>
                                                 <Icon name="ShieldCheck" className="h-5 w-5" />
-                                                <span>Confirm Payment of ₹{cartGrandTotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                                                <span>Continue to Razorpay · ₹{cartGrandTotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                                             </>
                                         )}
                                     </button>
