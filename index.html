@@ -813,18 +813,24 @@
                             return;
                         }
                         if (authMode === 'signup') {
+                            if (!emailOtpSent) {
+                                const sent = await auth.auth.signInWithOtp({ email, options: { shouldCreateUser:true } });
+                                if (sent.error) throw sent.error;
+                                setEmailOtpSent(true);
+                                triggerToast('A verification code was sent to your email. Enter it to continue creating your account.');
+                                return;
+                            }
+                            if (!/^\\d{6,8}$/.test(authOtp.trim())) throw new Error('Enter the verification code sent to your email.');
                             if (customerPassword.length < 8) throw new Error('Create a password with at least 8 characters.');
                             if (customerPassword !== confirmPassword) throw new Error('Passwords do not match.');
-                            const result = await auth.auth.signUp({ email, password: customerPassword, options: { emailRedirectTo: window.location.origin + window.location.pathname } });
-                            if (result.error) throw result.error;
-                            if (result.data.session) {
-                                const user = result.data.user;
-                                setIsAuthenticated(true); setCurrentUser({ id:user.id, name:email.split('@')[0], email, phone:'', role:'customer' });
-                                setShowAuthModal(false); setCurrentView('home'); triggerToast('Account created successfully.');
-                            } else {
-                                triggerToast('Account created. Please verify your email, then sign in with your password.');
-                                setAuthMode('login');
-                            }
+                            const verified = await auth.auth.verifyOtp({ email, token:authOtp.trim(), type:'email' });
+                            if (verified.error) throw verified.error;
+                            const changed = await auth.auth.updateUser({ password:customerPassword });
+                            if (changed.error) throw changed.error;
+                            const user = changed.data.user || verified.data.user;
+                            setIsAuthenticated(true); setCurrentUser({ id:user.id, name:email.split('@')[0], email, phone:'', role:'customer' });
+                            setShowAuthModal(false); setAuthMode('login'); setEmailOtpSent(false); setAuthOtp(''); setCustomerPassword(''); setConfirmPassword('');
+                            setCurrentView('home'); triggerToast('Email verified. Account created successfully.');
                             return;
                         }
                         if (authMode === 'forgot' && emailOtpSent) {
@@ -2944,13 +2950,13 @@ setIsVerifyingUpi(true);
                                                     <input type="email" required autoComplete="email" placeholder="you@example.com" value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} className="w-full pl-10 pr-4 py-3 border rounded-xl text-sm bg-white" />
                                                 </div>
                                             </div>
-                                            {authMode === 'forgot' && emailOtpSent && (
+                                            {(authMode === 'forgot' && emailOtpSent || authMode === 'signup' && emailOtpSent) && (
                                                 <div>
                                                     <label className="block text-[10px] font-extrabold text-gray-500 uppercase mb-1 tracking-wider">Email verification code</label>
                                                     <input type="text" inputMode="numeric" autoComplete="one-time-code" required value={authOtp} onChange={e=>setAuthOtp(e.target.value)} placeholder="Enter code from email" className="w-full px-4 py-3 border rounded-xl text-sm" />
                                                 </div>
                                             )}
-                                            {authMode !== 'forgot' || emailOtpSent ? (
+                                            {authMode !== 'forgot' && (authMode !== 'signup' || emailOtpSent) || authMode === 'forgot' && emailOtpSent ? (
                                                 <>
                                                     <div>
                                                         <label className="block text-[10px] font-extrabold text-gray-500 uppercase mb-1 tracking-wider">{authMode === 'forgot' ? 'New password' : 'Password'}</label>
@@ -2967,8 +2973,8 @@ setIsVerifyingUpi(true);
                                             <div className="flex flex-wrap justify-between gap-3 text-xs font-semibold">
                                                 {authMode === 'login' ? (
                                                     <>
-                                                        <button type="button" onClick={()=>setAuthMode('signup')} className="text-indigo-700">Create customer account</button>
-                                                        <button type="button" onClick={()=>{setAuthMode('forgot');setEmailOtpSent(false);setAuthOtp('');}} className="text-gray-500">Forgot password?</button>
+                                                        <button type="button" onClick={()=>{setAuthMode('signup');setEmailOtpSent(false);setAuthOtp('');setCustomerPassword('');setConfirmPassword('');}} className="text-indigo-700">Create customer account</button>
+                                                        <button type="button" onClick={()=>{setAuthMode('forgot');setEmailOtpSent(false);setAuthOtp('');setCustomerPassword('');setConfirmPassword('');}} className="text-gray-500">Forgot password?</button>
                                                     </>
                                                 ) : (
                                                     <button type="button" onClick={()=>{setAuthMode('login');setEmailOtpSent(false);setAuthOtp('');setCustomerPassword('');setConfirmPassword('');}} className="text-indigo-700">Back to sign in</button>
@@ -3012,7 +3018,7 @@ setIsVerifyingUpi(true);
                                                 : (authMode === 'admin-setup' ? (!emailOtpSent ? 'Send admin verification code' : 'Verify code & save password') : 'Admin sign in')}
                                         </button>
                                     </div>
-                                </form>                         </form>
+                                </form>
 
                                 <div className="text-center mt-4">
                                     <p className="text-[10px] text-gray-400 leading-relaxed">
