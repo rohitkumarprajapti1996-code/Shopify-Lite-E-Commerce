@@ -60,16 +60,16 @@ class MainActivity : Activity() {
             CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
             webChromeClient = object : WebChromeClient() {
                 override fun onProgressChanged(view: WebView?, newProgress: Int) {
-                    progress.progress = newProgress
-                    progress.visibility = if (newProgress >= 100) View.GONE else View.VISIBLE
+                    this@MainActivity.progress.progress = newProgress
+                    this@MainActivity.progress.visibility = if (newProgress >= 100) View.GONE else View.VISIBLE
                 }
             }
             webViewClient = object : WebViewClient() {
                 override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                    progress.visibility = View.VISIBLE
+                    this@MainActivity.progress.visibility = View.VISIBLE
                 }
                 override fun onPageFinished(view: WebView?, url: String?) {
-                    progress.visibility = View.GONE
+                    this@MainActivity.progress.visibility = View.GONE
                 }
                 override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                     val uri = request.url
