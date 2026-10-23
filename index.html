@@ -820,7 +820,7 @@
                                 triggerToast('A verification code was sent to your email. Enter it to continue creating your account.');
                                 return;
                             }
-                            if (!/^\\d{6,8}$/.test(authOtp.trim())) throw new Error('Enter the verification code sent to your email.');
+                            if (!/^\d{6,8}$/.test(authOtp.trim())) throw new Error('Enter the verification code sent to your email.');
                             if (customerPassword.length < 8) throw new Error('Create a password with at least 8 characters.');
                             if (customerPassword !== confirmPassword) throw new Error('Passwords do not match.');
                             const verified = await auth.auth.verifyOtp({ email, token:authOtp.trim(), type:'email' });
@@ -834,7 +834,7 @@
                             return;
                         }
                         if (authMode === 'forgot' && emailOtpSent) {
-                            if (!/^\\d{6,8}$/.test(authOtp.trim())) throw new Error('Enter the email verification code.');
+                            if (!/^\d{6,8}$/.test(authOtp.trim())) throw new Error('Enter the email verification code.');
                             if (customerPassword.length < 8) throw new Error('Create a new password with at least 8 characters.');
                             if (customerPassword !== confirmPassword) throw new Error('Passwords do not match.');
                             const verified = await auth.auth.verifyOtp({ email, token:authOtp.trim(), type:'email' });
@@ -863,7 +863,7 @@
                                 setEmailOtpSent(true); triggerToast('Admin verification code sent to your email.');
                                 return;
                             }
-                            if (!/^\\d{6,8}$/.test(authOtp.trim())) throw new Error('Enter the verification code sent to the admin email.');
+                            if (!/^\d{6,8}$/.test(authOtp.trim())) throw new Error('Enter the verification code sent to the admin email.');
                             if (sellerPassword.length < 8) throw new Error('Create a password with at least 8 characters.');
                             if (sellerPassword !== confirmPassword) throw new Error('Passwords do not match.');
                             const verified = await auth.auth.verifyOtp({ email, token:authOtp.trim(), type:'email' });
