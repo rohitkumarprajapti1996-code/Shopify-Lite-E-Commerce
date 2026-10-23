@@ -962,9 +962,35 @@
                         const result = await auth.auth.signInWithPassword({ email, password:customerPassword });
                         if (result.error) throw result.error;
                         const user = result.data.user;
-                        const savedName = localStorage.getItem('shopify_lite_profile_name') || email.split('@')[0];
+                        // Clear browser profile cache first so another account's details cannot leak across sessions.
+                        ['shopify_lite_profile_name','shopify_lite_profile_address','shopify_lite_profile_phone','shopify_lite_profile_pincode'].forEach(k => localStorage.removeItem(k));
+                        setProfileDisplayName('');
+                        setProfileAddress('');
+                        setCheckoutFullName('');
+                        setCheckoutPhone(user.phone || '');
+                        setCheckoutAddress('');
+                        setCheckoutPincode('');
+                        let savedProfile = null;
+                        try { savedProfile = await window.ShopifySupabase.loadCustomerProfile(user.id); }
+                        catch (profileErr) { console.warn('Could not load this customer profile:', profileErr); }
+                        const savedName = savedProfile?.full_name || (user.email || email).split('@')[0];
+                        const savedAddress = savedProfile?.shipping_address || '';
+                        const savedPhone = savedProfile?.phone || user.phone || '';
+                        const savedPincode = savedProfile?.pincode || '';
                         setProfileDisplayName(savedName);
-                        setIsAuthenticated(true); setCurrentUser({ id:user.id, name:savedName, phone:user.phone || '', email:user.email || email, role:'customer' });
+                        setProfileAddress(savedAddress);
+                        setCheckoutFullName(savedProfile?.full_name || '');
+                        setCheckoutPhone(savedPhone);
+                        setCheckoutAddress(savedAddress);
+                        setCheckoutPincode(savedPincode);
+                        if (savedProfile) {
+                            localStorage.setItem('shopify_lite_profile_name', savedName);
+                            localStorage.setItem('shopify_lite_profile_address', savedAddress);
+                            localStorage.setItem('shopify_lite_profile_phone', savedPhone);
+                            localStorage.setItem('shopify_lite_profile_pincode', savedPincode);
+                        }
+                        setIsAuthenticated(true);
+                        setCurrentUser({ id:user.id, name:savedName, phone:savedPhone, email:user.email || email, role:'customer' });
                         setShowAuthModal(false); setCurrentView('home'); triggerToast('Signed in successfully.');
                     } else {
                         const email = sellerEmail.trim().toLowerCase();
@@ -1013,7 +1039,16 @@
                         if (result.error) throw result.error;
                         const allowed = await window.ShopifySupabase.isAdmin();
                         if (!allowed) { await auth.auth.signOut(); throw new Error('This account is not on the Shopify-Lite admin allow-list.'); }
-                        setIsAuthenticated(true); setCurrentUser({ id:result.data.user.id, name:email.split('@')[0].toUpperCase(), email, role:'admin' });
+                        // Admin session starts with no customer-specific profile values.
+                        ['shopify_lite_profile_name','shopify_lite_profile_address','shopify_lite_profile_phone','shopify_lite_profile_pincode'].forEach(k => localStorage.removeItem(k));
+                        setProfileDisplayName('');
+                        setProfileAddress('');
+                        setCheckoutFullName('');
+                        setCheckoutPhone('');
+                        setCheckoutAddress('');
+                        setCheckoutPincode('');
+                        setIsAuthenticated(true);
+                        setCurrentUser({ id:result.data.user.id, name:'Shopify-Lite Admin', email:result.data.user.email || email, role:'admin' });
                         setShowAuthModal(false); setCurrentView('seller-dashboard'); setSellerActiveTab('inventory'); triggerToast('Admin signed in successfully.');
                     }
                     setCustomerPassword(''); setSellerPassword(''); setConfirmPassword('');
