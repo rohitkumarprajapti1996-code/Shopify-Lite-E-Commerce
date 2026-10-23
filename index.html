@@ -511,6 +511,7 @@
 
             const [authRole, setAuthRole] = useState('customer'); // customer or seller
             const [showAuthModal, setShowAuthModal] = useState(false);
+            const [otpSent, setOtpSent] = useState(false);
 
             // Login inputs
             const [customerPhone, setCustomerPhone] = useState('');
@@ -724,56 +725,37 @@
                 });
             }, [products, searchTerm, selectedCategory, onlySales]);
 
-            const handleAuthSubmit = (e) => {
+            const handleAuthSubmit = async (e) => {
                 e.preventDefault();
-
-                if (authRole === 'customer') {
-                    if (!customerPhone.trim() || !customerPassword.trim()) {
-                        triggerToast("Please input both your Phone Number & Password.", "error");
-                        return;
+                try {
+                    if (authRole === 'customer') {
+                        const phone = customerPhone.trim().replace(/[\\s()-]/g, '');
+                        if (!/^\\+[1-9]\\d{7,14}$/.test(phone)) { triggerToast('Enter mobile with country code, e.g. +919876543210.', 'error'); return; }
+                        if (!otpSent) {
+                            const result = await window.ShopifySupabase.sendPhoneOtp(phone);
+                            if (result.error) throw result.error;
+                            setCustomerPhone(phone); setOtpSent(true); triggerToast('SMS OTP sent. Enter the code received.'); return;
+                        }
+                        if (!/^\\d{6,8}$/.test(customerPassword.trim())) { triggerToast('Enter the SMS OTP code.', 'error'); return; }
+                        const result = await window.ShopifySupabase.verifyPhoneOtp(phone, customerPassword.trim());
+                        if (result.error) throw result.error;
+                        const user = result.data.user;
+                        const savedName = localStorage.getItem('shopify_lite_profile_name') || ('CUSTOMER-' + phone.slice(-4));
+                        setProfileDisplayName(savedName);
+                        setIsAuthenticated(true); setCurrentUser({ id: user.id, name: savedName, phone: user.phone || phone, email: user.email || '', role: 'customer' });
+                        setShowAuthModal(false); setOtpSent(false); setCustomerPassword(''); setCurrentView('home'); triggerToast('Mobile number verified. Welcome!');
+                    } else {
+                        const email = sellerEmail.trim().toLowerCase();
+                        if (!email || !sellerPassword) { triggerToast('Enter admin email and password.', 'error'); return; }
+                        const result = await window.ShopifySupabase.client.auth.signInWithPassword({ email: email, password: sellerPassword });
+                        if (result.error) throw result.error;
+                        const allowed = await window.ShopifySupabase.isAdmin();
+                        if (!allowed) { await window.ShopifySupabase.client.auth.signOut(); throw new Error('This account is not on the Shopify-Lite admin allow-list.'); }
+                        setIsAuthenticated(true); setCurrentUser({ id: result.data.user.id, name: email.split('@')[0].toUpperCase(), email: email, role: 'admin' });
+                        setShowAuthModal(false); setCurrentView('seller-dashboard'); setSellerActiveTab('inventory'); triggerToast('Admin signed in successfully.');
                     }
-
-                    // Look up if user already saved a custom display name in localStorage
-                    const savedName = localStorage.getItem('shopify_lite_profile_name') || `CUSTOMER-${customerPhone.slice(-4)}`;
-                    setProfileDisplayName(savedName);
-
-                    const userEmailMock = `${customerPhone}@shopify-lite.in`;
-                    const userData = {
-                        name: savedName,
-                        phone: customerPhone,
-                        email: userEmailMock,
-                        role: 'customer'
-                    };
-
-                    setIsAuthenticated(true);
-                    setCurrentUser(userData);
-                    setShowAuthModal(false);
-                    triggerToast(`Authenticated successfully as Buyer! Welcome back.`);
-                    setCurrentView('home');
-                } else {
-                    if (!sellerEmail.trim() || !sellerPassword.trim()) {
-                        triggerToast("Please fill out Email and Password to log in.", "error");
-                        return;
-                    }
-
-                    const userData = {
-                        name: `MERCHANT-${sellerEmail.split('@')[0].toUpperCase()}`,
-                        email: sellerEmail,
-                        role: 'seller'
-                    };
-
-                    setIsAuthenticated(true);
-                    setCurrentUser(userData);
-                    setShowAuthModal(false);
-                    triggerToast(`Merchant Logged In! Welcome, ${userData.name}.`);
-                    setCurrentView('seller-dashboard');
-                    setSellerActiveTab('inventory');
-                }
-
-                setCustomerPhone('');
-                setCustomerPassword('');
-                setSellerEmail('');
-                setSellerPassword('');
+                    setCustomerPassword(''); setSellerPassword('');
+                } catch (err) { console.error(err); triggerToast(err.message || 'Sign-in failed. Check Supabase Auth configuration.', 'error'); }
             };
 
             const handleSaveProfile = (e) => {
@@ -791,7 +773,9 @@
                 triggerToast("Your account profile details have been updated successfully!");
             };
 
-            const handleLogout = () => {
+            const handleLogout = async () => {
+                try { await window.ShopifySupabase.client.auth.signOut(); } catch (err) { console.warn(err); }
+                setOtpSent(false);
                 setIsAuthenticated(false);
                 setCurrentUser(null);
                 setCart([]);
@@ -3000,7 +2984,7 @@
                                             </div>
 
                                             <div>
-                                                <label className="block text-[10px] font-extrabold text-gray-400 uppercase mb-1 tracking-wider">Password</label>
+                                                <label className="block text-[10px] font-extrabold text-gray-400 uppercase mb-1 tracking-wider">{otpSent ? "SMS Verification Code" : "SMS OTP"}</label>
                                                 <div className="relative">
                                                     <Icon name="Lock" className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                                                     <input
@@ -3055,7 +3039,7 @@
                                             type="submit"
                                             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl text-xs shadow-md hover:shadow-lg transition flex items-center justify-center gap-1.5"
                                         >
-                                            <Icon name="Lock" className="h-4 w-4" /> Sign In securely to Shopify.Lite
+                                            <Icon name="Lock" className="h-4 w-4" /> {authRole === "customer" ? (otpSent ? "Verify SMS OTP" : "Send SMS OTP") : "Admin Sign In"}
                                         </button>
                                     </div>
                                 </form>
