@@ -1,38 +1,32 @@
-# Shopify-Lite + Supabase setup
+# Shopify-Lite E-Commerce — Dedicated Supabase Project
 
-This site uses the existing Supabase project at https://jtghqhfnruwtsfdxvsra.supabase.co.
-The browser client uses only the Supabase publishable key. Never put a service-role key in GitHub Pages.
+This website now uses its own Supabase project, separate from PW Returns CRM.
 
-## Already configured
-- Added separate `shopify_admins`, `shopify_products`, `shopify_orders`, `shopify_order_items`, and `shopify_dispatches` tables.
-- Enabled RLS and configured policies for public product browsing, customer-owned orders, admin product changes, and dispatch management.
-- Created the `shopify-products` Storage bucket with public image reads and admin-only writes.
-- Added `supabase-client.js` and connected it from `index.html`.
-- Customer sign-in now uses SMS OTP. Admin sign-in uses Supabase email/password and checks the private admin allow-list.
-- Admin product creation and catalog loading use Supabase.
+- Project URL: https://flquftroiodugeqvmrhm.supabase.co
+- Project ref: flquftroiodugeqvmrhm
+- Browser key: publishable key only (stored in `supabase-client.js`)
+- Admin allow-list: `rohitkumarprajapti1996@gmail.com`
 
-## Required dashboard setup before testing
-1. Open Supabase Dashboard > Authentication > Sign In / Providers > Phone and enable Phone sign-in.
-2. Configure a supported SMS provider in Supabase Auth settings. Real SMS will not work until a provider is configured. For India, check the SMS provider's TRAI/DLT requirements and sender/template registration.
-3. In Authentication > Users, create or confirm the admin user for the existing admin email. Set a strong password. The email must match the active row in `public.shopify_admins`.
-4. In Authentication > URL Configuration, add the GitHub Pages site URL to allowed redirect/site URLs if needed.
-5. Test with a customer mobile number in E.164 format, e.g. `+919876543210`. Never use a production OTP in screenshots or public issues.
-6. Verify GitHub Pages is deploying the `main` branch and repository root.
+## Separate project and CRM protection
+Do not change the PW Returns CRM Supabase project or its Auth email template. Customize email templates only in the Shopify-Lite project above.
 
-## Important limitations / next integration work
-- Product images can currently be saved by URL; the Storage upload helper is available in `supabase-client.js`, but the product form still needs a file-picker control to upload a local image.
-- The database tables and access policies for orders, order items, and dispatches are ready. The existing demo checkout and dispatch widgets still need to be connected to those tables before using them as a live order/dispatch system.
-- The demo payment UI is not a real payment gateway. Do not treat its simulated payment message as proof of payment.
-- Initial sample catalog and sample order data in the old demo are local examples; only products added after Supabase connection are persisted to the shared database.
-- Existing CRM tables were not modified.
+## Database setup completed
+- Dedicated `shopify_lite_products`, `shopify_lite_orders`, `shopify_lite_order_items`, `shopify_lite_dispatches`, `shopify_lite_admins`, and payment webhook event tables.
+- Row Level Security enabled and policies added for product browsing, admin product/dispatch management, and customer-owned order reads.
+- `shopify_lite_create_order` validates active products and stock on the server and computes totals from database prices.
+- `shopify-products` Storage bucket configured for public image reads and allow-listed admin uploads.
+- GitHub Pages client points at the dedicated project.
 
-## Data access model
-- Anyone may read active products and public product images.
-- Only authenticated users on the admin allow-list can create/update/delete products, upload images, manage orders, and manage dispatch records.
-- Customers can create orders for their own Supabase Auth user ID and read only their own orders/items/dispatch records.
-- Do not grant customer write access to stock, order status, or dispatch tables.
+## Required dashboard steps
+1. Open [Shopify-Lite Supabase Authentication](https://supabase.com/dashboard/project/flquftroiodugeqvmrhm/auth/users).
+2. In Authentication → URL Configuration, set Site URL to `https://rohitkumarprajapti1996-code.github.io/Shopify-Lite-E-Commerce/` and add that URL to Redirect URLs.
+3. In Authentication → Email, configure the Shopify-Lite email templates. Use a subject such as `Your Shopify-Lite verification code` and a branded Shopify-Lite message. Do not edit the PW Returns CRM project.
+4. Confirm email OTP/password sign-in is enabled in Auth settings.
+5. Add products in the Shopify-Lite admin after admin sign-in; the new project starts with an empty catalog and no old-project product/order records were copied.
+6. Do not add service-role keys or payment secrets to GitHub Pages.
 
-## Useful references
-- Phone OTP: https://supabase.com/docs/guides/auth/phone-login
-- Row Level Security: https://supabase.com/docs/guides/database/postgres/row-level-security
-- Storage access control: https://supabase.com/docs/guides/storage/security/access-control
+## Important
+- Admin authorization comes from the server-side allow-list in `shopify_lite_admins`, not from a client-side label. The authorized email must match exactly.
+- A new Supabase project starts with no customer accounts; customers must register again.
+- Razorpay is not yet fully configured in this new project. Add Razorpay secrets only as Supabase Edge Function secrets after creating your merchant account. Never mark an order paid based only on a browser callback.
+- Verify the auth flow and RLS policies before accepting live orders.
