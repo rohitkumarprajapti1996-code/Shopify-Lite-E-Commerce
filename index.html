@@ -553,9 +553,9 @@
             const [profileAddress, setProfileAddress] = useState(() => {
                 try {
                     const local = localStorage.getItem('shopify_lite_profile_address');
-                    return local || 'Flat No. 102, Green Valley Apartments, Gurgaon, Haryana';
+                    return local || '';
                 } catch {
-                    return 'Flat No. 102, Green Valley Apartments, Gurgaon, Haryana';
+                    return '';
                 }
             });
 
@@ -590,10 +590,10 @@
             const [paymentUpiId, setPaymentUpiId] = useState('rohitkumarprajapti1996-2@okaxis');
 
             // Customer Checkout Fields
-            const [checkoutFullName, setCheckoutFullName] = useState('');
-            const [checkoutPhone, setCheckoutPhone] = useState('');
-            const [checkoutAddress, setCheckoutAddress] = useState('');
-            const [checkoutPincode, setCheckoutPincode] = useState('122001');
+            const [checkoutFullName, setCheckoutFullName] = useState(() => localStorage.getItem('shopify_lite_profile_name') || '');
+            const [checkoutPhone, setCheckoutPhone] = useState(() => localStorage.getItem('shopify_lite_profile_phone') || '');
+            const [checkoutAddress, setCheckoutAddress] = useState(() => localStorage.getItem('shopify_lite_profile_address') || '');
+            const [checkoutPincode, setCheckoutPincode] = useState(() => localStorage.getItem('shopify_lite_profile_pincode') || '');
 
             // Merchant Bank Settlement Parameters
             const [merchantBankName, setMerchantBankName] = useState(() => {
@@ -2034,13 +2034,13 @@ setIsVerifyingUpi(true);
                                     Your Order History & Invoice Archives
                                 </h2>
 
-                                {orders.filter(o => o.customerPhone === currentUser?.phone).length === 0 ? (
+                                {orders.filter(o => (o.customerEmail && o.customerEmail.toLowerCase() === (currentUser?.email || '').toLowerCase()) || (o.customerPhone && o.customerPhone === currentUser?.phone)).length === 0 ? (
                                     <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center text-gray-500">
                                         You have not placed any orders yet. Check out item listings and place your first order.
                                     </div>
                                 ) : (
                                     <div className="space-y-6">
-                                        {orders.filter(o => o.customerPhone === currentUser?.phone).map((order) => (
+                                        {orders.filter(o => (o.customerEmail && o.customerEmail.toLowerCase() === (currentUser?.email || '').toLowerCase()) || (o.customerPhone && o.customerPhone === currentUser?.phone)).map((order) => (
                                             <div 
                                                 key={order.id} 
                                                 className="bg-white rounded-2xl border border-gray-200 p-6 shadow-xs flex flex-col gap-4"
