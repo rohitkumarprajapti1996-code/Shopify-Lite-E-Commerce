@@ -1,0 +1,7 @@
+-- Shopify-Lite e-commerce schema. Applied to the existing Supabase project.
+-- Full source migration is maintained in Supabase migration history.
+-- Tables: shopify_admins, shopify_products, shopify_orders, shopify_order_items, shopify_dispatches.
+-- Row Level Security is enabled on every table. Admin access is controlled by
+-- public.shopify_is_admin(), which checks the authenticated user's email against
+-- the private shopify_admins allow-list. Product images use the shopify-products
+-- Storage bucket with admin-only write policies.
