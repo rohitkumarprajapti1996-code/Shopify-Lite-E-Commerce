@@ -564,6 +564,8 @@
             const [emailOtpSent, setEmailOtpSent] = useState(false);
             const [authOtp, setAuthOtp] = useState('');
             const [confirmPassword, setConfirmPassword] = useState('');
+            const [authError, setAuthError] = useState('');
+            const [authBusy, setAuthBusy] = useState(false);
 
             // Login inputs
             const [customerPhone, setCustomerPhone] = useState('');
@@ -800,6 +802,8 @@
 
             const handleAuthSubmit = async (e) => {
                 e.preventDefault();
+                setAuthError('');
+                setAuthBusy(true);
                 try {
                     const auth = window.ShopifySupabase.client;
                     if (authRole === 'customer') {
@@ -905,7 +909,11 @@
                     setCustomerPassword(''); setSellerPassword(''); setConfirmPassword('');
                 } catch (err) {
                     console.error('Authentication error:', err);
-                    triggerToast(err.message || 'Authentication failed. Check your email and password.', 'error');
+                    const message = err?.message || 'Authentication failed. Check your email and password.';
+                    setAuthError(message);
+                    triggerToast(message, 'error');
+                } finally {
+                    setAuthBusy(false);
                 }
             };
 
@@ -3031,11 +3039,12 @@ setIsVerifyingUpi(true);
                                             <button type="button" onClick={()=>{setAuthMode('admin-setup');setEmailOtpSent(false);setAuthOtp('');setSellerPassword('');setConfirmPassword('');}} className="text-xs font-semibold text-indigo-700">First time? Create / reset admin password using email code</button>
                                         </>
                                     )}
+                                    {authError && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3 py-3 text-sm font-semibold text-red-700 break-words">{authError}</div>}
                                     <div className="pt-2">
-                                        <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2">
+                                        <button type="submit" disabled={authBusy} className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-wait text-white font-bold py-3 px-4 rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2">
                                             <Icon name="Lock" className="h-4 w-4" />
-                                            {authRole === 'customer'
-                                                ? (authMode === 'signup' ? 'Create account' : authMode === 'forgot' ? (!emailOtpSent ? 'Send recovery code' : 'Verify code & reset password') : 'Sign in with password')
+                                            {authBusy ? 'Please wait…' : authRole === 'customer'
+                                                ? (authMode === 'signup' ? (!emailOtpSent ? 'Send email code' : 'Verify code & create account') : authMode === 'forgot' ? (!emailOtpSent ? 'Send recovery code' : 'Verify code & reset password') : 'Sign in with password')
                                                 : (authMode === 'admin-setup' ? (!emailOtpSent ? 'Send admin verification code' : 'Verify code & save password') : 'Admin sign in')}
                                         </button>
                                     </div>
