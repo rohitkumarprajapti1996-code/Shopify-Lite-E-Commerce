@@ -805,7 +805,7 @@
                     if (authRole === 'customer') {
                         const email = customerEmail.trim().toLowerCase();
                         if (!email) throw new Error('Enter your email address.');
-                        if (authMode === 'forgot') {
+                        if (authMode === 'forgot' && !emailOtpSent) {
                             const sent = await auth.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
                             if (sent.error) throw sent.error;
                             setEmailOtpSent(true);
