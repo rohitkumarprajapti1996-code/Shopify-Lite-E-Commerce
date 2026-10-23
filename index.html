@@ -503,10 +503,13 @@
             "All",
             "Men's Clothing",
             "Women's Clothing",
+            "Clothing",
             "Shoes",
             "Beauty Products",
             "Artificial Jewellery",
-            "Electronics Items"
+            "Electronics Items",
+            "Electronics",
+            "Home & Kitchen"
         ];
 
         function App() {
@@ -695,6 +698,31 @@
                     const remoteOrders = await window.ShopifySupabase.loadOrders();
                     if (alive) setOrders(remoteOrders);
                 })().catch((err) => console.warn('Could not load saved Shopify orders:', err));
+                return () => { alive = false; };
+            }, [isAuthenticated, currentUser && currentUser.id]);
+
+            useEffect(() => {
+                let alive = true;
+                if (!isAuthenticated || !currentUser?.id) return () => { alive = false; };
+                (async () => {
+                    const { data, error } = await window.ShopifySupabase.client.auth.getSession();
+                    if (error) throw error;
+                    if (!data.session) return;
+                    const saved = await window.ShopifySupabase.loadCustomerProfile(currentUser.id);
+                    if (!alive || !saved) return;
+                    if (saved.full_name) {
+                        setProfileDisplayName(saved.full_name);
+                        setCurrentUser(prev => prev ? { ...prev, name: saved.full_name, phone: saved.phone || prev.phone } : prev);
+                        setCheckoutFullName(saved.full_name);
+                    }
+                    if (saved.shipping_address) { setProfileAddress(saved.shipping_address); setCheckoutAddress(saved.shipping_address); }
+                    if (saved.phone) setCheckoutPhone(saved.phone);
+                    if (saved.pincode) setCheckoutPincode(saved.pincode);
+                    localStorage.setItem('shopify_lite_profile_name', saved.full_name || '');
+                    localStorage.setItem('shopify_lite_profile_address', saved.shipping_address || '');
+                    localStorage.setItem('shopify_lite_profile_phone', saved.phone || '');
+                    localStorage.setItem('shopify_lite_profile_pincode', saved.pincode || '');
+                })().catch(err => console.warn('Could not load saved customer profile:', err));
                 return () => { alive = false; };
             }, [isAuthenticated, currentUser && currentUser.id]);
 
@@ -917,19 +945,31 @@
                 }
             };
 
-            const handleSaveProfile = (e) => {
+            const handleSaveProfile = async (e) => {
                 e.preventDefault();
-                if (!profileDisplayName.trim()) {
-                    triggerToast("Profile name cannot be blank.", "error");
-                    return;
+                if (!currentUser?.id) { triggerToast("Please sign in again to save your profile.", "error"); return; }
+                if (!profileDisplayName.trim()) { triggerToast("Profile name cannot be blank.", "error"); return; }
+                if (!profileAddress.trim()) { triggerToast("Address detail cannot be blank.", "error"); return; }
+                try {
+                    const saved = await window.ShopifySupabase.saveCustomerProfile({
+                        fullName: profileDisplayName.trim(), phone: checkoutPhone.trim(),
+                        shippingAddress: profileAddress.trim(), pincode: checkoutPincode.trim()
+                    }, currentUser.id);
+                    setCurrentUser(prev => prev ? { ...prev, name: saved.full_name, phone: saved.phone } : prev);
+                    localStorage.setItem('shopify_lite_profile_name', saved.full_name);
+                    localStorage.setItem('shopify_lite_profile_address', saved.shipping_address);
+                    localStorage.setItem('shopify_lite_profile_phone', saved.phone);
+                    localStorage.setItem('shopify_lite_profile_pincode', saved.pincode);
+                    setCheckoutFullName(saved.full_name);
+                    setCheckoutPhone(saved.phone);
+                    setProfileAddress(saved.shipping_address);
+                    setCheckoutAddress(saved.shipping_address);
+                    setCheckoutPincode(saved.pincode || '110086');
+                    triggerToast("Profile saved securely. Your details will be reused next time.");
+                } catch (err) {
+                    console.error("Profile save failed:", err);
+                    triggerToast(err.message || "Could not save your profile. Please try again.", "error");
                 }
-                if (!profileAddress.trim()) {
-                    triggerToast("Address detail cannot be blank.", "error");
-                    return;
-                }
-                const updatedUser = { ...currentUser, name: profileDisplayName.trim() };
-                setCurrentUser(updatedUser);
-                triggerToast("Your account profile details have been updated successfully!");
             };
 
             const handleLogout = async () => {
@@ -1129,6 +1169,17 @@ setIsVerifyingUpi(true);
                 const finalAddress = `${checkoutAddress.trim()}, PIN: ${checkoutPincode.trim()}`;
                 try {
                     if (!currentUser || !currentUser.id) throw new Error("Please sign in again before placing an order.");
+                    await window.ShopifySupabase.saveCustomerProfile({
+                        fullName: checkoutFullName.trim(), phone: checkoutPhone.trim(),
+                        shippingAddress: checkoutAddress.trim(), pincode: checkoutPincode.trim()
+                    }, currentUser.id);
+                    setProfileDisplayName(checkoutFullName.trim());
+                    setProfileAddress(checkoutAddress.trim());
+                    setCurrentUser(prev => prev ? { ...prev, name: checkoutFullName.trim(), phone: checkoutPhone.trim() } : prev);
+                    localStorage.setItem('shopify_lite_profile_name', checkoutFullName.trim());
+                    localStorage.setItem('shopify_lite_profile_address', checkoutAddress.trim());
+                    localStorage.setItem('shopify_lite_profile_phone', checkoutPhone.trim());
+                    localStorage.setItem('shopify_lite_profile_pincode', checkoutPincode.trim());
                     if (!window.Razorpay) throw new Error("Razorpay Checkout did not load. Refresh the page and try again.");
                     const paymentOrder = await window.ShopifySupabase.createRazorpayOrder({
                         name: checkoutFullName.trim(),
@@ -1174,6 +1225,20 @@ setIsVerifyingUpi(true);
                                     transactionId: verified.paymentId
                                 };
                                 setOrders([savedOrder, ...orders]);
+                                try {
+                                    await window.ShopifySupabase.sendOrderConfirmation({
+                                        userId: currentUser.id, email: currentUser.email,
+                                        orderNumber: paymentOrder.orderNumber, customerName: checkoutFullName.trim(),
+                                        customerPhone: checkoutPhone.trim(), address: finalAddress,
+                                        paymentMethod: 'Razorpay', paymentStatus: verified.status,
+                                        total: cartGrandTotal,
+                                        items: cart.map(item => ({ title: item.title, price: item.activePrice, quantity: item.quantity }))
+                                    });
+                                    triggerToast("Order confirmation email sent to " + currentUser.email + ".");
+                                } catch (emailErr) {
+                                    console.warn("Order saved, but confirmation email failed:", emailErr);
+                                    triggerToast("Payment confirmed. Email confirmation needs setup; your order is saved.", "error");
+                                }
                                 setCart([]);
                                 setShowPaymentGate(false);
                                 setPaymentCardNumber('');
@@ -1937,6 +2002,10 @@ setIsVerifyingUpi(true);
                                             />
                                         </div>
                                         <div>
+                                            <label className="block text-[10px] font-extrabold text-gray-400 uppercase mb-1">Phone Number</label>
+                                            <input type="tel" value={checkoutPhone} onChange={(e) => setCheckoutPhone(e.target.value)} placeholder="10-digit mobile number" className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl bg-white" />
+                                        </div>
+                                        <div>
                                             <label className="block text-[10px] font-extrabold text-gray-400 uppercase mb-1">Default Shipping/Delivery Address</label>
                                             <textarea 
                                                 required
@@ -1947,7 +2016,11 @@ setIsVerifyingUpi(true);
                                                 className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl focus:ring-1 focus:ring-indigo-500 bg-white"
                                             />
                                         </div>
-                                        <button 
+                                        <div>
+                                            <label className="block text-[10px] font-extrabold text-gray-400 uppercase mb-1">Default 6-Digit PIN Code</label>
+                                            <input type="text" inputMode="numeric" maxLength="6" value={checkoutPincode} onChange={(e) => setCheckoutPincode(e.target.value.replace(/\D/g, '').slice(0,6))} placeholder="PIN code" className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl bg-white" />
+                                        </div>
+                                        <button
                                             type="submit"
                                             className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-xl text-xs"
                                         >
