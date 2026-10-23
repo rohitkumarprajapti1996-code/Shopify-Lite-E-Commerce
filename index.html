@@ -852,7 +852,7 @@
                         if (email !== allowedEmail) throw new Error('This admin email is not authorized.');
                         if (authMode === 'admin-setup') {
                             if (!emailOtpSent) {
-                                const sent = await auth.auth.signInWithOtp({ email, options: { shouldCreateUser:false } });
+                                const sent = await auth.auth.signInWithOtp({ email, options: { shouldCreateUser:true } });
                                 if (sent.error) throw sent.error;
                                 setEmailOtpSent(true); triggerToast('Admin verification code sent to your email.');
                                 return;
