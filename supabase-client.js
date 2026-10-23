@@ -29,13 +29,13 @@
       return client.auth.verifyOtp({ email, token, type: "email" });
     },
     async isAdmin() {
-      const { data, error } = await client.rpc("shopify_is_admin");
+      const { data, error } = await client.rpc("shopify_lite_is_admin");
       if (error) throw error;
       return data === true;
     },
     async loadProducts() {
-      const { data, error } = await client.from("shopify_products")
-        .select("*").eq("active", true).order("created_at", { ascending: false });
+      const { data, error } = await client.from("shopify_lite_products")
+        .select("*").eq("is_active", true).order("created_at", { ascending: false });
       if (error) throw error;
       return (data || []).map(toAppProduct);
     },
@@ -44,8 +44,8 @@
         sku: product.sku || null, title: product.title, description: product.description || "",
         category: product.category || "General", price: Number(product.price),
         sale_price: product.salePrice == null ? null : Number(product.salePrice),
-        stock: Number(product.stock || 0), image_url: product.image || null,
-        tags: product.tags || [], created_by: userId
+        stock: Number(product.stock || 0), image_url: product.image || "",
+        tags: product.tags || [], created_by: userId, is_active: true
       };
       const { data, error } = await client.from("shopify_products").insert(row).select("*").single();
       if (error) throw error;
@@ -68,26 +68,26 @@
       return data.publicUrl;
     },
     async createOrder(order, items, userId) {
-      const { data: saved, error } = await client.from("shopify_orders").insert({
-        customer_id: userId, customer_phone: order.customerPhone,
-        customer_name: order.customerName, shipping_address: order.shippingAddress,
-        subtotal: Number(order.subtotal), tax_amount: Number(order.gstAmount),
-        total: Number(order.total), payment_method: order.paymentMethod,
-        status: "Pending"
-      }).select("*").single();
+      if (!userId) throw new Error("Sign in with your verified mobile number before placing an order.");
+      const { data, error } = await client.rpc("shopify_lite_create_order", {
+        p_order: {
+          customerName: order.customerName, customerPhone: order.customerPhone,
+          customerEmail: order.customerEmail || "", shippingAddress: order.shippingAddress,
+          subtotal: Number(order.subtotal), gstAmount: Number(order.gstAmount), total: Number(order.total),
+          paymentMethod: order.paymentMethod, transactionId: "",
+          checkoutMetadata: { source: "shopify-lite-github-pages", payment_status: "pending", payment_ui_is_demo: true }
+        },
+        p_items: items.map(item => ({ id: item.id, sku: item.sku || null, title: item.title, price: Number(item.price), quantity: Number(item.quantity) }))
+      });
       if (error) throw error;
-      const rows = items.map(item => ({
-        order_id: saved.id,
-        product_id: /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(String(item.id)) ? item.id : null,
-        product_title: item.title, quantity: Number(item.quantity), unit_price: Number(item.price)
-      }));
-      if (rows.length) {
-        const { error: itemError } = await client.from("shopify_order_items").insert(rows);
-        if (itemError) throw itemError;
-      }
-      return saved;
+      return data;
     },
-    async updateOrderStatus(orderId, status) {
+    async loadOrders() {
+      const { data, error } = await client.from("shopify_lite_orders").select("*, shopify_lite_order_items(*)").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+        async updateOrderStatus(orderId, status) {
       if (!/^[0-9a-f-]{36}$/i.test(String(orderId))) return;
       const allowed = ["Pending", "Confirmed", "Packed", "Dispatched", "Shipped", "Delivered", "Cancelled"];
       const normalized = status === "Ordered" ? "Pending" : status;
