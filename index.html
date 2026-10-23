@@ -626,7 +626,7 @@
             useEffect(() => {
                 let alive = true;
                 window.ShopifySupabase.loadProducts().then((remoteProducts) => {
-                    if (alive && remoteProducts.length) setProducts(remoteProducts);
+                    if (alive) setProducts(remoteProducts);
                 }).catch((err) => console.warn('Could not load shared Shopify products:', err));
                 return () => { alive = false; };
             }, []);
@@ -635,7 +635,7 @@
                 let alive = true;
                 if (!isAuthenticated || !currentUser || !currentUser.id) return () => { alive = false; };
                 window.ShopifySupabase.loadOrders().then((remoteOrders) => {
-                    if (alive && remoteOrders.length) setOrders(remoteOrders);
+                    if (alive) setOrders(remoteOrders);
                 }).catch((err) => console.warn('Could not load saved Shopify orders:', err));
                 return () => { alive = false; };
             }, [isAuthenticated, currentUser && currentUser.id]);
