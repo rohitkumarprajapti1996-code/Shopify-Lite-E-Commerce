@@ -30,3 +30,16 @@ Do not change the PW Returns CRM Supabase project or its Auth email template. Cu
 - A new Supabase project starts with no customer accounts; customers must register again.
 - Razorpay is not yet fully configured in this new project. Add Razorpay secrets only as Supabase Edge Function secrets after creating your merchant account. Never mark an order paid based only on a browser callback.
 - Verify the auth flow and RLS policies before accepting live orders.
+
+## Customer profile persistence and order confirmation email
+
+- Customer delivery profiles are stored in `public.shopify_lite_customer_profiles` in this dedicated Shopify-Lite project. RLS restricts each signed-in customer to their own profile.
+- The checkout saves the customer's name, phone, shipping address and PIN code before starting payment, and reloads saved profile values on later sign-ins.
+- The `shopify-order-confirmation` Edge Function is deployed. It validates the signed-in customer and sends a receipt email through Resend after the frontend receives a successful Razorpay verification.
+- To enable email sending, configure **Edge Function secrets** in this Shopify-Lite project (Supabase Dashboard → Edge Functions → Secrets; wording may vary):
+  - `RESEND_API_KEY`: an API key from your Resend account.
+  - `ORDER_EMAIL_FROM`: a sender identity verified with Resend, for example `Shopify-Lite <orders@your-verified-domain.example>`. Replace the example with your own verified sender; do not use an address you do not control.
+- Never place the Resend API key in `index.html`, `supabase-client.js`, GitHub, or any browser code. After setting the secrets, test with a real account and a successful test payment.
+- The storefront currently expects `razorpay-create-order` and `razorpay-verify-payment` Edge Functions. Confirm these are deployed and configured with Razorpay credentials before enabling live payments. The order-confirmation function alone does not process payments.
+- The 100 additional products are starter/sample catalog entries with illustrative pricing, stock and generic image URLs. They are not verified Amazon imports or proof of supplier availability; verify supplier, product claims, imagery, pricing, tax and stock before selling.
+- PW Returns CRM project `jtghqhfnruwtsfdxvsra` is separate and must not be changed for Shopify-Lite work.
