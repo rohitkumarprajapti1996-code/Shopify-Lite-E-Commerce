@@ -997,13 +997,13 @@
                 setIsVerifyingUpi(true);
 
                 setTimeout(async () => {
-                    const txNumber = 'TXN' + Math.floor(1000000000 + Math.random() * 9000000000);
+                    const txNumber = '';
                     const orderNumber = 'ORD-' + Math.floor(1000 + Math.random() * 9000);
                     
                     const paymentModeLabel = {
-                        upi: 'UPI Wallet / QR Code',
-                        credit: 'Credit Card (Paid)',
-                        debit: 'Debit Card (Paid)',
+                        upi: 'UPI Wallet / QR Code (Payment pending)',
+                        credit: 'Credit Card (Payment pending)',
+                        debit: 'Debit Card (Payment pending)',
                         netbanking: `Net Banking (${paymentNetBank})`
                     }[selectedPaymentMethod];
 
@@ -1037,6 +1037,10 @@
                         newOrder.id = savedOrder.order_number || savedOrder.id;
                         newOrder.databaseId = savedOrder.id;
                         newOrder.status = savedOrder.status || "Pending";
+                        newOrder.subtotal = Number(savedOrder.subtotal ?? newOrder.subtotal);
+                        newOrder.gstAmount = Number(savedOrder.gst_amount ?? newOrder.gstAmount);
+                        newOrder.total = Number(savedOrder.total ?? newOrder.total);
+                        newOrder.paymentStatus = savedOrder.payment_status || "pending";
                         newOrder.date = savedOrder.created_at ? savedOrder.created_at.slice(0, 10) : newOrder.date;
                     } catch (err) {
                         console.error("Order save failed:", err);
