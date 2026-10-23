@@ -623,6 +623,14 @@
                 return defaultOrders;
             });
 
+            useEffect(() => {
+                let alive = true;
+                window.ShopifySupabase.loadProducts().then((remoteProducts) => {
+                    if (alive && remoteProducts.length) setProducts(remoteProducts);
+                }).catch((err) => console.warn('Could not load shared Shopify products:', err));
+                return () => { alive = false; };
+            }, []);
+
             // Syncing states to localStorage inside React Effects
             useEffect(() => {
                 localStorage.setItem('shopify_lite_auth', isAuthenticated);
@@ -1050,13 +1058,14 @@
                 triggerToast(`Order status updated to: ${newStatus}`);
             };
 
-            const deleteProductBySeller = (id) => {
+            const deleteProductBySeller = async (id) => {
+                try { if (/^[0-9a-f-]{36}$/i.test(String(id))) await window.ShopifySupabase.deleteProduct(id); } catch (err) { triggerToast(err.message || 'Could not delete product from database.', 'error'); return; }
                 const filtered = products.filter(p => p.id !== id);
                 setProducts(filtered);
                 triggerToast("Listing deleted from inventory.", "error");
             };
 
-            const handleAddProductSubmit = (e) => {
+            const handleAddProductSubmit = async (e) => {
                 e.preventDefault();
                 if (!newProduct.title || !newProduct.price || !newProduct.stock) {
                     triggerToast("Please fill in Title, Price, and Stock level.", "error");
