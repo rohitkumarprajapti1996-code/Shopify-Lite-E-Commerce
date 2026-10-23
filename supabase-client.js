@@ -1,6 +1,6 @@
 /* Shopify-Lite Supabase client. Publishable key is safe for browser use; RLS protects data. */
 (function () {
-  const SUPABASE_URL = "https://jtghqhfnruwtsfdxvsra.supabase.co";
+  const SUPABASE_URL = "https://flquftroiodugeqvmrhm.supabase.co";
   const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_7oZomBiJG6yC-xW-9X1cng_WGgQiVT6";
   if (!window.supabase || !window.supabase.createClient) {
     console.error("Supabase JS did not load.");
@@ -47,12 +47,12 @@
         stock: Number(product.stock || 0), image_url: product.image || "",
         tags: product.tags || [], created_by: userId, is_active: true
       };
-      const { data, error } = await client.from("shopify_products").insert(row).select("*").single();
+      const { data, error } = await client.from("shopify_lite_products").insert(row).select("*").single();
       if (error) throw error;
       return toAppProduct(data);
     },
     async deleteProduct(id) {
-      const { error } = await client.from("shopify_products").update({ active: false }).eq("id", id);
+      const { error } = await client.from("shopify_lite_products").update({ is_active: false }).eq("id", id);
       if (error) throw error;
     },
     async uploadProductImage(file) {
@@ -68,7 +68,7 @@
       return data.publicUrl;
     },
     async createOrder(order, items, userId) {
-      if (!userId) throw new Error("Sign in with your verified mobile number before placing an order.");
+      if (!userId) throw new Error("Sign in with your verified email address before placing an order.");
       const { data, error } = await client.rpc("shopify_lite_create_order", {
         p_order: {
           customerName: order.customerName, customerPhone: order.customerPhone,
