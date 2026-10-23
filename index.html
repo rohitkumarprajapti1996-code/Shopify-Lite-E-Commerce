@@ -987,7 +987,7 @@
 
                 setIsVerifyingUpi(true);
 
-                setTimeout(() => {
+                setTimeout(async () => {
                     const txNumber = 'TXN' + Math.floor(1000000000 + Math.random() * 9000000000);
                     const orderNumber = 'ORD-' + Math.floor(1000 + Math.random() * 9000);
                     
@@ -1021,6 +1021,21 @@
                         transactionId: txNumber
                     };
 
+                    let savedOrder;
+                    try {
+                        if (!currentUser || !currentUser.id) throw new Error("Please sign in again before placing an order.");
+                        savedOrder = await window.ShopifySupabase.createOrder(newOrder, newOrder.items, currentUser.id);
+                        newOrder.id = savedOrder.order_number || savedOrder.id;
+                        newOrder.databaseId = savedOrder.id;
+                        newOrder.status = savedOrder.status || "Pending";
+                        newOrder.date = savedOrder.created_at ? savedOrder.created_at.slice(0, 10) : newOrder.date;
+                    } catch (err) {
+                        console.error("Order save failed:", err);
+                        setIsVerifyingUpi(false);
+                        triggerToast(err.message || "Order could not be saved. Please try again.", "error");
+                        return;
+                    }
+
                     const updatedProducts = products.map(prod => {
                         const cartItem = cart.find(c => c.id === prod.id);
                         if (cartItem) {
@@ -1044,7 +1059,7 @@
                     setProfileAddress(checkoutAddress.trim());
 
                     setCurrentView('customer-dashboard');
-                    triggerToast(`Payment Received via ${paymentModeLabel}! Your order has been placed.`);
+                    triggerToast(`Order ${savedOrder.order_number || savedOrder.id} saved successfully. Payment status is pending until verified by a payment provider.`);
                 }, 2500); // 2.5s network verification simulation
             };
 
