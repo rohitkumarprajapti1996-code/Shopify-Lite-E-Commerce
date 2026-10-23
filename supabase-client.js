@@ -39,6 +39,35 @@
       if (error) throw error;
       return (data || []).map(toAppProduct);
     },
+    async loadCustomerProfile(userId) {
+      if (!userId) return null;
+      const { data, error } = await client.from("shopify_lite_customer_profiles")
+        .select("user_id,full_name,phone,shipping_address,pincode,updated_at")
+        .eq("user_id", userId).maybeSingle();
+      if (error) throw error;
+      return data || null;
+    },
+    async saveCustomerProfile(profile, userId) {
+      if (!userId) throw new Error("Sign in before saving your profile.");
+      const row = {
+        user_id: userId,
+        full_name: String(profile.fullName || "").trim(),
+        phone: String(profile.phone || "").trim(),
+        shipping_address: String(profile.shippingAddress || "").trim(),
+        pincode: String(profile.pincode || "").trim(),
+        updated_at: new Date().toISOString()
+      };
+      const { data, error } = await client.from("shopify_lite_customer_profiles")
+        .upsert(row, { onConflict: "user_id" }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    async sendOrderConfirmation(order) {
+      const { data, error } = await client.functions.invoke("shopify-order-confirmation", { body: { order } });
+      if (error) throw new Error(error.message || "Order saved, but confirmation email could not be sent.");
+      if (!data || data.sent !== true) throw new Error(data?.error || "Order saved, but confirmation email could not be sent.");
+      return data;
+    },
     async addProduct(product, userId) {
       const row = {
         sku: product.sku || null, title: product.title, description: product.description || "",
