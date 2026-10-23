@@ -630,6 +630,15 @@
                 }).catch((err) => console.warn('Could not load shared Shopify products:', err));
                 return () => { alive = false; };
             }, []);
+            
+            useEffect(() => {
+                let alive = true;
+                if (!isAuthenticated || !currentUser || !currentUser.id) return () => { alive = false; };
+                window.ShopifySupabase.loadOrders().then((remoteOrders) => {
+                    if (alive && remoteOrders.length) setOrders(remoteOrders);
+                }).catch((err) => console.warn('Could not load saved Shopify orders:', err));
+                return () => { alive = false; };
+            }, [isAuthenticated, currentUser && currentUser.id]);
 
             // Syncing states to localStorage inside React Effects
             useEffect(() => {
@@ -1063,14 +1072,14 @@
                 }, 2500); // 2.5s network verification simulation
             };
 
-            const handleUpdateOrderStatus = (orderId, newStatus) => {
-                setOrders(orders.map(order => {
-                    if (order.id === orderId) {
-                        return { ...order, status: newStatus };
-                    }
-                    return order;
-                }));
-                triggerToast(`Order status updated to: ${newStatus}`);
+            const handleUpdateOrderStatus = async (orderId, newStatus) => {
+                const target = orders.find(order => String(order.id) === String(orderId) || String(order.databaseId) === String(orderId));
+                if (!target || !target.databaseId) { triggerToast('This is a demo order and is not saved in Supabase.', 'error'); return; }
+                try {
+                    await window.ShopifySupabase.updateOrderStatus(target.databaseId, newStatus);
+                    setOrders(orders.map(order => order.databaseId === target.databaseId ? { ...order, status: newStatus === 'Ordered' ? 'Pending' : newStatus } : order));
+                    triggerToast('Order status saved to Supabase: ' + newStatus);
+                } catch (err) { triggerToast(err.message || 'Could not update order status.', 'error'); }
             };
 
             const deleteProductBySeller = async (id) => {
