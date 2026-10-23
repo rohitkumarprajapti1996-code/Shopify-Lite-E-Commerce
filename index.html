@@ -710,28 +710,104 @@
             useEffect(() => {
                 let alive = true;
                 if (!isAuthenticated || !currentUser?.id) return () => { alive = false; };
+
                 (async () => {
-                    const { data, error } = await window.ShopifySupabase.client.auth.getSession();
+                    const auth = window.ShopifySupabase.client;
+                    const { data, error } = await auth.auth.getSession();
                     if (error) throw error;
-                    if (!data.session) return;
-                    const saved = await window.ShopifySupabase.loadCustomerProfile(currentUser.id);
-                    if (!alive || !saved) return;
-                    if (saved.full_name) {
-                        setProfileDisplayName(saved.full_name);
-                        setCurrentUser(prev => prev ? { ...prev, name: saved.full_name, phone: saved.phone || prev.phone } : prev);
-                        setCheckoutFullName(saved.full_name);
+
+                    const sessionUser = data.session?.user;
+                    if (!sessionUser) {
+                        if (!alive) return;
+                        setIsAuthenticated(false);
+                        setCurrentUser(null);
+                        setCurrentView('home');
+                        localStorage.removeItem('shopify_lite_auth');
+                        localStorage.removeItem('shopify_lite_user');
+                        return;
                     }
-                    if (saved.shipping_address) { setProfileAddress(saved.shipping_address); setCheckoutAddress(saved.shipping_address); }
-                    if (saved.phone) setCheckoutPhone(saved.phone);
-                    if (saved.pincode) setCheckoutPincode(saved.pincode);
-                    localStorage.setItem('shopify_lite_profile_name', saved.full_name || '');
-                    localStorage.setItem('shopify_lite_profile_address', saved.shipping_address || '');
-                    localStorage.setItem('shopify_lite_profile_phone', saved.phone || '');
-                    localStorage.setItem('shopify_lite_profile_pincode', saved.pincode || '');
-                })().catch(err => console.warn('Could not load saved customer profile:', err));
+
+                    const email = String(sessionUser.email || '').trim().toLowerCase();
+                    const isConfiguredAdminEmail = email === 'rohitkumarprajapti1996@gmail.com';
+                    let adminAllowed = false;
+                    if (isConfiguredAdminEmail) {
+                        try {
+                            adminAllowed = await window.ShopifySupabase.isAdmin();
+                        } catch (adminErr) {
+                            console.warn('Could not validate Shopify-Lite admin access:', adminErr);
+                        }
+                    }
+                    if (!alive) return;
+
+                    const identityChanged = currentUser.id !== sessionUser.id ||
+                        String(currentUser.email || '').trim().toLowerCase() !== email;
+                    const role = adminAllowed ? 'admin' : 'customer';
+
+                    if (identityChanged) {
+                        setProfileDisplayName('');
+                        setProfileAddress('');
+                        setCheckoutFullName('');
+                        setCheckoutPhone('');
+                        setCheckoutAddress('');
+                        setCheckoutPincode('');
+                        localStorage.removeItem('shopify_lite_profile_name');
+                        localStorage.removeItem('shopify_lite_profile_address');
+                        localStorage.removeItem('shopify_lite_profile_phone');
+                        localStorage.removeItem('shopify_lite_profile_pincode');
+                    }
+
+                    setIsAuthenticated(true);
+                    setCurrentUser({
+                        id: sessionUser.id,
+                        email: sessionUser.email || '',
+                        name: role === 'admin'
+                            ? 'Shopify-Lite Admin'
+                            : (identityChanged ? email.split('@')[0] : (currentUser.name || email.split('@')[0])),
+                        phone: sessionUser.phone || (identityChanged ? '' : (currentUser.phone || '')),
+                        role
+                    });
+
+                    if (adminAllowed) {
+                        setCurrentView('seller-dashboard');
+                        return;
+                    }
+                    if (currentUser.role === 'admin') setCurrentView('home');
+
+                    const saved = await window.ShopifySupabase.loadCustomerProfile(sessionUser.id);
+                    if (!alive) return;
+
+                    if (saved) {
+                        const name = saved.full_name || email.split('@')[0];
+                        setProfileDisplayName(name);
+                        setProfileAddress(saved.shipping_address || '');
+                        setCheckoutFullName(saved.full_name || '');
+                        setCheckoutAddress(saved.shipping_address || '');
+                        setCheckoutPhone(saved.phone || sessionUser.phone || '');
+                        setCheckoutPincode(saved.pincode || '');
+                        setCurrentUser(prev => prev && prev.id === sessionUser.id
+                            ? { ...prev, name, phone: saved.phone || prev.phone || '', role: 'customer' }
+                            : prev);
+                        localStorage.setItem('shopify_lite_profile_name', saved.full_name || '');
+                        localStorage.setItem('shopify_lite_profile_address', saved.shipping_address || '');
+                        localStorage.setItem('shopify_lite_profile_phone', saved.phone || '');
+                        localStorage.setItem('shopify_lite_profile_pincode', saved.pincode || '');
+                    } else {
+                        const fallbackName = email.split('@')[0];
+                        setProfileDisplayName(fallbackName);
+                        setProfileAddress('');
+                        setCheckoutFullName('');
+                        setCheckoutAddress('');
+                        setCheckoutPhone(sessionUser.phone || '');
+                        setCheckoutPincode('');
+                        localStorage.removeItem('shopify_lite_profile_name');
+                        localStorage.removeItem('shopify_lite_profile_address');
+                        localStorage.removeItem('shopify_lite_profile_phone');
+                        localStorage.removeItem('shopify_lite_profile_pincode');
+                    }
+                })().catch(err => console.warn('Could not synchronize authenticated account/profile:', err));
+
                 return () => { alive = false; };
             }, [isAuthenticated, currentUser && currentUser.id]);
-
             // Syncing states to localStorage inside React Effects
             useEffect(() => {
                 localStorage.setItem('shopify_lite_auth', isAuthenticated);
