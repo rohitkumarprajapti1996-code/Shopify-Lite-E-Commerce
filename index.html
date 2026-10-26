@@ -15,6 +15,7 @@
     <!-- Babel standalone compiler for client-side JSX resolution -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./supabase-client.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
     <style>
@@ -1534,6 +1535,9 @@ setIsVerifyingUpi(true);
                 const finalAddress = `${addressLabel}${checkoutAddress.trim()}${checkoutLandmark.trim() ? ', Landmark: ' + checkoutLandmark.trim() : ''}, PIN: ${checkoutPincode.trim()}${deliveryWindow}`;
                 try {
                     if (!currentUser || !currentUser.id) throw new Error("Please sign in again before placing an order.");
+                    if (!window.ShopifySupabase?.createRazorpayOrder || !window.ShopifySupabase?.verifyRazorpayPayment) throw new Error("Secure Razorpay checkout is unavailable. Please refresh the page and try again.");
+                    if (typeof window.Razorpay !== 'function') throw new Error("Razorpay Checkout could not load. Check your internet connection and refresh the page.");
+
                     await window.ShopifySupabase.saveCustomerProfile({
                         fullName: checkoutFullName.trim(), phone: checkoutPhone.trim(),
                         shippingAddress: checkoutAddress.trim(), pincode: checkoutPincode.trim(), landmark: checkoutLandmark.trim()
@@ -1546,86 +1550,63 @@ setIsVerifyingUpi(true);
                     localStorage.setItem('shopify_lite_profile_phone', checkoutPhone.trim());
                     localStorage.setItem('shopify_lite_profile_pincode', checkoutPincode.trim());
 
-                    if (!paymentProofFile) throw new Error("Please upload your payment screenshot before submitting the order.");
-                    if (!["image/jpeg", "image/png", "image/webp"].includes(paymentProofFile.type)) throw new Error("Upload a JPG, PNG, or WebP payment screenshot.");
-                    if (paymentProofFile.size > 5 * 1024 * 1024) throw new Error("Payment screenshot must be 5 MB or smaller.");
+                    const paymentOrder = await window.ShopifySupabase.createRazorpayOrder({
+                        name: checkoutFullName.trim(), phone: checkoutPhone.trim(),
+                        email: currentUser.email || '', address: finalAddress
+                    }, cart.map(item => ({ id: item.id, quantity: Number(item.quantity) })));
+                    if (!paymentOrder?.keyId || !paymentOrder?.razorpayOrderId || !paymentOrder?.orderId) throw new Error("Razorpay did not return all required checkout details. Please contact support before retrying.");
 
-                    const placed = await window.ShopifySupabase.createOrder({
-                        customerName: checkoutFullName.trim(),
-                        customerPhone: checkoutPhone.trim(),
-                        customerEmail: currentUser?.email || '',
-                        shippingAddress: finalAddress,
-                        subtotal: cartSubtotal,
-                        gstAmount: calculatedGSTAmount,
-                        total: cartGrandTotal,
-                        paymentMethod: 'UPI QR',
-                        checkoutMetadata: { source: 'shopify-lite-github-pages', payment_status: 'pending', payment_ui_is_demo: false }
-                    }, cart.map(item => ({ id: item.id, sku: item.sku || null, title: item.title, price: item.activePrice, quantity: item.quantity })), currentUser.id);
-
-                    const orderId = placed.id || placed.order_id;
-                    const orderNumber = placed.order_number || placed.orderNumber;
-                    if (!orderId || !orderNumber) throw new Error("Order was created but its reference was not returned. Please contact store support before retrying.");
-
-                    const safeFileName = paymentProofFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-                    const storagePath = currentUser.id + "/" + orderNumber + "-" + Date.now() + "-" + safeFileName;
-                    const { error: proofUploadError } = await window.ShopifySupabase.client.storage
-                        .from("shopify-payment-proofs")
-                        .upload(storagePath, paymentProofFile, { upsert: false, contentType: paymentProofFile.type });
-                    if (proofUploadError) throw new Error("Order " + orderNumber + " was created as pending, but screenshot upload failed: " + proofUploadError.message + ". Please contact support and quote this order number.");
-
-                    const { error: proofRecordError } = await window.ShopifySupabase.client
-                        .from("shopify_lite_payment_proofs")
-                        .insert({
-                            order_id: orderId,
-                            customer_id: currentUser.id,
-                            storage_path: storagePath,
-                            claimed_amount: Number(placed.total || cartGrandTotal),
-                            transaction_reference: paymentReference.trim(),
-                            review_status: 'pending'
+                    const response = await new Promise((resolve, reject) => {
+                        let settled = false;
+                        const finish = (callback, value) => { if (settled) return; settled = true; callback(value); };
+                        const checkout = new window.Razorpay({
+                            key: paymentOrder.keyId, amount: paymentOrder.amount, currency: paymentOrder.currency || 'INR',
+                            name: 'Shopify.Lite', description: 'Order ' + paymentOrder.orderNumber,
+                            order_id: paymentOrder.razorpayOrderId,
+                            prefill: paymentOrder.customer || { name: checkoutFullName.trim(), email: currentUser.email || '', contact: checkoutPhone.trim() },
+                            notes: { shopify_lite_order_id: paymentOrder.orderId }, theme: { color: '#4f46e5' },
+                            modal: { ondismiss: () => finish(reject, new Error("Payment window closed. Your order has not been confirmed; check My Orders before retrying.")) },
+                            handler: result => finish(resolve, result)
                         });
-                    if (proofRecordError) throw new Error("Order " + orderNumber + " is saved as pending, but its screenshot record could not be saved. Please contact support with this order number.");
+                        checkout.on('payment.failed', event => finish(reject, new Error(event?.error?.description || event?.error?.reason || "Payment failed. Your order has not been confirmed.")));
+                        checkout.open();
+                    });
 
+                    const verified = await window.ShopifySupabase.verifyRazorpayPayment(paymentOrder.orderId, response);
+                    if (verified?.status !== 'paid') throw new Error("Payment could not be verified. Your order remains unpaid; please contact support before retrying.");
                     const savedOrder = {
-                        id: orderNumber, orderNumber, databaseId: orderId,
-                        customerName: checkoutFullName.trim(), customerPhone: checkoutPhone.trim(),
-                        customerEmail: currentUser?.email || '',
+                        id: paymentOrder.orderNumber, orderNumber: paymentOrder.orderNumber, databaseId: paymentOrder.orderId,
+                        customerName: checkoutFullName.trim(), customerPhone: checkoutPhone.trim(), customerEmail: currentUser.email || '',
                         items: cart.map(item => ({ id: item.id, title: item.title, price: item.activePrice, quantity: item.quantity })),
-                        subtotal: Number(placed.subtotal || cartSubtotal),
-                        gstAmount: Number(placed.gst_amount || calculatedGSTAmount),
-                        total: Number(placed.total || cartGrandTotal),
-                        date: new Date().toISOString().split('T')[0],
-                        status: 'Pending', paymentStatus: 'pending',
-                        shippingAddress: finalAddress, paymentMethod: 'UPI QR',
-                        transactionId: paymentReference.trim(), paymentProofStatus: 'pending'
+                        subtotal: cartSubtotal, gstAmount: calculatedGSTAmount, total: Number(paymentOrder.amount) / 100,
+                        date: new Date().toISOString().split('T')[0], status: 'Confirmed', paymentStatus: 'paid',
+                        shippingAddress: finalAddress, paymentMethod: 'Razorpay', transactionId: response.razorpay_payment_id
                     };
                     setOrders(prev => [savedOrder, ...prev]);
                     try {
                         await window.ShopifySupabase.sendOrderConfirmation({
-                            userId: currentUser.id, email: currentUser.email,
-                            orderNumber, customerName: checkoutFullName.trim(),
-                            customerPhone: checkoutPhone.trim(), address: finalAddress,
-                            paymentMethod: 'UPI QR', paymentStatus: 'pending',
-                            total: savedOrder.total,
+                            userId: currentUser.id, email: currentUser.email, orderNumber: paymentOrder.orderNumber,
+                            customerName: checkoutFullName.trim(), customerPhone: checkoutPhone.trim(), address: finalAddress,
+                            paymentMethod: 'Razorpay', paymentStatus: 'paid', total: savedOrder.total,
                             items: cart.map(item => ({ title: item.title, price: item.activePrice, quantity: item.quantity }))
                         });
-                    } catch (emailErr) {
-                        console.warn("Order saved; confirmation email failed:", emailErr);
-                    }
+                    } catch (emailErr) { console.warn("Payment verified; confirmation email failed:", emailErr); }
                     setCart([]);
                     setShowPaymentGate(false);
                     setPaymentProofFile(null);
                     setPaymentReference('');
                     setProfileAddress(checkoutAddress.trim());
                     setCurrentView('customer-dashboard');
-                    triggerToast("Order " + orderNumber + " submitted. Payment proof is awaiting verification; do not make another payment.");
-
+                    triggerToast("Payment verified successfully. Order " + paymentOrder.orderNumber + " is confirmed.");
                 } catch (err) {
-                    console.error("UPI QR order submission failed:", err);
+                    console.error("Razorpay checkout failed:", err);
+                    triggerToast(err.message || "Could not complete secure checkout. Please try again.", "error");
+                } finally {
                     setIsVerifyingUpi(false);
-                    triggerToast(err.message || "Could not submit order and payment proof. Please try again.", "error");
                 }
-
             };
+
+            
 
 
             const loadPaymentProofs = async () => {
@@ -3416,30 +3397,18 @@ setIsVerifyingUpi(true);
                                     </div>
 
 
-                                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 space-y-3">
-                                        <div className="text-sm font-black text-emerald-950">Pay by UPI QR only</div>
-                                        <p className="text-xs text-emerald-900">Scan this QR using another phone's UPI app, or open the store on a computer and scan it with your phone. Confirm the recipient name and amount before paying.</p>
-                                        <div className="mx-auto max-w-[280px] rounded-xl bg-white p-3 text-center">
-                                            <img alt="UPI payment QR for Rohit Kumar Prajapti" className="mx-auto w-full max-w-[240px]" src={`https://quickchart.io/qr?size=300&margin=2&text=${encodeURIComponent('upi://pay?' + new URLSearchParams({ pa: 'rohitkumarprajapti1996-2@okicici', pn: 'Rohit Kumar Prajapti', am: Number(cartGrandTotal).toFixed(2), cu: 'INR', tn: 'ShopifyLite Order' }).toString())}`} />
-                                            <div className="mt-2 break-all text-xs font-bold text-gray-800">rohitkumarprajapti1996-2@okicici</div>
-                                            <div className="mt-1 text-lg font-black text-gray-900">₹{cartGrandTotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
-                                            <p className="mt-1 text-[10px] text-gray-500">Verify the amount in your UPI app before confirming payment.</p>
+                                    <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-4 space-y-3">
+                                        <div className="flex items-center gap-2 text-sm font-black text-indigo-950">
+                                            <Icon name="ShieldCheck" className="h-5 w-5 text-indigo-700" />
+                                            Pay securely with Razorpay
                                         </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-800 mb-1">UPI transaction / UTR reference (if shown)</label>
-                                            <input type="text" value={paymentReference} onChange={(e) => setPaymentReference(e.target.value)} maxLength="100" placeholder="Enter UTR / transaction ID" className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs" />
+                                        <p className="text-xs leading-relaxed text-indigo-900">Click the secure payment button below to open Razorpay Checkout. Available payment methods are controlled by your Razorpay account and may include UPI, cards, net banking and wallets.</p>
+                                        <div className="flex items-center gap-2 rounded-xl bg-white p-3 text-xs text-gray-700">
+                                            <Icon name="Lock" className="h-4 w-4 text-emerald-600" />
+                                            Payment is verified by the server. Your order is confirmed only after verification succeeds.
                                         </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-800 mb-1">Upload payment screenshot *</label>
-                                            <input type="file" accept="image/png,image/jpeg,image/webp" required onChange={(e) => setPaymentProofFile(e.target.files?.[0] || null)} className="w-full rounded-xl border border-gray-300 bg-white p-2 text-xs" />
-                                            <p className="mt-1 text-[10px] text-gray-600">JPG, PNG or WebP, maximum 5 MB. Your screenshot is stored privately for review.</p>
-                                        </div>
+                                        <p className="text-[10px] text-indigo-800">Test Mode is enabled for testing. Test transactions do not charge real money.</p>
                                     </div>
-
-                                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-[11px] leading-relaxed text-amber-900">
-                                        <strong>Payment verification:</strong> Uploading a screenshot does not automatically confirm payment. Your order will remain Pending until the payment is checked against the actual account credit.
-                                    </div>
-
 
                                     {/* Security Shield Warnings & Network Verifier */}
                                     <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center gap-2.5 text-[11px] text-blue-800">
