@@ -764,6 +764,10 @@
             const [customerPassword, setCustomerPassword] = useState('');
             const [sellerEmail, setSellerEmail] = useState('');
             const [sellerPassword, setSellerPassword] = useState('');
+            const [newAccountPassword, setNewAccountPassword] = useState('');
+            const [confirmAccountPassword, setConfirmAccountPassword] = useState('');
+            const [passwordChangeBusy, setPasswordChangeBusy] = useState(false);
+            const [passwordChangeMessage, setPasswordChangeMessage] = useState('');
 
             // Secure Payment System Parameters
             const [showPaymentGate, setShowPaymentGate] = useState(false);
@@ -1425,6 +1429,38 @@
                 } catch (err) {
                     console.error("Profile save failed:", err);
                     triggerToast(err.message || "Could not save your profile. Please try again.", "error");
+                }
+            };
+
+            const handleCustomerPasswordChange = async (e) => {
+                e.preventDefault();
+                setPasswordChangeMessage('');
+                if (!isAuthenticated || currentUser?.role !== 'customer') {
+                    setPasswordChangeMessage('Please sign in to your customer account first.');
+                    return;
+                }
+                if (newAccountPassword.length < 8) {
+                    setPasswordChangeMessage('Use at least 8 characters for your new password.');
+                    return;
+                }
+                if (newAccountPassword !== confirmAccountPassword) {
+                    setPasswordChangeMessage('The passwords do not match.');
+                    return;
+                }
+                setPasswordChangeBusy(true);
+                try {
+                    const { data: sessionData, error: sessionError } = await window.ShopifySupabase.client.auth.getSession();
+                    if (sessionError) throw sessionError;
+                    if (!sessionData.session) throw new Error('Your customer session has expired. Please sign in again.');
+                    const { error } = await window.ShopifySupabase.client.auth.updateUser({ password: newAccountPassword });
+                    if (error) throw error;
+                    setNewAccountPassword('');
+                    setConfirmAccountPassword('');
+                    setPasswordChangeMessage('Password changed successfully.');
+                } catch (err) {
+                    setPasswordChangeMessage(err?.message || 'Could not change your password. Please try again.');
+                } finally {
+                    setPasswordChangeBusy(false);
                 }
             };
 
@@ -2627,6 +2663,18 @@ setIsVerifyingUpi(true);
                                     </form>
                                     </div>
                                 </details>
+
+                                <section className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-sm space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-50 text-amber-800"><Icon name="LockKeyhole" className="h-5 w-5" /></span>
+                                        <div><h3 className="text-lg font-extrabold text-slate-900">Change password</h3><p className="text-sm text-slate-500 mt-1">Set a new password for your customer account.</p></div>
+                                    </div>
+                                    <form onSubmit={handleCustomerPasswordChange} className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-3xl">
+                                        <label className="text-xs font-bold text-slate-600">New password<input type="password" required minLength={8} autoComplete="new-password" value={newAccountPassword} onChange={e=>setNewAccountPassword(e.target.value)} placeholder="At least 8 characters" className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-normal" /></label>
+                                        <label className="text-xs font-bold text-slate-600">Confirm new password<input type="password" required minLength={8} autoComplete="new-password" value={confirmAccountPassword} onChange={e=>setConfirmAccountPassword(e.target.value)} placeholder="Re-enter new password" className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-normal" /></label>
+                                        <div className="sm:col-span-2 flex flex-wrap items-center gap-3"><button type="submit" disabled={passwordChangeBusy} className="rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60">{passwordChangeBusy ? 'Updating…' : 'Update password'}</button>{passwordChangeMessage && <p role="status" className="text-sm text-slate-700">{passwordChangeMessage}</p>}</div>
+                                    </form>
+                                </section>
 
                                 <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                                     <Icon name="Truck" className="h-5 w-5 text-indigo-600" />
