@@ -3403,6 +3403,15 @@ setIsVerifyingUpi(true);
                                                                     placeholder="Dispatch warehouse"
                                                                     className="w-full text-[10px] px-2 py-2 border border-gray-300 rounded-lg bg-white"
                                                                 />
+                                                                {String(selectedLogisticsPartners[ord.id] || ord.courier || '').toLowerCase() === 'shiprocket' && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => triggerToast('Shiprocket AWB generation is not connected to a live shipment-creation backend yet. No AWB was created. Please complete the Shiprocket API integration first.', 'error')}
+                                                                        className="w-full rounded-lg border-2 border-orange-300 bg-orange-50 hover:bg-orange-100 text-orange-900 font-extrabold px-3 py-3 text-sm"
+                                                                    >
+                                                                        <span className="inline-flex items-center justify-center gap-2"><Icon name="PackageCheck" className="h-4 w-4" /> Generate AWB via Shiprocket</span>
+                                                                    </button>
+                                                                )}
                                                                 <button type="button" onClick={() => handleSaveDispatch(ord)} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-2 rounded-lg">Save Shipment Details</button>
                                                             </div>
                                                         </div>
