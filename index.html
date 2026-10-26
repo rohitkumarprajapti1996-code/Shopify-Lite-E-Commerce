@@ -732,6 +732,9 @@
             const [otpSent, setOtpSent] = useState(false);
             const [customerEmail, setCustomerEmail] = useState('');
             const [authMode, setAuthMode] = useState('login'); // login, signup, forgot, admin-setup
+            const [showCustomerPassword, setShowCustomerPassword] = useState(false);
+            const [showSellerPassword, setShowSellerPassword] = useState(false);
+            const [showConfirmPassword, setShowConfirmPassword] = useState(false);
             const [emailOtpSent, setEmailOtpSent] = useState(false);
             const [authOtp, setAuthOtp] = useState('');
             const [confirmPassword, setConfirmPassword] = useState('');
@@ -3791,12 +3794,12 @@ setIsVerifyingUpi(true);
                                                 <>
                                                     <div>
                                                         <label className="block text-[10px] font-extrabold text-gray-500 uppercase mb-1 tracking-wider">{authMode === 'forgot' ? 'New password' : 'Password'}</label>
-                                                        <input type="password" required autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} value={customerPassword} onChange={e=>setCustomerPassword(e.target.value)} placeholder={authMode === 'forgot' ? 'At least 8 characters' : 'Enter admin password'} className="w-full px-4 py-3 border rounded-xl text-sm" />
+                                                        <div className="relative"><input type={showCustomerPassword ? 'text' : 'password'} required autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} value={customerPassword} onChange={e=>setCustomerPassword(e.target.value)} placeholder={authMode === 'forgot' ? 'At least 8 characters' : 'Enter password'} className="w-full px-4 pr-12 py-3 border rounded-xl text-sm" /><button type="button" aria-label={showCustomerPassword ? 'Hide password' : 'Show password'} onClick={()=>setShowCustomerPassword(v=>!v)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-gray-500 hover:bg-gray-100"><Icon name={showCustomerPassword ? 'EyeOff' : 'Eye'} className="h-4 w-4"/></button></div>
                                                     </div>
                                                     {authMode !== 'login' && (
                                                         <div>
                                                             <label className="block text-[10px] font-extrabold text-gray-500 uppercase mb-1 tracking-wider">Confirm password</label>
-                                                            <input type="password" required autoComplete="new-password" value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} placeholder="Re-enter password" className="w-full px-4 py-3 border rounded-xl text-sm" />
+                                                            <div className="relative"><input type={showConfirmPassword ? 'text' : 'password'} required autoComplete="new-password" value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} placeholder="Re-enter password" className="w-full px-4 pr-12 py-3 border rounded-xl text-sm" /><button type="button" aria-label={showConfirmPassword ? 'Hide password' : 'Show password'} onClick={()=>setShowConfirmPassword(v=>!v)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-gray-500 hover:bg-gray-100"><Icon name={showConfirmPassword ? 'EyeOff' : 'Eye'} className="h-4 w-4"/></button></div>
                                                         </div>
                                                     )}
                                                 </>
@@ -3828,7 +3831,7 @@ setIsVerifyingUpi(true);
                                                 <>
                                                     <div>
                                                         <label className="block text-[10px] font-extrabold text-gray-500 uppercase mb-1 tracking-wider">{authMode === 'forgot' ? 'New admin password' : 'Admin password'}</label>
-                                                        <input type="password" required autoComplete={authMode === 'forgot' ? 'new-password' : 'current-password'} value={sellerPassword} onChange={e=>setSellerPassword(e.target.value)} placeholder="At least 8 characters" className="w-full px-4 py-3 border rounded-xl text-sm" />
+                                                        <div className="relative"><input type={showSellerPassword ? 'text' : 'password'} required autoComplete={authMode === 'forgot' ? 'new-password' : 'current-password'} value={sellerPassword} onChange={e=>setSellerPassword(e.target.value)} placeholder={authMode === 'forgot' ? 'At least 8 characters' : 'Enter admin password'} className="w-full px-4 pr-12 py-3 border rounded-xl text-sm" /><button type="button" aria-label={showSellerPassword ? 'Hide admin password' : 'Show admin password'} onClick={()=>setShowSellerPassword(v=>!v)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-gray-500 hover:bg-gray-100"><Icon name={showSellerPassword ? 'EyeOff' : 'Eye'} className="h-4 w-4"/></button></div>
                                                     </div>
                                                     {authMode === 'forgot' && (
                                                         <div>
