@@ -614,6 +614,7 @@
             const [checkoutPhone, setCheckoutPhone] = useState(() => localStorage.getItem('shopify_lite_profile_phone') || '');
             const [checkoutAddress, setCheckoutAddress] = useState(() => localStorage.getItem('shopify_lite_profile_address') || '');
             const [checkoutPincode, setCheckoutPincode] = useState(() => localStorage.getItem('shopify_lite_profile_pincode') || '');
+            const [checkoutLandmark, setCheckoutLandmark] = useState(() => localStorage.getItem('shopify_lite_profile_landmark') || '');
 
             // Merchant Bank Settlement Parameters
             const [merchantBankName, setMerchantBankName] = useState(() => {
@@ -764,6 +765,8 @@
                         setCheckoutPhone('');
                         setCheckoutAddress('');
                         setCheckoutPincode('');
+                        setCheckoutLandmark('');
+                        localStorage.removeItem('shopify_lite_profile_landmark');
                         localStorage.removeItem('shopify_lite_profile_name');
                         localStorage.removeItem('shopify_lite_profile_address');
                         localStorage.removeItem('shopify_lite_profile_phone');
@@ -798,6 +801,7 @@
                         setCheckoutAddress(saved.shipping_address || '');
                         setCheckoutPhone(saved.phone || sessionUser.phone || '');
                         setCheckoutPincode(saved.pincode || '');
+                        setCheckoutLandmark(saved.landmark || '');
                         setCurrentUser(prev => prev && prev.id === sessionUser.id
                             ? { ...prev, name, phone: saved.phone || prev.phone || '', role: 'customer' }
                             : prev);
@@ -1086,13 +1090,14 @@
                 try {
                     const saved = await window.ShopifySupabase.saveCustomerProfile({
                         fullName: profileDisplayName.trim(), phone: checkoutPhone.trim(),
-                        shippingAddress: profileAddress.trim(), pincode: checkoutPincode.trim()
+                        shippingAddress: profileAddress.trim(), pincode: checkoutPincode.trim(), landmark: checkoutLandmark.trim()
                     }, currentUser.id);
                     setCurrentUser(prev => prev ? { ...prev, name: saved.full_name, phone: saved.phone } : prev);
                     localStorage.setItem('shopify_lite_profile_name', saved.full_name);
                     localStorage.setItem('shopify_lite_profile_address', saved.shipping_address);
                     localStorage.setItem('shopify_lite_profile_phone', saved.phone);
                     localStorage.setItem('shopify_lite_profile_pincode', saved.pincode);
+                    localStorage.setItem('shopify_lite_profile_landmark', saved.landmark || '');
                     setCheckoutFullName(saved.full_name);
                     setCheckoutPhone(saved.phone);
                     setProfileAddress(saved.shipping_address);
@@ -1299,12 +1304,12 @@
                 }
 
 setIsVerifyingUpi(true);
-                const finalAddress = `${checkoutAddress.trim()}, PIN: ${checkoutPincode.trim()}`;
+                const finalAddress = `${checkoutAddress.trim()}${checkoutLandmark.trim() ? ', Landmark: ' + checkoutLandmark.trim() : ''}, PIN: ${checkoutPincode.trim()}`;
                 try {
                     if (!currentUser || !currentUser.id) throw new Error("Please sign in again before placing an order.");
                     await window.ShopifySupabase.saveCustomerProfile({
                         fullName: checkoutFullName.trim(), phone: checkoutPhone.trim(),
-                        shippingAddress: checkoutAddress.trim(), pincode: checkoutPincode.trim()
+                        shippingAddress: checkoutAddress.trim(), pincode: checkoutPincode.trim(), landmark: checkoutLandmark.trim()
                     }, currentUser.id);
                     setProfileDisplayName(checkoutFullName.trim());
                     setProfileAddress(checkoutAddress.trim());
@@ -2169,6 +2174,14 @@ setIsVerifyingUpi(true);
                                             />
                                         </div>
                                         <div>
+                                            <label className="block text-[10px] font-extrabold text-gray-400 uppercase mb-1">Email Address</label>
+                                            <input type="email" value={currentUser?.email || ''} readOnly className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl bg-gray-100" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-extrabold text-gray-400 uppercase mb-1">Landmark</label>
+                                            <input type="text" value={checkoutLandmark} onChange={(e) => setCheckoutLandmark(e.target.value)} placeholder="Nearby landmark (optional)" className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl bg-white" />
+                                        </div>
+                                        <div>
                                             <label className="block text-[10px] font-extrabold text-gray-400 uppercase mb-1">Default 6-Digit PIN Code</label>
                                             <input type="text" inputMode="numeric" maxLength="6" value={checkoutPincode} onChange={(e) => setCheckoutPincode(e.target.value.replace(/\D/g, '').slice(0,6))} placeholder="PIN code" className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl bg-white" />
                                         </div>
@@ -2937,6 +2950,10 @@ setIsVerifyingUpi(true);
                                                 />
                                             </div>
                                             <div>
+                                                <label className="block text-[10px] font-extrabold text-gray-500 uppercase mb-1">Landmark (optional)</label>
+                                                <input type="text" placeholder="Nearby landmark" value={checkoutLandmark} onChange={(e) => setCheckoutLandmark(e.target.value)} className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl bg-white" />
+                                            </div>
+                                            <div>
                                                 <label className="block text-[10px] font-extrabold text-gray-500 uppercase mb-1">6-Digit Pincode *</label>
                                                 <input 
                                                     type="text" 
@@ -3094,9 +3111,9 @@ setIsVerifyingUpi(true);
                                 <div id="tax-invoice-printable" className="space-y-6">
                                     <div className="flex justify-between items-start border-b border-gray-200 pb-4">
                                         <div>
-                                            <h1 className="text-xl font-black text-indigo-700">SHOPIFY-LITE INDIA</h1>
-                                            <p className="text-[10px] text-gray-400 mt-1">GSTIN Number: 07AAACS4321A1Z2</p>
-                                            <p className="text-[10px] text-gray-400">Tax Invoice / Bill of Supply</p>
+                                            <div className="flex items-center gap-2"><span className="flex items-center justify-center rounded-xl bg-teal-700 text-white w-10 h-10 font-black text-lg">S</span><div><h1 className="text-xl font-black text-teal-800">Shopify-Lite</h1><p className="text-[10px] text-gray-500">shopify-lite online store</p></div></div>
+                                            <p className="text-[10px] text-gray-500 mt-2">Website: https://rohitkumarprajapti1996-code.github.io/Shopify-Lite-E-Commerce/</p>
+                                            <p className="text-[10px] text-gray-400">Order Invoice / Purchase Summary</p>
                                         </div>
                                         <div className="text-right">
                                             <h2 className="text-sm font-bold text-gray-900">TAX INVOICE</h2>
