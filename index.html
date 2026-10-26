@@ -901,7 +901,7 @@
                 setSellerProfileBusy(true); setSellerProfileMessage('');
                 try {
                     const payload = { ...sellerProfile, gstin:sellerProfile.gstin.trim().toUpperCase(), id:true, updated_at:new Date().toISOString() };
-                    const { error } = await window.ShopifySupabase.client.from('shopify_lite_seller_profile').upsert(payload, { onConflict:'id' });
+                    const { error } = await window.ShopifySupabase.adminClient.from('shopify_lite_seller_profile').upsert(payload, { onConflict:'id' });
                     if (error) throw error;
                     setSellerProfileMessage('Business details saved. They will appear on newly printed invoices.');
                 } catch(err) { setSellerProfileMessage(err.message || 'Could not save business details. Check admin permissions.'); }
@@ -923,7 +923,8 @@
                 // so newly saved AWB numbers and tracking links appear without a manual reload.
                 if (currentView !== 'customer-dashboard' && currentView !== 'seller-dashboard') return () => { alive = false; };
                 (async () => {
-                    const { data, error } = await window.ShopifySupabase.client.auth.getSession();
+                    const sessionClient = currentUser?.role === 'admin' ? window.ShopifySupabase.adminClient : window.ShopifySupabase.client;
+                    const { data, error } = await sessionClient.auth.getSession();
                     if (error) throw error;
                     if (!data.session) return;
                     const remoteOrders = await window.ShopifySupabase.loadOrders(currentUser?.role === 'admin');
@@ -1946,6 +1947,7 @@ setIsVerifyingUpi(true);
 
                                 {(!isAuthenticated || ['seller', 'admin'].includes(String(currentUser?.role || '').toLowerCase())) ? (
                                     <div className="flex items-center gap-2">
+                                        {String(currentUser?.role || '').toLowerCase() === 'admin' && <button onClick={() => { setAuthRole('customer'); setAuthMode('login'); setAuthError(''); setShowAuthModal(true); }} className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-full shadow-sm flex items-center gap-1.5"><Icon name="User" className="h-4 w-4" /><span>Customer Login</span></button>}
                                         <button onClick={() => setCurrentView('customer-dashboard')} className="bg-purple-50 text-purple-700 text-xs font-semibold px-3 py-1.5 rounded-lg border border-purple-200 hover:bg-purple-100 flex items-center gap-1.5"><Icon name="User" className="h-4 w-4" /><span>My Account</span></button>
                                         <button onClick={handleLogout} title="Logout" className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-gray-100 transition"><Icon name="LogOut" className="h-5 w-5" /></button>
                                     </div>
