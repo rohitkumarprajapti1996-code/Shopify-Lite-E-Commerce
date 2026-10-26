@@ -6,7 +6,8 @@
     console.error("Supabase JS did not load.");
     return;
   }
-  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: { storageKey: "shopify-lite-customer-auth", persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+  const adminClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: { storageKey: "shopify-lite-admin-auth", persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } });
   const toAppProduct = (p) => ({
     id: p.id, sku: p.sku, title: p.title, description: p.description || "",
     category: p.category || "General", price: Number(p.price),
@@ -16,6 +17,7 @@
   });
   window.ShopifySupabase = {
     client,
+    adminClient,
     async sendPhoneOtp(phone) {
       return client.auth.signInWithOtp({ phone, options: { shouldCreateUser: true } });
     },
@@ -29,7 +31,7 @@
       return client.auth.verifyOtp({ email, token, type: "email" });
     },
     async isAdmin() {
-      const { data, error } = await client.rpc("shopify_lite_is_admin");
+      const { data, error } = await adminClient.rpc("shopify_lite_is_admin");
       if (error) throw error;
       return data === true;
     },
@@ -77,12 +79,12 @@
         stock: Number(product.stock || 0), image_url: product.image || "",
         tags: product.tags || [], created_by: userId, is_active: true
       };
-      const { data, error } = await client.from("shopify_lite_products").insert(row).select("*").single();
+      const { data, error } = await adminClient.from("shopify_lite_products").insert(row).select("*").single();
       if (error) throw error;
       return toAppProduct(data);
     },
     async deleteProduct(id) {
-      const { error } = await client.from("shopify_lite_products").update({ is_active: false }).eq("id", id);
+      const { error } = await adminClient.from("shopify_lite_products").update({ is_active: false }).eq("id", id);
       if (error) throw error;
     },
     async uploadProductImage(file) {
@@ -92,9 +94,9 @@
       if (file.size > 5 * 1024 * 1024) throw new Error("Image must be 5 MB or smaller.");
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
       const path = Date.now() + "-" + safeName;
-      const { error } = await client.storage.from("shopify-products").upload(path, file, { upsert: false });
+      const { error } = await adminClient.storage.from("shopify-products").upload(path, file, { upsert: false });
       if (error) throw error;
-      const { data } = client.storage.from("shopify-products").getPublicUrl(path);
+      const { data } = adminClient.storage.from("shopify-products").getPublicUrl(path);
       return data.publicUrl;
     },
     async createOrder(order, items, userId) {
@@ -112,15 +114,16 @@
       if (error) throw error;
       return data;
     },
-    async loadOrders() {
-      const { data, error } = await client.from("shopify_lite_orders")
+    async loadOrders(forAdmin = false) {
+      const db = forAdmin ? adminClient : client;
+      const { data, error } = await db.from("shopify_lite_orders")
         .select("*, shopify_lite_order_items(*)").order("created_at", { ascending: false });
       if (error) throw error;
       const rows = data || [];
       const ids = rows.map(o => o.id).filter(Boolean);
       let dispatchByOrder = {};
       if (ids.length) {
-        const { data: dispatches, error: dispatchError } = await client.from("shopify_lite_dispatches")
+        const { data: dispatches, error: dispatchError } = await db.from("shopify_lite_dispatches")
           .select("order_id,courier,tracking_number,tracking_url,warehouse,dispatched_at,delivered_at,status,notes,updated_at")
           .in("order_id", ids);
         if (dispatchError) throw dispatchError;
@@ -150,7 +153,7 @@
     },
     async saveDispatch(orderId, details) {
       if (!/^[0-9a-f-]{36}$/i.test(String(orderId))) throw new Error("Invalid order reference.");
-      const { data: adminAllowed, error: adminError } = await client.rpc("shopify_lite_is_admin");
+      const { data: adminAllowed, error: adminError } = await adminClient.rpc("shopify_lite_is_admin");
       if (adminError) throw adminError;
       if (adminAllowed !== true) throw new Error("Only the authorized admin can manage shipments.");
       const courier = String(details.courier || "").trim();
@@ -165,19 +168,19 @@
         status,
         dispatched_at: ["Dispatched", "In Transit", "Delivered"].includes(status) ? now : null,
         delivered_at: status === "Delivered" ? now : null,
-        updated_by: (await client.auth.getUser()).data?.user?.id || null,
+        updated_by: (await adminClient.auth.getUser()).data?.user?.id || null,
         updated_at: now
       };
-      const { data, error } = await client.from("shopify_lite_dispatches")
+      const { data, error } = await adminClient.from("shopify_lite_dispatches")
         .upsert(row, { onConflict: "order_id" }).select().single();
       if (error) throw error;
       const orderStatus = status === "Packed" ? "Packed" : status === "Delivered" ? "Delivered" : status === "Returned" ? "Returned" : status === "Exception" ? "Dispatched" : status === "Pending" ? "Pending" : "Shipped";
-      const { error: orderError } = await client.from("shopify_lite_orders")
+      const { error: orderError } = await adminClient.from("shopify_lite_orders")
         .update({ status: orderStatus, updated_at: now }).eq("id", orderId);
       if (orderError) throw orderError;
       let emailSent = false;
       try {
-        const { data: mailData, error: mailError } = await client.functions.invoke("shopify-order-status-email", {
+        const { data: mailData, error: mailError } = await adminClient.functions.invoke("shopify-order-status-email", {
           body: { orderId, status, courier, trackingNumber: row.tracking_number, trackingUrl: row.tracking_url }
         });
         if (mailError) throw mailError;
@@ -236,12 +239,12 @@
       const allowed = ["Pending", "Confirmed", "Packed", "Dispatched", "Shipped", "Delivered", "Cancelled", "Returned"];
       const normalized = status === "Ordered" ? "Pending" : status;
       if (!allowed.includes(normalized)) return;
-      const { error } = await client.from("shopify_lite_orders")
+      const { error } = await adminClient.from("shopify_lite_orders")
         .update({ status: normalized, updated_at: new Date().toISOString() }).eq("id", orderId);
       if (error) throw error;
       let emailSent = false;
       try {
-        const { data, error: mailError } = await client.functions.invoke("shopify-order-status-email", { body: { orderId, status: normalized } });
+        const { data, error: mailError } = await adminClient.functions.invoke("shopify-order-status-email", { body: { orderId, status: normalized } });
         if (mailError) throw mailError;
         emailSent = data?.sent === true;
       } catch (mailErr) { console.warn("Order status saved, but customer email could not be sent:", mailErr); }
