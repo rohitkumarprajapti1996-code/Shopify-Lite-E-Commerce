@@ -1929,9 +1929,16 @@ setIsVerifyingUpi(true);
                                         className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-full shadow-sm flex items-center gap-1.5 transition"
                                     >
                                         <Icon name="User" className="h-4 w-4" />
-                                        <span>Sign In</span>
+                                        <span>Customer Login</span>
                                     </button>
                                 )}
+                                <button
+                                    onClick={() => { setAuthRole('seller'); setAuthMode('login'); setAuthError(''); setShowAuthModal(true); }}
+                                    className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold px-4 py-2 shadow-sm transition"
+                                >
+                                    <Icon name="LayoutDashboard" className="h-4 w-4" />
+                                    <span>Seller / Admin</span>
+                                </button>
 
                                 {/* Shopping Cart: clear label and item count, following familiar ecommerce navigation patterns */}
                                 <div className="relative">
@@ -2751,6 +2758,50 @@ setIsVerifyingUpi(true);
                                                 </strong>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+
+                                {/* Live order overview: counts are derived from the currently loaded store orders */}
+                                <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+                                    {[
+                                        { label: 'Orders Received', value: orders.length, note: 'All orders in store', icon: 'ShoppingCart', color: 'blue' },
+                                        { label: 'Pending / Processing', value: orders.filter(o => ['ordered','pending','payment pending','processing','confirmed'].includes(String(o.status || '').toLowerCase())).length, note: 'Need attention', icon: 'Clock', color: 'amber' },
+                                        { label: 'Dispatched / In Transit', value: orders.filter(o => ['dispatched','shipped','in transit','out for delivery'].includes(String(o.status || '').toLowerCase())).length, note: 'With courier', icon: 'Truck', color: 'indigo' },
+                                        { label: 'Delivered', value: orders.filter(o => String(o.status || '').toLowerCase() === 'delivered').length, note: 'Completed deliveries', icon: 'PackageCheck', color: 'teal' }
+                                    ].map((stat) => (
+                                        <div key={stat.label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <span className="text-xs font-semibold text-slate-500">{stat.label}</span>
+                                                <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${stat.color === 'blue' ? 'bg-blue-50 text-blue-700' : stat.color === 'amber' ? 'bg-amber-50 text-amber-700' : stat.color === 'indigo' ? 'bg-indigo-50 text-indigo-700' : 'bg-teal-50 text-teal-700'}`}><Icon name={stat.icon} className="h-4 w-4" /></span>
+                                            </div>
+                                            <div className="mt-3 text-3xl font-black text-slate-900">{stat.value}</div>
+                                            <div className="mt-1 text-[11px] text-slate-500">{stat.note}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                                    <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                                        <div className="flex items-center justify-between gap-3 mb-4">
+                                            <div><h2 className="font-extrabold text-slate-900">Order Fulfilment Overview</h2><p className="text-xs text-slate-500 mt-1">Visual breakdown of loaded order statuses</p></div>
+                                            <Icon name="ChartNoAxesColumn" className="h-5 w-5 text-indigo-600" />
+                                        </div>
+                                        {[
+                                            { label: 'Pending / Processing', count: orders.filter(o => ['ordered','pending','payment pending','processing','confirmed'].includes(String(o.status || '').toLowerCase())).length, color: 'bg-amber-400' },
+                                            { label: 'Dispatched / In Transit', count: orders.filter(o => ['dispatched','shipped','in transit','out for delivery'].includes(String(o.status || '').toLowerCase())).length, color: 'bg-indigo-500' },
+                                            { label: 'Delivered', count: orders.filter(o => String(o.status || '').toLowerCase() === 'delivered').length, color: 'bg-teal-500' },
+                                            { label: 'Cancelled / Returned', count: orders.filter(o => ['cancelled','canceled','returned','refunded'].includes(String(o.status || '').toLowerCase())).length, color: 'bg-rose-500' }
+                                        ].map((stat) => (
+                                            <div key={stat.label} className="mb-4 last:mb-0">
+                                                <div className="flex items-center justify-between text-xs mb-1.5"><span className="font-semibold text-slate-700">{stat.label}</span><span className="font-bold text-slate-900">{stat.count} <span className="font-normal text-slate-400">/ {orders.length}</span></span></div>
+                                                <div className="h-2.5 rounded-full bg-slate-100 overflow-hidden"><div className={`h-full rounded-full ${stat.color}`} style={{ width: `${orders.length ? Math.min(100, stat.count / orders.length * 100) : 0}%` }} /></div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                                        <div className="flex items-center gap-2 mb-3"><Icon name="IndianRupee" className="h-5 w-5 text-emerald-600" /><h2 className="font-extrabold text-slate-900">Store Snapshot</h2></div>
+                                        <div className="text-xs text-slate-500">Total product listings</div><div className="text-2xl font-black text-slate-900 mt-1">{products.length}</div>
+                                        <div className="mt-4 text-xs text-slate-500">Store earnings shown in seller panel</div><div className="text-2xl font-black text-emerald-700 mt-1">₹{merchantTotalIncoming.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
+                                        <div className="mt-4 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-600">Counts update from the orders currently loaded in the admin dashboard. Use the order and dispatch sections below to manage individual orders.</div>
                                     </div>
                                 </div>
 
@@ -3616,7 +3667,7 @@ setIsVerifyingUpi(true);
                         </div>
                     )}
 
-                    {/* Unified Customer/Merchant Login Popups */}
+                    {/* Separate Customer and Seller/Admin Login Screens */}
                     {showAuthModal && (
                         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 no-print">
                             <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 relative shadow-2xl border border-gray-100">
@@ -3628,33 +3679,17 @@ setIsVerifyingUpi(true);
                                 </button>
 
                                 <div className="text-center mb-6">
-                                    <h2 className="text-2xl font-black text-gray-900">Sign In Securely</h2>
-                                    <p className="text-xs text-gray-500 mt-1">Access buy and sell dashboards instantly</p>
+                                    <div className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl ${authRole === 'seller' ? 'bg-indigo-100 text-indigo-700' : 'bg-teal-100 text-teal-700'}`}>
+                                        <Icon name={authRole === 'seller' ? 'LayoutDashboard' : 'ShoppingBag'} className="h-6 w-6" />
+                                    </div>
+                                    <h2 className="text-2xl font-black text-gray-900">{authRole === 'seller' ? 'Seller / Admin Login' : 'Customer Login'}</h2>
+                                    <p className="text-xs text-gray-500 mt-1">{authRole === 'seller' ? 'Authorized store management only' : 'Sign in to shop, view orders and track deliveries'}</p>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-xl mb-6">
-                                    <button
-                                        type="button"
-                                        onClick={() => { setAuthRole('customer'); }}
-                                        className={`py-2 text-xs font-bold rounded-lg transition ${
-                                            authRole === 'customer' 
-                                                ? 'bg-white text-indigo-600 shadow-sm' 
-                                                : 'text-gray-500 hover:text-gray-900'
-                                        }`}
-                                    >
-                                        Buy (Customer Panel)
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => { setAuthRole('seller'); }}
-                                        className={`py-2 text-xs font-bold rounded-lg transition ${
-                                            authRole === 'seller' 
-                                                ? 'bg-white text-indigo-600 shadow-sm' 
-                                                : 'text-gray-500 hover:text-gray-900'
-                                        }`}
-                                    >
-                                        Sell (Merchant Panel)
-                                    </button>
+                                <div className={`mb-6 rounded-xl border px-4 py-3 text-left ${authRole === 'seller' ? 'border-indigo-100 bg-indigo-50' : 'border-teal-100 bg-teal-50'}`}>
+                                    <div className="text-xs font-extrabold uppercase tracking-wider">{authRole === 'seller' ? 'Seller workspace' : 'Customer account'}</div>
+                                    <p className="mt-1 text-xs text-gray-600">{authRole === 'seller' ? 'Manage listings, orders, payments, dispatches and Shiprocket tools.' : 'Shop products, manage your profile and track your own orders.'}</p>
+                                    <button type="button" onClick={() => { setAuthRole(authRole === 'seller' ? 'customer' : 'seller'); setAuthMode('login'); setAuthError(''); setEmailOtpSent(false); setAuthOtp(''); setCustomerPassword(''); setSellerPassword(''); setConfirmPassword(''); }} className="mt-2 text-xs font-bold underline underline-offset-2">{authRole === 'seller' ? 'Go to Customer Login' : 'Seller / Admin Login instead'}</button>
                                 </div>
 
                                 <form onSubmit={handleAuthSubmit} className="space-y-4">
