@@ -2901,17 +2901,20 @@ setIsVerifyingUpi(true);
                                                                 </strong>
                                                             </div>
 
-                                                            <div className="flex flex-col items-end gap-1.5 w-full sm:w-64">
-                                                                <span className="text-[10px] text-gray-400">Logistics Partner</span>
+                                                            <div className="flex flex-col items-stretch gap-2 w-full sm:w-64">
+                                                                <label htmlFor={`logistics-partner-${ord.id}`} className="text-xs font-extrabold text-teal-800">Select Logistics Partner *</label>
                                                                 <select
+                                                                    id={`logistics-partner-${ord.id}`}
+                                                                    aria-label={`Select logistics partner for order ${ord.id}`}
+                                                                    title="Select Logistics Partner"
                                                                     value={selectedLogisticsPartners[ord.id] || ord.courier || ''}
                                                                     onChange={(e) => setSelectedLogisticsPartners(prev => ({ ...prev, [ord.id]: e.target.value }))}
-                                                                    className="w-full text-[10px] font-bold px-2 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-1 focus:ring-indigo-500"
+                                                                    className="w-full min-h-11 text-sm font-bold px-3 py-3 border-2 border-teal-600 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-teal-500 focus:outline-none"
                                                                 >
-                                                                    <option value="">Select logistics partner…</option>
+                                                                    <option value="">-- Choose logistics partner --</option>
                                                                     {LOGISTICS_PARTNERS.map((partner) => <option key={partner} value={partner}>{partner}</option>)}
                                                                 </select>
-                                                                <span className="text-[10px] text-gray-400 mt-1">Order Dispatch State</span>
+                                                                <span className="text-xs font-bold text-gray-600 mt-1">Order Dispatch State</span>
                                                                 <select
                                                                     value={ord.status}
                                                                     onChange={(e) => handleUpdateOrderStatus(ord.id, e.target.value)}
