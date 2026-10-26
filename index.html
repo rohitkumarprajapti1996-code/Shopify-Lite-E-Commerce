@@ -1938,7 +1938,7 @@ setIsVerifyingUpi(true);
                                         <span>Customer Login</span>
                                     </button>
                                 )}
-                                {isAuthenticated && currentUser?.role === 'seller' ? (
+                                {isAuthenticated && ['seller', 'admin'].includes(String(currentUser?.role || '').toLowerCase()) ? (
                                     <div className="relative">
                                         <button type="button" onClick={() => setAccountMenuOpen(v => !v)} className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-4 py-2 text-sm font-bold text-teal-900 hover:bg-teal-100" aria-expanded={accountMenuOpen}>
                                             <Icon name="UserRound" className="h-4 w-4" /><span>My Account</span><Icon name="ChevronDown" className="h-4 w-4" />
