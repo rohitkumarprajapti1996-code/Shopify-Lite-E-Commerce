@@ -956,7 +956,7 @@
                     const email = String(sessionUser.email || '').trim().toLowerCase();
                     const isConfiguredAdminEmail = email === 'rohitkumarprajapti1996@gmail.com';
                     let adminAllowed = false;
-                    if (isConfiguredAdminEmail) {
+                    if (isConfiguredAdminEmail && currentUser?.role === 'admin') {
                         try {
                             adminAllowed = await window.ShopifySupabase.isAdmin();
                         } catch (adminErr) {
