@@ -3419,15 +3419,17 @@ setIsVerifyingUpi(true);
                                                                     <span className="block text-[10px] font-medium text-teal-700 mt-1">Only available dispatch partner</span>
                                                                 </div>
                                                                 <span className="text-xs font-bold text-gray-600 mt-1">Order Dispatch State</span>
-                                                                <select
-                                                                    value={ord.status}
-                                                                    onChange={(e) => handleUpdateOrderStatus(ord.id, e.target.value)}
-                                                                    className="w-full text-[10px] font-bold px-2 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-1 focus:ring-indigo-500"
-                                                                >
-                                                                    <option value="Ordered">Ordered (Received)</option>
-                                                                    <option value="Shipped">Dispatched / Shipped</option>
-                                                                    <option value="Delivered">Delivered</option>
-                                                                </select>
+                                                                <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+                                                                    <div className="flex items-center justify-between gap-2 text-[10px] font-bold">
+                                                                        <span className={`rounded-full px-2 py-1 ${['Pending','Ordered','Confirmed'].includes(String(ord.status)) ? 'bg-teal-100 text-teal-800' : 'bg-slate-100 text-slate-500'}`}>1. Received</span>
+                                                                        <span className={`rounded-full px-2 py-1 ${['Packed','Shipped','Dispatched','In Transit','Delivered'].includes(String(ord.status)) ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500'}`}>2. Packed</span>
+                                                                        <span className={`rounded-full px-2 py-1 ${['Shipped','Dispatched','In Transit','Delivered'].includes(String(ord.status)) ? 'bg-teal-100 text-teal-800' : 'bg-slate-100 text-slate-500'}`}>3. Dispatched</span>
+                                                                    </div>
+                                                                    <div className="mt-2 text-[11px] font-semibold text-slate-600">Current status: <span className="text-teal-800">{String(ord.status || 'Pending') === 'Pending' ? 'Order Received' : String(ord.status)}</span></div>
+                                                                </div>
+                                                                {!['Packed','Shipped','Dispatched','In Transit','Delivered'].includes(String(ord.status)) && (
+                                                                    <button type="button" onClick={() => handleUpdateOrderStatus(ord.id, 'Packed')} className="w-full rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-extrabold text-amber-900 hover:bg-amber-100">Mark Order as Packed</button>
+                                                                )}
                                                                 <label className="block text-xs font-bold text-gray-700 mt-1">Package Weight (kg) *</label>
                                                                 <input
                                                                     type="number" min="0.01" step="0.01"
@@ -3445,8 +3447,21 @@ setIsVerifyingUpi(true);
                                                                         const weightKg = Number(form.weightKg ?? 0.5);
                                                                         if (!Number.isFinite(weightKg) || weightKg <= 0) { triggerToast('Enter a valid package weight greater than zero.', 'error'); return; }
                                                                         try {
-                                                                            const { data, error } = await window.ShopifySupabase.client.functions.invoke('shiprocket-create-shipment', { body: { orderId: ord.databaseId, weightKg } });
-                                                                            if (error) throw new Error(data?.error || error.message || 'Shiprocket request failed.');
+                                                                            const supa = window.ShopifySupabase.client;
+                                                                            let { data: sessionData, error: sessionError } = await supa.auth.getSession();
+                                                                            if (sessionError) throw new Error('Could not validate your login session. Please sign in again.');
+                                                                            if (!sessionData?.session) throw new Error('Your admin session has expired. Please sign in again, then retry AWB creation.');
+                                                                            if (new Date(sessionData.session.expires_at * 1000).getTime() < Date.now() + 60000) {
+                                                                                const refreshed = await supa.auth.refreshSession();
+                                                                                if (refreshed.error || !refreshed.data?.session) throw new Error('Your admin session expired. Please sign in again.');
+                                                                                sessionData = { session: refreshed.data.session };
+                                                                            }
+                                                                            const { data, error } = await supa.functions.invoke('shiprocket-create-shipment', { body: { orderId: ord.databaseId, weightKg }, headers: { Authorization: 'Bearer ' + sessionData.session.access_token } });
+                                                                            if (error) {
+                                                                                let detail = data?.error || '';
+                                                                                try { if (!detail && error.context?.json) { const body = await error.context.json(); detail = body?.error || body?.message || ''; } } catch (_) {}
+                                                                                throw new Error(detail || error.message || 'Shiprocket request failed. Check the Supabase function logs.');
+                                                                            }
                                                                             if (!data?.ok || !data?.awb) throw new Error(data?.error || 'Shiprocket did not return an AWB.');
                                                                             setDispatchInputs(prev => ({ ...prev, [ord.id]: { ...(prev[ord.id] || {}), trackingNumber: data.awb, trackingUrl: data.trackingUrl || '' } }));
                                                                             setOrders(prev => prev.map(o => o.databaseId === ord.databaseId ? { ...o, courier: 'Shiprocket', trackingNumber: data.awb, trackingUrl: data.trackingUrl || '', status: 'Shipped' } : o));
