@@ -1901,43 +1901,14 @@ setIsVerifyingUpi(true);
                                     Shop Catalog
                                 </button>
 
-                                {isAuthenticated ? (
+                                {isAuthenticated && !['seller', 'admin'].includes(String(currentUser?.role || '').toLowerCase()) ? (
                                     <div className="flex items-center gap-2">
-                                        {currentUser.role === 'seller' ? (
-                                            <button 
-                                                onClick={() => setCurrentView('seller-dashboard')}
-                                                className="bg-indigo-50 text-indigo-700 text-xs font-semibold px-3 py-1.5 rounded-lg border border-indigo-200 hover:bg-indigo-100 flex items-center gap-1.5"
-                                            >
-                                                <Icon name="Package" className="h-4 w-4" />
-                                                <span>Merchant Dashboard</span>
-                                            </button>
-                                        ) : (
-                                            <button 
-                                                onClick={() => setCurrentView('customer-dashboard')}
-                                                className="bg-purple-50 text-purple-700 text-xs font-semibold px-3 py-1.5 rounded-lg border border-purple-200 hover:bg-purple-100 flex items-center gap-1.5"
-                                            >
-                                                <Icon name="User" className="h-4 w-4" />
-                                                <span>My Account</span>
-                                            </button>
-                                        )}
-
-                                        <button 
-                                            onClick={handleLogout}
-                                            title="Logout"
-                                            className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-gray-100 transition"
-                                        >
-                                            <Icon name="LogOut" className="h-5 w-5" />
-                                        </button>
+                                        <button onClick={() => setCurrentView('customer-dashboard')} className="bg-purple-50 text-purple-700 text-xs font-semibold px-3 py-1.5 rounded-lg border border-purple-200 hover:bg-purple-100 flex items-center gap-1.5"><Icon name="User" className="h-4 w-4" /><span>My Account</span></button>
+                                        <button onClick={handleLogout} title="Logout" className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-gray-100 transition"><Icon name="LogOut" className="h-5 w-5" /></button>
                                     </div>
-                                ) : (
-                                    <button 
-                                        onClick={() => { setAuthRole('customer'); setShowAuthModal(true); }}
-                                        className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-full shadow-sm flex items-center gap-1.5 transition"
-                                    >
-                                        <Icon name="User" className="h-4 w-4" />
-                                        <span>Customer Login</span>
-                                    </button>
-                                )}
+                                ) : !isAuthenticated ? (
+                                    <button onClick={() => { setAuthRole('customer'); setShowAuthModal(true); }} className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-full shadow-sm flex items-center gap-1.5 transition"><Icon name="User" className="h-4 w-4" /><span>Customer Login</span></button>
+                                ) : null}
                                 {isAuthenticated && ['seller', 'admin'].includes(String(currentUser?.role || '').toLowerCase()) ? (
                                     <div className="relative">
                                         <button type="button" onClick={() => setAccountMenuOpen(v => !v)} className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-4 py-2 text-sm font-bold text-teal-900 hover:bg-teal-100" aria-expanded={accountMenuOpen}>
@@ -3412,41 +3383,6 @@ setIsVerifyingUpi(true);
                                                                     <option value="Shipped">Dispatched / Shipped</option>
                                                                     <option value="Delivered">Delivered</option>
                                                                 </select>
-                                                                <input
-                                                                    value={(dispatchInputs[ord.id]?.trackingNumber ?? ord.trackingNumber ?? '')}
-                                                                    onChange={(e) => setDispatchInputs(prev => ({ ...prev, [ord.id]: { ...(prev[ord.id] || {}), trackingNumber: e.target.value } }))}
-                                                                    placeholder="AWB / Tracking number"
-                                                                    className="w-full text-[10px] px-2 py-2 border border-gray-300 rounded-lg bg-white"
-                                                                />
-                                                                <input
-                                                                    value={(dispatchInputs[ord.id]?.trackingUrl ?? ord.trackingUrl ?? '')}
-                                                                    onChange={(e) => setDispatchInputs(prev => ({ ...prev, [ord.id]: { ...(prev[ord.id] || {}), trackingUrl: e.target.value } }))}
-                                                                    placeholder="Tracking URL (optional)"
-                                                                    type="url"
-                                                                    className="w-full text-[10px] px-2 py-2 border border-gray-300 rounded-lg bg-white"
-                                                                />
-                                                                <input
-                                                                    value={(dispatchInputs[ord.id]?.warehouse ?? ord.warehouse ?? '')}
-                                                                    onChange={(e) => setDispatchInputs(prev => ({ ...prev, [ord.id]: { ...(prev[ord.id] || {}), warehouse: e.target.value } }))}
-                                                                    placeholder="Dispatch warehouse"
-                                                                    className="w-full text-[10px] px-2 py-2 border border-gray-300 rounded-lg bg-white"
-                                                                />
-                                                                <label className="block text-xs font-bold text-gray-700 mt-1">Delivery City *</label>
-                                                                <input
-                                                                    value={awbInputs[ord.id]?.deliveryCity || ''}
-                                                                    onChange={(e) => setAwbInputs(prev => ({ ...prev, [ord.id]: { ...(prev[ord.id] || {}), deliveryCity: e.target.value } }))}
-                                                                    placeholder="Enter delivery city"
-                                                                    autoComplete="address-level2"
-                                                                    className="w-full text-xs px-3 py-2 border border-gray-300 rounded-lg bg-white"
-                                                                />
-                                                                <label className="block text-xs font-bold text-gray-700 mt-1">Delivery State *</label>
-                                                                <input
-                                                                    value={awbInputs[ord.id]?.deliveryState || ''}
-                                                                    onChange={(e) => setAwbInputs(prev => ({ ...prev, [ord.id]: { ...(prev[ord.id] || {}), deliveryState: e.target.value } }))}
-                                                                    placeholder="Enter delivery state"
-                                                                    autoComplete="address-level1"
-                                                                    className="w-full text-xs px-3 py-2 border border-gray-300 rounded-lg bg-white"
-                                                                />
                                                                 <label className="block text-xs font-bold text-gray-700 mt-1">Package Weight (kg) *</label>
                                                                 <input
                                                                     type="number" min="0.01" step="0.01"
@@ -3461,13 +3397,10 @@ setIsVerifyingUpi(true);
                                                                         if (!currentUser || currentUser.role !== 'admin') { triggerToast('Admin sign-in is required.', 'error'); return; }
                                                                         if (!ord.databaseId) { triggerToast('This order is not saved in Supabase.', 'error'); return; }
                                                                         const form = awbInputs[ord.id] || {};
-                                                                        const deliveryCity = String(form.deliveryCity || '').trim();
-                                                                        const deliveryState = String(form.deliveryState || '').trim();
                                                                         const weightKg = Number(form.weightKg ?? 0.5);
-                                                                        if (!deliveryCity || !deliveryState) { triggerToast('Enter delivery city and state before generating the AWB.', 'error'); return; }
                                                                         if (!Number.isFinite(weightKg) || weightKg <= 0) { triggerToast('Enter a valid package weight greater than zero.', 'error'); return; }
                                                                         try {
-                                                                            const { data, error } = await window.ShopifySupabase.client.functions.invoke('shiprocket-create-shipment', { body: { orderId: ord.databaseId, deliveryCity, deliveryState, weightKg } });
+                                                                            const { data, error } = await window.ShopifySupabase.client.functions.invoke('shiprocket-create-shipment', { body: { orderId: ord.databaseId, weightKg } });
                                                                             if (error) throw new Error(data?.error || error.message || 'Shiprocket request failed.');
                                                                             if (!data?.ok || !data?.awb) throw new Error(data?.error || 'Shiprocket did not return an AWB.');
                                                                             setDispatchInputs(prev => ({ ...prev, [ord.id]: { ...(prev[ord.id] || {}), trackingNumber: data.awb, trackingUrl: data.trackingUrl || '' } }));
@@ -3479,7 +3412,7 @@ setIsVerifyingUpi(true);
                                                                 >
                                                                     <span className="inline-flex items-center justify-center gap-2"><Icon name="PackageCheck" className="h-4 w-4" /> Generate AWB via Shiprocket</span>
                                                                 </button>
-                                                                <button type="button" onClick={() => handleSaveDispatch(ord)} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-2 rounded-lg">Save Shipment Details</button>
+
                                                             </div>
                                                         </div>
                                                     </div>
