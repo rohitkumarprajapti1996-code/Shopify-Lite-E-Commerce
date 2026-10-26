@@ -518,6 +518,20 @@
             "Home & Kitchen"
         ];
 
+        const LOGISTICS_PARTNERS = [
+            'Delhivery', 'Blue Dart', 'DTDC', 'India Post', 'Ecom Express',
+            'Xpressbees', 'Shadowfax', 'Ekart Logistics', 'Amazon Shipping',
+            'Flipkart Logistics', 'DHL Express', 'FedEx', 'UPS', 'Aramex',
+            'Gati', 'TCI Express', 'Safexpress', 'Trackon Couriers',
+            'Professional Couriers', 'Shree Maruti', 'VRL Logistics',
+            'Mahindra Logistics', 'Allcargo Logistics', 'Shiprocket', 'NimbusPost',
+            'Pickrr', 'iThink Logistics', 'Shipway', 'ClickPost', 'Easyship',
+            'India Speed Post', 'India Post Registered Parcel', 'India Post Business Parcel',
+            'DHL eCommerce', 'DHL Supply Chain', 'FedEx International', 'TNT',
+            'TCI Freight', 'Porter', 'Borzo', 'Loadshare', 'ElasticRun',
+            'Shadowfax Express', 'Ekart', 'Other / Manual Courier'
+        ];
+
         function App() {
             const [currentView, setCurrentView] = useState('home'); // home, detail, cart, customer-dashboard, seller-dashboard
             const [selectedProduct, setSelectedProduct] = useState(null);
@@ -875,7 +889,8 @@
             const [userChatInput, setUserChatInput] = useState('');
             const [isAiTyping, setIsAiTyping] = useState(false);
 
-            const [sellerActiveTab, setSellerActiveTab] = useState('inventory'); // inventory, add-listing, payments, fulfillment, bank-settlement
+            const [sellerActiveTab, setSellerActiveTab] = useState('inventory');
+            const [selectedLogisticsPartners, setSelectedLogisticsPartners] = useState({}); // inventory, add-listing, payments, fulfillment, bank-settlement
 
             const [newProduct, setNewProduct] = useState({
                 title: '',
@@ -2777,12 +2792,21 @@ setIsVerifyingUpi(true);
                                                                 </strong>
                                                             </div>
 
-                                                            <div className="flex flex-col items-end gap-1.5">
-                                                                <span className="text-[10px] text-gray-400">Order Dispatch State</span>
+                                                            <div className="flex flex-col items-end gap-1.5 w-full sm:w-64">
+                                                                <span className="text-[10px] text-gray-400">Logistics Partner</span>
+                                                                <select
+                                                                    value={selectedLogisticsPartners[ord.id] || ord.courier || ''}
+                                                                    onChange={(e) => setSelectedLogisticsPartners(prev => ({ ...prev, [ord.id]: e.target.value }))}
+                                                                    className="w-full text-[10px] font-bold px-2 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-1 focus:ring-indigo-500"
+                                                                >
+                                                                    <option value="">Select logistics partner…</option>
+                                                                    {LOGISTICS_PARTNERS.map((partner) => <option key={partner} value={partner}>{partner}</option>)}
+                                                                </select>
+                                                                <span className="text-[10px] text-gray-400 mt-1">Order Dispatch State</span>
                                                                 <select
                                                                     value={ord.status}
                                                                     onChange={(e) => handleUpdateOrderStatus(ord.id, e.target.value)}
-                                                                    className="text-[10px] font-bold px-2 py-1 border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-1 focus:ring-indigo-500"
+                                                                    className="w-full text-[10px] font-bold px-2 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-1 focus:ring-indigo-500"
                                                                 >
                                                                     <option value="Ordered">Ordered (Received)</option>
                                                                     <option value="Shipped">Dispatched / Shipped</option>
