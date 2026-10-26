@@ -3159,7 +3159,7 @@ setIsVerifyingUpi(true);
                                         <div className="text-sm font-black text-emerald-950">Pay by UPI QR only</div>
                                         <p className="text-xs text-emerald-900">Scan this QR using another phone's UPI app, or open the store on a computer and scan it with your phone. Confirm the recipient name and amount before paying.</p>
                                         <div className="mx-auto max-w-[280px] rounded-xl bg-white p-3 text-center">
-                                            <img alt="UPI payment QR for Rohit Kumar Prajapti" className="mx-auto w-full max-w-[240px]" src={`https://quickchart.io/qr?size=300&margin=2&text=${encodeURIComponent('upi://pay?pa=rohitkumarprajapti1996-2@okicici&pn=Rohit%20Kumar%20Prajapti&am=' + Number(cartGrandTotal).toFixed(2) + '&cu=INR&tn=ShopifyLite%20Order')}`} />
+                                            <img alt="UPI payment QR for Rohit Kumar Prajapti" className="mx-auto w-full max-w-[240px]" src={`https://quickchart.io/qr?size=300&margin=2&text=${encodeURIComponent('upi://pay?' + new URLSearchParams({ pa: 'rohitkumarprajapti1996-2@okicici', pn: 'Rohit Kumar Prajapti', am: Number(cartGrandTotal).toFixed(2), cu: 'INR', tn: 'ShopifyLite Order' }).toString())}`} />
                                             <div className="mt-2 break-all text-xs font-bold text-gray-800">rohitkumarprajapti1996-2@okicici</div>
                                             <div className="mt-1 text-lg font-black text-gray-900">₹{cartGrandTotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
                                             <p className="mt-1 text-[10px] text-gray-500">Verify the amount in your UPI app before confirming payment.</p>
