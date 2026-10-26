@@ -2064,8 +2064,9 @@ setIsVerifyingUpi(true);
                                                         className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition duration-200 overflow-hidden flex flex-col group relative"
                                                     >
                                                         {isOnSale && (
-                                                            <span className="absolute top-3 left-3 bg-red-500 text-white font-black text-[9px] px-2 py-0.5 rounded-full z-10 flex items-center gap-0.5 shadow-sm">
-                                                                <Icon name="Percent" className="h-2.5 w-2.5" /> SPECIAL DISCOUNT
+                                                            <span className="absolute top-3 left-3 bg-red-600 text-white font-black text-[9px] px-2 py-1 rounded-full z-10 flex items-center gap-0.5 shadow-sm">
+                                                                <Icon name="Percent" className="h-2.5 w-2.5" />
+                                                                SAVE {Math.max(0, Math.round((1 - Number(product.salePrice) / Math.max(1, Number(product.price))) * 100))}%
                                                             </span>
                                                         )}
 
