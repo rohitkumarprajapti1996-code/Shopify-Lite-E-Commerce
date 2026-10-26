@@ -175,7 +175,15 @@
       const { error: orderError } = await client.from("shopify_lite_orders")
         .update({ status: orderStatus, updated_at: now }).eq("id", orderId);
       if (orderError) throw orderError;
-      return data;
+      let emailSent = false;
+      try {
+        const { data: mailData, error: mailError } = await client.functions.invoke("shopify-order-status-email", {
+          body: { orderId, status, courier, trackingNumber: row.tracking_number, trackingUrl: row.tracking_url }
+        });
+        if (mailError) throw mailError;
+        emailSent = mailData?.sent === true;
+      } catch (mailErr) { console.warn("Shipment saved, but status email could not be sent:", mailErr); }
+      return { ...data, emailSent };
     },
     async createRazorpayOrder(customer, items) {
       const { data, error } = await client.functions.invoke("razorpay-create-order", {
@@ -209,6 +217,13 @@
       const { error } = await client.from("shopify_lite_orders")
         .update({ status: normalized, updated_at: new Date().toISOString() }).eq("id", orderId);
       if (error) throw error;
+      let emailSent = false;
+      try {
+        const { data, error: mailError } = await client.functions.invoke("shopify-order-status-email", { body: { orderId, status: normalized } });
+        if (mailError) throw mailError;
+        emailSent = data?.sent === true;
+      } catch (mailErr) { console.warn("Order status saved, but customer email could not be sent:", mailErr); }
+      return { emailSent };
     }
   };
 })();
