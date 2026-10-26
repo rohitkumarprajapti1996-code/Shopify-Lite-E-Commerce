@@ -2141,6 +2141,24 @@ setIsVerifyingUpi(true);
                                     </div>
                                 </div>
 
+                                <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm mb-5">
+                                    <div className="flex items-center justify-between gap-3 mb-4">
+                                        <div>
+                                            <h3 className="font-extrabold text-gray-900 text-sm">Your Saved Customer Details</h3>
+                                            <p className="text-xs text-gray-500 mt-1">Saved to your account and reused at checkout.</p>
+                                        </div>
+                                        <span className="text-[10px] rounded-full bg-teal-50 text-teal-800 px-3 py-1 font-bold">Account profile</span>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                        <div className="rounded-xl border border-gray-100 p-3"><span className="block text-gray-500 mb-1">Customer name</span><strong>{profileDisplayName || currentUser?.name || 'Not saved yet'}</strong></div>
+                                        <div className="rounded-xl border border-gray-100 p-3"><span className="block text-gray-500 mb-1">Email address</span><strong className="break-all">{currentUser?.email || 'Not available'}</strong></div>
+                                        <div className="rounded-xl border border-gray-100 p-3"><span className="block text-gray-500 mb-1">Phone number</span><strong>{checkoutPhone || currentUser?.phone || 'Not saved yet'}</strong></div>
+                                        <div className="rounded-xl border border-gray-100 p-3"><span className="block text-gray-500 mb-1">PIN code</span><strong>{checkoutPincode || 'Not saved yet'}</strong></div>
+                                        <div className="rounded-xl border border-gray-100 p-3 sm:col-span-2"><span className="block text-gray-500 mb-1">Complete address</span><strong className="break-words">{profileAddress || checkoutAddress || 'Add your delivery address below.'}</strong></div>
+                                        <div className="rounded-xl border border-gray-100 p-3 sm:col-span-2"><span className="block text-gray-500 mb-1">Landmark</span><strong className="break-words">{checkoutLandmark || 'Not saved yet'}</strong></div>
+                                    </div>
+                                </div>
+
                                 {/* PROFILE SETTINGS HUB WITH ADDRESS CONFIG */}
                                 <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
                                     <h3 className="font-extrabold text-gray-900 text-sm mb-3 flex items-center gap-1.5 border-b border-gray-100 pb-2">
