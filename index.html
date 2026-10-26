@@ -1945,7 +1945,13 @@ setIsVerifyingUpi(true);
                                     Shop Catalog
                                 </button>
 
-                                {(!isAuthenticated || ['seller', 'admin'].includes(String(currentUser?.role || '').toLowerCase())) ? (
+                                {isAuthenticated && String(currentUser?.role || '').toLowerCase() === 'customer' ? (
+                                    <div className="flex items-center gap-2">
+                                        <button onClick={() => setCurrentView('customer-dashboard')} className="bg-amber-50 text-amber-800 text-sm font-semibold px-4 py-2 rounded-xl border border-amber-200 flex items-center gap-1.5"><Icon name="User" className="h-4 w-4"/><span>My Account</span></button>
+                                        <button onClick={() => setCurrentView('cart')} className="p-2 rounded-xl border border-slate-200 text-slate-700" title="Your Cart"><Icon name="ShoppingCart" className="h-5 w-5"/><span className="ml-1 text-xs">{cart.reduce((tot, i) => tot + i.quantity, 0)}</span></button>
+                                        <button onClick={handleLogout} title="Logout" className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-gray-100 transition"><Icon name="LogOut" className="h-5 w-5"/></button>
+                                    </div>
+                                ) : (!isAuthenticated || ['seller', 'admin'].includes(String(currentUser?.role || '').toLowerCase())) ? (
                                     <div className="flex items-center gap-2">
                                         {String(currentUser?.role || '').toLowerCase() === 'admin' && <button onClick={() => { setAuthRole('customer'); setAuthMode('login'); setAuthError(''); setShowAuthModal(true); }} className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-full shadow-sm flex items-center gap-1.5"><Icon name="User" className="h-4 w-4" /><span>Customer Login</span></button>}
                                         <button onClick={() => setCurrentView('customer-dashboard')} className="bg-purple-50 text-purple-700 text-xs font-semibold px-3 py-1.5 rounded-lg border border-purple-200 hover:bg-purple-100 flex items-center gap-1.5"><Icon name="User" className="h-4 w-4" /><span>My Account</span></button>
