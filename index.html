@@ -988,6 +988,44 @@
 
                 return () => { alive = false; };
             }, [isAuthenticated, currentUser && currentUser.id]);
+            // Automatically sign out customer accounts after five minutes without activity.
+            useEffect(() => {
+                if (!isAuthenticated || !currentUser?.id || currentUser?.role !== 'customer') return;
+                let inactivityTimer;
+                let signingOut = false;
+                const logoutForInactivity = async () => {
+                    if (signingOut) return;
+                    signingOut = true;
+                    try {
+                        await window.ShopifySupabase.client.auth.signOut({ scope: 'local' });
+                    } catch (err) {
+                        console.warn('Customer inactivity sign-out warning:', err);
+                    } finally {
+                        setIsAuthenticated(false);
+                        setCurrentUser(null);
+                        setCurrentView('home');
+                        setShowAuthModal(false);
+                        setCart([]);
+                        localStorage.removeItem('shopify_lite_auth');
+                        localStorage.removeItem('shopify_lite_user');
+                        ['shopify_lite_profile_name', 'shopify_lite_profile_address', 'shopify_lite_profile_phone', 'shopify_lite_profile_pincode'].forEach(k => localStorage.removeItem(k));
+                        triggerToast('You were signed out after 5 minutes of inactivity. Please sign in again.', 'warning');
+                    }
+                };
+                const resetInactivityTimer = () => {
+                    if (signingOut) return;
+                    if (inactivityTimer) clearTimeout(inactivityTimer);
+                    inactivityTimer = setTimeout(logoutForInactivity, 5 * 60 * 1000);
+                };
+                const activityEvents = ['pointerdown', 'pointermove', 'keydown', 'touchstart', 'scroll', 'click'];
+                activityEvents.forEach(eventName => window.addEventListener(eventName, resetInactivityTimer, { passive: true }));
+                resetInactivityTimer();
+                return () => {
+                    if (inactivityTimer) clearTimeout(inactivityTimer);
+                    activityEvents.forEach(eventName => window.removeEventListener(eventName, resetInactivityTimer));
+                };
+            }, [isAuthenticated, currentUser && currentUser.id, currentUser && currentUser.role]);
+
             // Syncing states to localStorage inside React Effects
             useEffect(() => {
                 localStorage.setItem('shopify_lite_auth', isAuthenticated);
