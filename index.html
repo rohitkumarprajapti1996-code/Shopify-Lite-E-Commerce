@@ -1981,49 +1981,17 @@ setIsVerifyingUpi(true);
                                     Shop Catalog
                                 </button>
 
-                                {isAuthenticated && String(currentUser?.role || '').toLowerCase() === 'customer' ? (
-                                    <div className="flex items-center gap-2">
-                                        <button onClick={() => setCurrentView('customer-dashboard')} className="bg-amber-50 text-amber-800 text-sm font-semibold px-4 py-2 rounded-xl border border-amber-200 flex items-center gap-1.5"><Icon name="User" className="h-4 w-4"/><span>My Account</span></button>
-                                        <button onClick={() => setCurrentView('cart')} className="p-2 rounded-xl border border-slate-200 text-slate-700" title="Your Cart"><Icon name="ShoppingCart" className="h-5 w-5"/><span className="ml-1 text-xs">{cart.reduce((tot, i) => tot + i.quantity, 0)}</span></button>
-                                        <button onClick={handleLogout} title="Logout" className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-gray-100 transition"><Icon name="LogOut" className="h-5 w-5"/></button>
-                                    </div>
-                                ) : (!isAuthenticated || ['seller', 'admin'].includes(String(currentUser?.role || '').toLowerCase())) ? (
-                                    <div className="flex items-center gap-2">
-                                        {String(currentUser?.role || '').toLowerCase() === 'admin' && <button onClick={() => { setAuthRole('customer'); setAuthMode('login'); setAuthError(''); setShowAuthModal(true); }} className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-full shadow-sm flex items-center gap-1.5"><Icon name="User" className="h-4 w-4" /><span>Customer Login</span></button>}
-                                        <button onClick={() => setCurrentView('customer-dashboard')} className="bg-purple-50 text-purple-700 text-xs font-semibold px-3 py-1.5 rounded-lg border border-purple-200 hover:bg-purple-100 flex items-center gap-1.5"><Icon name="User" className="h-4 w-4" /><span>My Account</span></button>
-                                        <button onClick={handleLogout} title="Logout" className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-gray-100 transition"><Icon name="LogOut" className="h-5 w-5" /></button>
-                                    </div>
-                                ) : !isAuthenticated ? (
-                                    <button onClick={() => { setAuthRole('customer'); setShowAuthModal(true); }} className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-full shadow-sm flex items-center gap-1.5 transition"><Icon name="User" className="h-4 w-4" /><span>Customer Login</span></button>
-                                ) : null}
-                                {isAuthenticated && ['seller', 'admin'].includes(String(currentUser?.role || '').toLowerCase()) ? (
-                                    <div className="relative">
-                                        <button type="button" onClick={() => setAccountMenuOpen(v => !v)} className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-4 py-2 text-sm font-bold text-teal-900 hover:bg-teal-100" aria-expanded={accountMenuOpen}>
-                                            <Icon name="UserRound" className="h-4 w-4" /><span>My Account</span><Icon name="ChevronDown" className="h-4 w-4" />
-                                        </button>
-                                        {accountMenuOpen && (
-                                            <div className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl">
-                                                <div className="border-b border-slate-100 px-4 py-3"><div className="text-xs font-bold text-slate-900">Seller / Admin</div><div className="mt-1 truncate text-[11px] text-slate-500">{currentUser.email || 'Signed in'}</div></div>
-                                                <button type="button" onClick={() => { setAccountSettingsOpen(true); setAccountMenuOpen(false); }} className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-slate-700 hover:bg-slate-50"><Icon name="Settings" className="h-4 w-4" />Account Settings</button>
-                                                <button type="button" onClick={() => { setCurrentView('seller-dashboard'); setAccountMenuOpen(false); }} className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-slate-700 hover:bg-slate-50"><Icon name="LayoutDashboard" className="h-4 w-4" />Admin Dashboard</button>
-                                                <button type="button" onClick={() => { setAccountMenuOpen(false); handleLogout(); }} className="flex w-full items-center gap-2 border-t border-slate-100 px-4 py-3 text-left text-sm font-semibold text-red-600 hover:bg-red-50"><Icon name="LogOut" className="h-4 w-4" />Log out</button>
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <>
-                                        <button
-                                            onClick={() => { setAuthRole('seller'); setAuthMode('login'); setAuthError(''); setShowAuthModal(true); }}
-                                            className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold px-4 py-2 shadow-sm transition"
-                                        ><Icon name="LayoutDashboard" className="h-4 w-4" /><span>Seller / Admin</span></button>
-                                        <div className="relative">
-                                            <button onClick={() => setCurrentView('cart')} className={`relative inline-flex items-center gap-2 rounded-xl border px-3 py-2 transition-all duration-200 ${currentView === 'cart' ? 'border-teal-700 bg-teal-50 text-teal-800 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50 hover:text-teal-800'}`} aria-label={`Your Cart, ${cart.reduce((tot, i) => tot + i.quantity, 0)} items`} title="Open your shopping cart">
-                                                <span className="relative inline-flex h-8 w-8 items-center justify-center rounded-lg bg-teal-700 text-white shadow-sm"><Icon name="ShoppingCart" className="h-4.5 w-4.5" /><span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-amber-400 px-1 text-[10px] font-extrabold leading-none text-slate-900">{cart.reduce((tot, i) => tot + i.quantity, 0)}</span></span>
-                                                <span className="hidden sm:flex flex-col items-start leading-tight"><span className="text-sm font-bold">Your Cart</span><span className="mt-0.5 text-[10px] font-medium text-slate-500">{cart.reduce((tot, i) => tot + i.quantity, 0)} {cart.reduce((tot, i) => tot + i.quantity, 0) === 1 ? 'item' : 'items'}</span></span>
-                                            </button>
-                                        </div>
-                                    </>
-                                )}
+                                <button
+                                    onClick={() => { setAuthRole('customer'); setAuthMode('login'); setAuthError(''); setEmailOtpSent(false); setAuthOtp(''); setShowAuthModal(true); }}
+                                    className={`inline-flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-semibold transition ${isAuthenticated && String(currentUser?.role || '').toLowerCase() === 'customer' ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-teal-200 bg-teal-50 text-teal-800 hover:bg-teal-100'}`}
+                                ><Icon name="User" className="h-4 w-4" /><span>{isAuthenticated && String(currentUser?.role || '').toLowerCase() === 'customer' ? 'My Account' : 'Customer Login'}</span></button>
+                                <button
+                                    onClick={() => { setAuthRole('seller'); setAuthMode('login'); setAuthError(''); setEmailOtpSent(false); setAuthOtp(''); setShowAuthModal(true); }}
+                                    className={`inline-flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-semibold transition ${isAuthenticated && ['seller','admin'].includes(String(currentUser?.role || '').toLowerCase()) ? 'border-teal-200 bg-teal-50 text-teal-800' : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'}`}
+                                ><Icon name="LayoutDashboard" className="h-4 w-4" /><span>{isAuthenticated && ['seller','admin'].includes(String(currentUser?.role || '').toLowerCase()) ? 'Admin Panel' : 'Seller Login'}</span></button>
+                                {isAuthenticated && String(currentUser?.role || '').toLowerCase() === 'customer' && <button onClick={() => setCurrentView('cart')} className="relative inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 hover:bg-slate-50" title="Your Cart"><Icon name="ShoppingCart" className="h-5 w-5"/><span className="text-xs">{cart.reduce((tot, i) => tot + i.quantity, 0)} items</span></button>}
+                                {isAuthenticated && <button onClick={handleLogout} title="Logout" className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-gray-100 transition"><Icon name="LogOut" className="h-5 w-5"/></button>}
+
                             </div>
                         </div>
                     </header>
