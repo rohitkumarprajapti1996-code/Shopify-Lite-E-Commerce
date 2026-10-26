@@ -759,15 +759,18 @@
             useEffect(() => {
                 let alive = true;
                 if (!isAuthenticated || !currentUser || !currentUser.id) return () => { alive = false; };
+                // Refresh shared order/dispatch data whenever the customer opens their account,
+                // so newly saved AWB numbers and tracking links appear without a manual reload.
+                if (currentView !== 'customer-dashboard' && currentView !== 'seller-dashboard') return () => { alive = false; };
                 (async () => {
                     const { data, error } = await window.ShopifySupabase.client.auth.getSession();
                     if (error) throw error;
                     if (!data.session) return;
                     const remoteOrders = await window.ShopifySupabase.loadOrders();
                     if (alive) setOrders(remoteOrders);
-                })().catch((err) => console.warn('Could not load saved Shopify orders:', err));
+                })().catch((err) => console.warn('Could not refresh saved Shopify order tracking:', err));
                 return () => { alive = false; };
-            }, [isAuthenticated, currentUser && currentUser.id]);
+            }, [isAuthenticated, currentUser && currentUser.id, currentView]);
 
             useEffect(() => {
                 let alive = true;
@@ -2328,15 +2331,24 @@ setIsVerifyingUpi(true);
                                                     </div>
                                                 </div>
 
-                                                <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 p-4 space-y-2">
-                                                    <h5 className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-800">Courier & Tracking Details</h5>
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                                                        <div><span className="block text-[10px] text-gray-500 font-bold">Logistics Partner</span><strong className="text-gray-900">{order.courier || 'Not assigned yet'}</strong></div>
-                                                        <div><span className="block text-[10px] text-gray-500 font-bold">AWB / Tracking Number</span><strong className="text-gray-900 break-all">{order.trackingNumber || 'Not available yet'}</strong></div>
-                                                        <div><span className="block text-[10px] text-gray-500 font-bold">Dispatch Warehouse</span><strong className="text-gray-900">{order.warehouse || 'Not updated yet'}</strong></div>
-                                                        <div><span className="block text-[10px] text-gray-500 font-bold">Current Order Status</span><strong className="text-indigo-700">{order.status || 'Pending'}</strong></div>
+                                                <div className="rounded-xl border-2 border-teal-200 bg-teal-50 p-4 space-y-3">
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <h5 className="text-xs font-extrabold uppercase tracking-widest text-teal-900">Courier & Tracking Details</h5>
+                                                        <span className="rounded-full bg-white px-2 py-1 text-[10px] font-bold text-teal-800 border border-teal-200">Live order details</span>
                                                     </div>
-                                                    {order.trackingUrl && /^https?:\/\//i.test(order.trackingUrl) && <a href={order.trackingUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-2 text-white font-bold text-[11px]">Track Shipment <Icon name="ArrowRight" className="h-3 w-3" /></a>}
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                                                        <div className="rounded-lg bg-white border border-teal-100 p-3"><span className="block text-xs text-gray-500 font-bold mb-1">Logistics Partner</span><strong className="text-gray-900 break-words">{order.courier || 'Not assigned yet'}</strong></div>
+                                                        <div className="rounded-lg bg-white border border-teal-100 p-3"><span className="block text-xs text-gray-500 font-bold mb-1">AWB / Tracking Number</span><strong className="text-gray-900 break-all">{order.trackingNumber || 'Not available yet'}</strong></div>
+                                                        <div className="rounded-lg bg-white border border-teal-100 p-3"><span className="block text-xs text-gray-500 font-bold mb-1">Dispatch Warehouse</span><strong className="text-gray-900 break-words">{order.warehouse || 'Not updated yet'}</strong></div>
+                                                        <div className="rounded-lg bg-white border border-teal-100 p-3"><span className="block text-xs text-gray-500 font-bold mb-1">Current Order Status</span><strong className="text-teal-800">{order.status || 'Pending'}</strong></div>
+                                                    </div>
+                                                    {order.trackingUrl && /^https?:\/\//i.test(order.trackingUrl) ? (
+                                                        <a href={order.trackingUrl} target="_blank" rel="noopener noreferrer" className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-teal-700 hover:bg-teal-800 px-4 py-3 text-white font-extrabold text-sm shadow-sm" aria-label={`Track shipment for order ${order.orderNumber}`}>
+                                                            Track My Shipment <Icon name="ArrowRight" className="h-4 w-4" />
+                                                        </a>
+                                                    ) : (
+                                                        <p className="text-xs text-gray-600">The tracking link will appear here when the store admin saves it.</p>
+                                                    )}
                                                 </div>
 
                                                 {/* Tracking state monitor lines */}
