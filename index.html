@@ -65,7 +65,8 @@
             #root .mb-8.rounded-2xl { padding:1.5rem; }
         }
         @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; transition-duration:.01ms!important; } }
-        @media print { .no-print { display:none!important; } body { background-color:#fff!important; color:#000!important; } }
+        @page { size:A4; margin:12mm; }
+        @media print { html,body { background:#fff!important; margin:0!important; padding:0!important; } body * { visibility:hidden!important; } #tax-invoice-printable,#tax-invoice-printable * { visibility:visible!important; } #tax-invoice-printable { position:absolute!important; left:0!important; top:0!important; width:100%!important; margin:0!important; color:#111827!important; font-size:10pt!important; } #tax-invoice-printable tr { break-inside:avoid; page-break-inside:avoid; } .no-print { display:none!important; } }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased min-h-screen">
@@ -3139,7 +3140,7 @@ setIsVerifyingUpi(true);
                                         </div>
                                         <div className="text-right">
                                             <h2 className="text-sm font-bold text-gray-900">TAX INVOICE</h2>
-                                            <p className="text-[10px] text-gray-500 font-bold mt-1">Invoice No: INV-{viewingInvoiceOrder.id.replace('ORD-', '')}</p>
+                                            <p className="text-[10px] text-gray-500 font-bold mt-1">Invoice No: {viewingInvoiceOrder.invoiceNumber || "Invoice serial pending"}</p>
                                             <p className="text-[10px] text-gray-500">Date: {viewingInvoiceOrder.date}</p>
                                         </div>
                                     </div>
@@ -3148,7 +3149,7 @@ setIsVerifyingUpi(true);
                                         <div>
                                             <h3 className="font-extrabold text-gray-400 uppercase text-[9px] mb-1">Sold By (Merchant)</h3>
                                             <strong className="text-gray-900 block font-bold">SHOPIFY-LITE MARKETPLACE</strong>
-                                            <span className="text-gray-500 block leading-tight font-semibold text-gray-700">RWH - Mail Hub Plot No-23, Tower-2 Ground floor Navi Mumbai -400703</span>
+                                            <span className="text-gray-500 block leading-tight font-semibold text-gray-700">Seller address and GSTIN should be configured with verified business details.</span>
                                         </div>
                                         <div>
                                             <h3 className="font-extrabold text-gray-400 uppercase text-[9px] mb-1">Billing To (Buyer)</h3>
@@ -3210,13 +3211,13 @@ setIsVerifyingUpi(true);
                                             <p className="text-gray-500">Transaction Ref Number: <strong>{viewingInvoiceOrder.transactionId}</strong></p>
                                         </div>
                                         <div className="text-center bg-white border border-gray-200 p-2 rounded-lg font-bold">
-                                            <span className="text-emerald-600 block">PAID IN FULL</span>
+                                            <span className="text-emerald-600 block">{String(viewingInvoiceOrder.paymentStatus || 'pending').toUpperCase()}</span>
                                             <span className="text-gray-400 text-[8px]">SHOPIFY-LITE INVOICE</span>
                                         </div>
                                     </div>
 
                                     <p className="text-[9px] text-gray-400 text-center leading-relaxed">
-                                        This is an official computer-generated tax invoice and does not require a physical signature. Returns and exchange parameters are governed under our digital vendor agreements.
+                                        Computer-generated order invoice. Configure verified seller, GSTIN and tax details before using this as a statutory tax invoice.
                                     </p>
                                 </div>
 
