@@ -3440,7 +3440,24 @@ setIsVerifyingUpi(true);
                                                                 {String(selectedLogisticsPartners[ord.id] || ord.courier || '').toLowerCase() === 'shiprocket' && (
                                                                     <button
                                                                         type="button"
-                                                                        onClick={() => triggerToast('Shiprocket AWB generation is not connected to a live shipment-creation backend yet. No AWB was created. Please complete the Shiprocket API integration first.', 'error')}
+                                                                        onClick={async () => {
+                                                                            if (!currentUser || currentUser.role !== 'admin') { triggerToast('Admin sign-in is required.', 'error'); return; }
+                                                                            if (!ord.databaseId) { triggerToast('This order is not saved in Supabase.', 'error'); return; }
+                                                                            const deliveryCity = window.prompt('Enter delivery city exactly as per address:');
+                                                                            if (!deliveryCity) return;
+                                                                            const deliveryState = window.prompt('Enter delivery state:');
+                                                                            if (!deliveryState) return;
+                                                                            const weightKg = window.prompt('Package weight in kg (default 0.5):', '0.5');
+                                                                            if (!weightKg) return;
+                                                                            try {
+                                                                                const { data, error } = await window.ShopifySupabase.client.functions.invoke('shiprocket-create-shipment', { body: { orderId: ord.databaseId, deliveryCity, deliveryState, weightKg: Number(weightKg) } });
+                                                                                if (error) throw new Error(data?.error || error.message || 'Shiprocket request failed.');
+                                                                                if (!data?.ok || !data?.awb) throw new Error(data?.error || 'Shiprocket did not return an AWB.');
+                                                                                setDispatchInputs(prev => ({ ...prev, [ord.id]: { ...(prev[ord.id] || {}), trackingNumber: data.awb, trackingUrl: data.trackingUrl || '' } }));
+                                                                                setOrders(prev => prev.map(o => o.databaseId === ord.databaseId ? { ...o, courier: 'Shiprocket', trackingNumber: data.awb, trackingUrl: data.trackingUrl || '', status: 'Shipped' } : o));
+                                                                                triggerToast('Shiprocket AWB created and saved: ' + data.awb, 'success');
+                                                                            } catch (err) { triggerToast(err.message || 'Shiprocket AWB generation failed.', 'error'); }
+                                                                        }}
                                                                         className="w-full rounded-lg border-2 border-orange-300 bg-orange-50 hover:bg-orange-100 text-orange-900 font-extrabold px-3 py-3 text-sm"
                                                                     >
                                                                         <span className="inline-flex items-center justify-center gap-2"><Icon name="PackageCheck" className="h-4 w-4" /> Generate AWB via Shiprocket</span>
