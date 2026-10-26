@@ -2200,44 +2200,71 @@ setIsVerifyingUpi(true);
 
                         {/* 4. Customer Workspace Dashboard */}
                         {currentView === 'customer-dashboard' && (
-                            <div className="max-w-4xl mx-auto mt-4 space-y-6">
-                                <div className="bg-gradient-to-r from-purple-800 to-indigo-800 rounded-2xl p-6 text-white shadow">
-                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-                                        <div className="space-y-3">
-                                            <span className="text-xs font-bold uppercase tracking-widest text-purple-200">Buyer Account Center</span>
-                                            <h1 className="text-2xl font-black mt-1 leading-tight">Namaste, {currentUser?.name || "Premium Guest"}</h1>
-                                            
-                                            {/* Delivery Address Visual Placement in Greeting Box */}
-                                            <div className="flex items-start gap-2.5 text-xs text-purple-100 max-w-xl bg-purple-900/30 p-3 rounded-xl border border-purple-700/40 shadow-inner">
-                                                <Icon name="MapPin" className="h-4 w-4 mt-0.5 text-amber-400 flex-shrink-0" />
+                            <div className="max-w-6xl mx-auto mt-6 space-y-6 pb-8">
+                                <div className="relative overflow-hidden rounded-3xl p-7 sm:p-9 text-white shadow-xl bg-gradient-to-br from-teal-800 via-teal-900 to-slate-900">
+                                    <div className="absolute -right-12 -top-16 h-56 w-56 rounded-full bg-teal-400/10 blur-2xl pointer-events-none"></div>
+                                    <div className="absolute right-20 -bottom-24 h-52 w-52 rounded-full bg-cyan-300/10 blur-2xl pointer-events-none"></div>
+                                    <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-7">
+                                        <div className="space-y-4 min-w-0">
+                                            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-teal-100">
+                                                <Icon name="ShieldCheck" className="h-4 w-4" /> Buyer Account Center
+                                            </div>
+                                            <div>
+                                                <p className="text-teal-100/80 text-sm font-medium mb-1">Welcome back</p>
+                                                <h1 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight">Namaste, {profileDisplayName || currentUser?.name || "Shopper"} <span className="inline-block">👋</span></h1>
+                                                <p className="text-sm text-teal-50/80 mt-2 max-w-xl">Manage your personal details and delivery information from one place.</p>
+                                            </div>
+                                            <div className="flex items-start gap-3 text-sm text-white max-w-2xl bg-white/10 p-4 rounded-2xl border border-white/15 backdrop-blur-sm">
+                                                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400/15 text-amber-300 flex-shrink-0"><Icon name="MapPin" className="h-5 w-5" /></span>
                                                 <div className="min-w-0">
-                                                    <strong className="text-[10px] uppercase tracking-wider font-extrabold text-purple-200 block mb-0.5">Shipping Address Coordinates:</strong>
-                                                    <span className="font-medium break-words leading-relaxed">{profileAddress || "Please register your primary address in settings below."}</span>
+                                                    <strong className="text-[10px] uppercase tracking-[0.14em] font-extrabold text-teal-100 block mb-1">Default delivery address</strong>
+                                                    <span className="font-medium break-words leading-relaxed">{profileAddress || "Add your primary delivery address in profile settings below."}</span>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl text-xs space-y-1.5 min-w-[224px] border border-white/10 h-fit">
-                                            <div className="flex items-center gap-1.5"><Icon name="Smartphone" className="h-3.5 w-3.5" /> <span>{currentUser?.phone}</span></div>
-                                            <div className="flex items-center gap-1.5"><Icon name="Mail" className="h-3.5 w-3.5" /> <span>{currentUser?.email}</span></div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 lg:min-w-[270px]">
+                                            <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-slate-950/20 p-4 backdrop-blur-sm">
+                                                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-teal-100"><Icon name="Smartphone" className="h-5 w-5" /></span>
+                                                <div className="min-w-0"><span className="block text-[10px] uppercase tracking-wider text-teal-100/70 font-bold mb-1">Mobile number</span><span className="block text-sm font-semibold break-all">{currentUser?.phone || checkoutPhone || "Not added"}</span></div>
+                                            </div>
+                                            <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-slate-950/20 p-4 backdrop-blur-sm">
+                                                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-teal-100"><Icon name="Mail" className="h-5 w-5" /></span>
+                                                <div className="min-w-0"><span className="block text-[10px] uppercase tracking-wider text-teal-100/70 font-bold mb-1">Email address</span><span className="block text-sm font-semibold break-all">{currentUser?.email || "Not available"}</span></div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm mb-5">
-                                    <div className="flex items-center justify-between gap-3 mb-4">
-                                        <div>
-                                            <h3 className="font-extrabold text-gray-900 text-sm">Your Saved Customer Details</h3>
-                                            <p className="text-xs text-gray-500 mt-1">Saved to your account and reused at checkout.</p>
-                                        </div>
-                                        <span className="text-[10px] rounded-full bg-teal-50 text-teal-800 px-3 py-1 font-bold">Account profile</span>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div className="rounded-2xl border border-teal-100 bg-gradient-to-br from-white to-teal-50/70 p-5 shadow-sm">
+                                        <div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-100 text-teal-800"><Icon name="UserRound" className="h-5 w-5" /></span><div><p className="text-xs text-slate-500 font-medium">Profile name</p><p className="text-sm font-extrabold text-slate-900 mt-1">{profileDisplayName || currentUser?.name || "Not saved yet"}</p></div></div>
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                                        <div className="rounded-xl border border-gray-100 p-3"><span className="block text-gray-500 mb-1">Customer name</span><strong>{profileDisplayName || currentUser?.name || 'Not saved yet'}</strong></div>
-                                        <div className="rounded-xl border border-gray-100 p-3"><span className="block text-gray-500 mb-1">Email address</span><strong className="break-all">{currentUser?.email || 'Not available'}</strong></div>
-                                        <div className="rounded-xl border border-gray-100 p-3"><span className="block text-gray-500 mb-1">Phone number</span><strong>{checkoutPhone || currentUser?.phone || 'Not saved yet'}</strong></div>
-                                        <div className="rounded-xl border border-gray-100 p-3"><span className="block text-gray-500 mb-1">PIN code</span><strong>{checkoutPincode || 'Not saved yet'}</strong></div>
-                                        <div className="rounded-xl border border-gray-100 p-3 sm:col-span-2"><span className="block text-gray-500 mb-1">Complete address</span><strong className="break-words">{profileAddress || checkoutAddress || 'Add your delivery address below.'}</strong></div>
-                                        <div className="rounded-xl border border-gray-100 p-3 sm:col-span-2"><span className="block text-gray-500 mb-1">Landmark</span><strong className="break-words">{checkoutLandmark || 'Not saved yet'}</strong></div>
+                                    <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-white to-blue-50/70 p-5 shadow-sm">
+                                        <div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-800"><Icon name="MapPinned" className="h-5 w-5" /></span><div><p className="text-xs text-slate-500 font-medium">Delivery PIN code</p><p className="text-sm font-extrabold text-slate-900 mt-1">{checkoutPincode || "Not added yet"}</p></div></div>
+                                    </div>
+                                    <div className="rounded-2xl border border-amber-100 bg-gradient-to-br from-white to-amber-50/70 p-5 shadow-sm">
+                                        <div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 text-amber-800"><Icon name="PackageCheck" className="h-5 w-5" /></span><div><p className="text-xs text-slate-500 font-medium">Checkout ready</p><p className="text-sm font-extrabold text-slate-900 mt-1">{profileAddress || checkoutAddress ? "Address added" : "Add delivery address"}</p></div></div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-sm">
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+                                        <div className="flex items-start gap-3">
+                                            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-50 text-teal-800"><Icon name="ContactRound" className="h-5 w-5" /></span>
+                                            <div>
+                                                <h3 className="font-extrabold text-slate-900 text-lg">Your saved customer details</h3>
+                                                <p className="text-sm text-slate-500 mt-1">Your information is reused at checkout for a smoother purchase.</p>
+                                            </div>
+                                        </div>
+                                        <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1.5 text-xs font-bold"><Icon name="CheckCircle2" className="h-4 w-4" /> Account profile</span>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                                        <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4"><span className="block text-xs text-slate-500 mb-2">Customer name</span><strong className="text-slate-900">{profileDisplayName || currentUser?.name || 'Not saved yet'}</strong></div>
+                                        <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4"><span className="block text-xs text-slate-500 mb-2">Email address</span><strong className="text-slate-900 break-all">{currentUser?.email || 'Not available'}</strong></div>
+                                        <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4"><span className="block text-xs text-slate-500 mb-2">Phone number</span><strong className="text-slate-900">{checkoutPhone || currentUser?.phone || 'Not saved yet'}</strong></div>
+                                        <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4"><span className="block text-xs text-slate-500 mb-2">PIN code</span><strong className="text-slate-900">{checkoutPincode || 'Not saved yet'}</strong></div>
+                                        <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:col-span-2"><span className="block text-xs text-slate-500 mb-2">Complete delivery address</span><strong className="text-slate-900 break-words">{profileAddress || checkoutAddress || 'Add your delivery address in profile settings below.'}</strong></div>
+                                        <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:col-span-2"><span className="block text-xs text-slate-500 mb-2">Landmark</span><strong className="text-slate-900 break-words">{checkoutLandmark || 'Not saved yet'}</strong></div>
                                     </div>
                                 </div>
 
