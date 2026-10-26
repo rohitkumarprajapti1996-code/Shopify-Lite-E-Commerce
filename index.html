@@ -890,7 +890,8 @@
             const [isAiTyping, setIsAiTyping] = useState(false);
 
             const [sellerActiveTab, setSellerActiveTab] = useState('inventory');
-            const [selectedLogisticsPartners, setSelectedLogisticsPartners] = useState({}); // inventory, add-listing, payments, fulfillment, bank-settlement
+            const [selectedLogisticsPartners, setSelectedLogisticsPartners] = useState({});
+            const [dispatchInputs, setDispatchInputs] = useState({}); // inventory, add-listing, payments, fulfillment, bank-settlement
 
             const [newProduct, setNewProduct] = useState({
                 title: '',
@@ -1417,6 +1418,25 @@ setIsVerifyingUpi(true);
                     setOrders(orders.map(order => order.databaseId === target.databaseId ? { ...order, status: newStatus === 'Ordered' ? 'Pending' : newStatus } : order));
                     triggerToast('Order status saved to Supabase: ' + newStatus);
                 } catch (err) { triggerToast(err.message || 'Could not update order status.', 'error'); }
+            };
+
+            const handleSaveDispatch = async (order) => {
+                if (!currentUser || currentUser.role !== 'admin') { triggerToast('Admin sign-in is required to save shipment details.', 'error'); return; }
+                if (!order.databaseId) { triggerToast('This demo order is not saved in Supabase.', 'error'); return; }
+                const form = dispatchInputs[order.id] || {};
+                const courier = selectedLogisticsPartners[order.id] || order.courier || '';
+                if (!courier) { triggerToast('Please select a logistics partner first.', 'error'); return; }
+                try {
+                    const result = await window.ShopifySupabase.saveDispatch(order.databaseId, {
+                        courier,
+                        trackingNumber: form.trackingNumber ?? order.trackingNumber ?? '',
+                        trackingUrl: form.trackingUrl ?? order.trackingUrl ?? '',
+                        warehouse: form.warehouse ?? order.warehouse ?? '',
+                        status: order.status === 'Ordered' || order.status === 'Pending' ? 'Dispatched' : (order.status === 'Shipped' ? 'In Transit' : order.status)
+                    });
+                    setOrders(prev => prev.map(o => o.databaseId === order.databaseId ? { ...o, courier, trackingNumber: result.tracking_number || form.trackingNumber || '', trackingUrl: result.tracking_url || form.trackingUrl || '', warehouse: result.warehouse || form.warehouse || '', status: result.status || 'Dispatched' } : o));
+                    triggerToast('Shipment details saved. Customer order tracking is updated.');
+                } catch (err) { triggerToast(err.message || 'Could not save shipment details.', 'error'); }
             };
 
             const deleteProductBySeller = async (id) => {
@@ -2230,6 +2250,17 @@ setIsVerifyingUpi(true);
                                                     </div>
                                                 </div>
 
+                                                <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 p-4 space-y-2">
+                                                    <h5 className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-800">Courier & Tracking Details</h5>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                                        <div><span className="block text-[10px] text-gray-500 font-bold">Logistics Partner</span><strong className="text-gray-900">{order.courier || 'Not assigned yet'}</strong></div>
+                                                        <div><span className="block text-[10px] text-gray-500 font-bold">AWB / Tracking Number</span><strong className="text-gray-900 break-all">{order.trackingNumber || 'Not available yet'}</strong></div>
+                                                        <div><span className="block text-[10px] text-gray-500 font-bold">Dispatch Warehouse</span><strong className="text-gray-900">{order.warehouse || 'Not updated yet'}</strong></div>
+                                                        <div><span className="block text-[10px] text-gray-500 font-bold">Current Order Status</span><strong className="text-indigo-700">{order.status || 'Pending'}</strong></div>
+                                                    </div>
+                                                    {order.trackingUrl && /^https?:\/\//i.test(order.trackingUrl) && <a href={order.trackingUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-2 text-white font-bold text-[11px]">Track Shipment <Icon name="ArrowRight" className="h-3 w-3" /></a>}
+                                                </div>
+
                                                 {/* Tracking state monitor lines */}
                                                 <div className="pt-2">
                                                     <h5 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Shipment Progress</h5>
@@ -2812,6 +2843,26 @@ setIsVerifyingUpi(true);
                                                                     <option value="Shipped">Dispatched / Shipped</option>
                                                                     <option value="Delivered">Delivered</option>
                                                                 </select>
+                                                                <input
+                                                                    value={(dispatchInputs[ord.id]?.trackingNumber ?? ord.trackingNumber ?? '')}
+                                                                    onChange={(e) => setDispatchInputs(prev => ({ ...prev, [ord.id]: { ...(prev[ord.id] || {}), trackingNumber: e.target.value } }))}
+                                                                    placeholder="AWB / Tracking number"
+                                                                    className="w-full text-[10px] px-2 py-2 border border-gray-300 rounded-lg bg-white"
+                                                                />
+                                                                <input
+                                                                    value={(dispatchInputs[ord.id]?.trackingUrl ?? ord.trackingUrl ?? '')}
+                                                                    onChange={(e) => setDispatchInputs(prev => ({ ...prev, [ord.id]: { ...(prev[ord.id] || {}), trackingUrl: e.target.value } }))}
+                                                                    placeholder="Tracking URL (optional)"
+                                                                    type="url"
+                                                                    className="w-full text-[10px] px-2 py-2 border border-gray-300 rounded-lg bg-white"
+                                                                />
+                                                                <input
+                                                                    value={(dispatchInputs[ord.id]?.warehouse ?? ord.warehouse ?? '')}
+                                                                    onChange={(e) => setDispatchInputs(prev => ({ ...prev, [ord.id]: { ...(prev[ord.id] || {}), warehouse: e.target.value } }))}
+                                                                    placeholder="Dispatch warehouse"
+                                                                    className="w-full text-[10px] px-2 py-2 border border-gray-300 rounded-lg bg-white"
+                                                                />
+                                                                <button type="button" onClick={() => handleSaveDispatch(ord)} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-2 rounded-lg">Save Shipment Details</button>
                                                             </div>
                                                         </div>
                                                     </div>
