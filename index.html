@@ -2926,6 +2926,10 @@ setIsVerifyingUpi(true);
                                                 />
                                             </div>
                                             <div>
+                                                <label className="block text-[10px] font-extrabold text-gray-500 uppercase mb-1">Account Email *</label>
+                                                <input type="email" value={currentUser?.email || ''} readOnly required className="w-full text-xs px-3 py-2 border border-gray-300 rounded-xl bg-gray-100" />
+                                            </div>
+                                            <div>
                                                 <label className="block text-[10px] font-extrabold text-gray-500 uppercase mb-1">Phone Number *</label>
                                                 <input 
                                                     type="tel" 
