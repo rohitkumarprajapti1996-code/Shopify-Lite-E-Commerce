@@ -192,7 +192,18 @@
           items: items.map(item => ({ id: item.id, quantity: Number(item.quantity) }))
         }
       });
-      if (error) throw new Error(error.message || "Could not start Razorpay checkout.");
+      if (error) {
+        let detail = "";
+        try {
+          const response = error.context;
+          if (response && typeof response.clone === "function") {
+            const payload = await response.clone().json();
+            detail = payload?.error || payload?.message || "";
+            if (payload?.code) detail = detail ? detail + " (" + payload.code + ")" : payload.code;
+          }
+        } catch (_) { /* Some network errors have no JSON response body. */ }
+        throw new Error(detail || error.message || "Could not start Razorpay checkout.");
+      }
       if (!data || !data.razorpayOrderId) throw new Error(data?.error || "Payment order was not created.");
       return data;
     },
@@ -205,7 +216,18 @@
           razorpay_signature: response.razorpay_signature
         }
       });
-      if (error) throw new Error(error.message || "Could not verify Razorpay payment.");
+      if (error) {
+        let detail = "";
+        try {
+          const response = error.context;
+          if (response && typeof response.clone === "function") {
+            const payload = await response.clone().json();
+            detail = payload?.error || payload?.message || "";
+            if (payload?.code) detail = detail ? detail + " (" + payload.code + ")" : payload.code;
+          }
+        } catch (_) { /* Some network errors have no JSON response body. */ }
+        throw new Error(detail || error.message || "Could not verify Razorpay payment.");
+      }
       if (!data || data.status !== "paid") throw new Error(data?.message || data?.error || "Payment is not captured yet.");
       return data;
     },
