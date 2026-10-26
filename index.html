@@ -2805,8 +2805,27 @@ setIsVerifyingUpi(true);
                                     </div>
                                 </div>
 
-                                {/* Dashboard subnavigation tabs */}
-                                <div className="flex items-center gap-2 border-b border-gray-200 pb-2 overflow-x-auto">
+                                {/* Admin sidebar navigation */}
+                                <div className="grid grid-cols-1 lg:grid-cols-[230px_minmax(0,1fr)] gap-5 items-start">
+                                  <aside className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm lg:sticky lg:top-4">
+                                    <div className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Admin menu</div>
+                                    {[
+                                      {id:'inventory',label:'Products & Inventory',icon:'Package'},
+                                      {id:'add-listing',label:'Upload / Edit Products',icon:'PlusCircle'},
+                                      {id:'payments',label:'Payments',icon:'CreditCard'},
+                                      {id:'payment-proofs',label:'Payment Review',icon:'FileCheck'},
+                                      {id:'bank-settlement',label:'Payouts & Transfers',icon:'Landmark'},
+                                      {id:'fulfillment',label:'Dispatch & Logistics',icon:'Truck'},
+                                      {id:'customers',label:'Customer List',icon:'Users'}
+                                    ].map(item => (
+                                      <button key={item.id} type="button" onClick={() => { setSellerActiveTab(item.id); if(item.id==='payment-proofs') loadPaymentProofs(); }} className={`mb-1 flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-xs font-bold transition ${sellerActiveTab===item.id?'bg-indigo-600 text-white shadow-sm':'text-slate-600 hover:bg-slate-50'}`}>
+                                        <Icon name={item.icon} className="h-4 w-4 shrink-0"/><span>{item.label}</span>
+                                      </button>
+                                    ))}
+                                  </aside>
+                                  <div className="min-w-0 space-y-5">
+                                <div className="hidden">
+
                                     <button 
                                         onClick={() => setSellerActiveTab('inventory')}
                                         className={`px-4 py-2 text-xs font-bold whitespace-nowrap rounded-lg transition ${sellerActiveTab === 'inventory' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
@@ -2844,6 +2863,24 @@ setIsVerifyingUpi(true);
                                         Fulfillment & Shipping ({orders.length})
                                     </button>
                                 </div>
+
+                                {sellerActiveTab === 'customers' && (
+                                  <section className="space-y-4">
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                      <div><h2 className="text-xl font-black text-slate-900">Customer Directory</h2><p className="mt-1 text-xs text-slate-500">Customer details compiled from saved orders.</p></div>
+                                      <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700">{new Set(orders.map(o => String(o.customerEmail || o.customer_email || o.email || o.customerPhone || o.customer_phone || o.phone || '').toLowerCase()).filter(Boolean)).size} customers</span>
+                                    </div>
+                                    {orders.length === 0 ? <div className="rounded-2xl border border-dashed bg-white p-8 text-center text-sm text-slate-500">No saved orders are currently loaded.</div> : (
+                                      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                        <table className="min-w-full text-left text-xs"><thead className="bg-slate-50 text-slate-500"><tr><th className="px-4 py-3">Customer</th><th className="px-4 py-3">Contact</th><th className="px-4 py-3">Shipping address</th><th className="px-4 py-3">Orders</th><th className="px-4 py-3">Latest status</th></tr></thead><tbody>
+                                          {Array.from(orders.reduce((map,o) => { const email=String(o.customerEmail || o.customer_email || o.email || '').trim().toLowerCase(); const phone=String(o.customerPhone || o.customer_phone || o.phone || '').trim(); const key=email || phone || String(o.customerName || o.customer_name || o.id || 'unknown'); if(!map.has(key)) map.set(key,{key,name:o.customerName || o.customer_name || o.shippingName || o.shipping_name || 'Customer',email,phone,address:o.shippingAddress || o.shipping_address || o.address || o.deliveryAddress || o.delivery_address || 'Address not available',orders:[]}); map.get(key).orders.push(o); return map; },new Map()).values()).map(customer => (
+                                            <tr key={customer.key} className="border-t border-slate-100 align-top"><td className="px-4 py-3 font-bold">{customer.name}</td><td className="px-4 py-3">{customer.email || '—'}<div className="mt-1 text-slate-400">{customer.phone || '—'}</div></td><td className="px-4 py-3 max-w-xs whitespace-normal">{customer.address}</td><td className="px-4 py-3 font-bold">{customer.orders.length}</td><td className="px-4 py-3">{customer.orders[customer.orders.length-1]?.status || 'Unknown'}</td></tr>
+                                          ))}
+                                        </tbody></table>
+                                      </div>
+                                    )}
+                                  </section>
+                                )}
 
                                 {/* Subtab 1: Inventory stock list with Backup Import/Export Tools */}
 
@@ -3375,6 +3412,8 @@ setIsVerifyingUpi(true);
                                         )}
                                     </div>
                                 )}
+                                  </div>
+                                </div>
                             </div>
                         )}
                     </main>
