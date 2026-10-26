@@ -76,7 +76,37 @@
         #root pre, #root code { overflow-wrap:anywhere; white-space:pre-wrap; }
         #root .overflow-x-auto { max-width:100%; -webkit-overflow-scrolling:touch; }
         #root .fixed.inset-0 { overscroll-behavior:contain; }
+        /* Mobile-first header repair: keep brand, actions and search in separate rows on phones,
+           while leaving the wider laptop/tablet header intact. */
         @media (max-width: 767px) {
+          #root > div > div.bg-gradient-to-r.no-print {
+            display:flex!important; flex-wrap:nowrap!important; align-items:center!important;
+            gap:8px!important; padding:8px 12px!important; font-size:12px!important;
+            line-height:1.35!important; text-align:center!important;
+          }
+          #root > div > div.bg-gradient-to-r.no-print > svg { flex:0 0 16px!important; width:16px!important; height:16px!important; }
+          #root header.sticky.top-0 > div {
+            height:auto!important; min-height:0!important; padding:10px 14px!important;
+            display:grid!important; grid-template-columns:minmax(0,1fr) auto!important;
+            align-items:center!important; gap:10px!important;
+          }
+          #root header.sticky.top-0 > div > div:first-child { grid-column:1!important; grid-row:1!important; flex-wrap:nowrap!important; gap:8px!important; }
+          #root header.sticky.top-0 > div > div:first-child > div { padding:7px!important; flex:0 0 auto!important; }
+          #root header.sticky.top-0 > div > div:first-child > div svg { width:22px!important; height:22px!important; }
+          #root header.sticky.top-0 > div > div:first-child > span { font-size:21px!important; white-space:nowrap!important; }
+          #root header.sticky.top-0 > div > div.hidden.md\\:flex { display:none!important; }
+          #root header.sticky.top-0 > div > div:last-child {
+            grid-column:1 / -1!important; grid-row:2!important; width:100%!important;
+            display:flex!important; flex-wrap:nowrap!important; align-items:center!important;
+            justify-content:space-between!important; gap:8px!important;
+          }
+          #root header.sticky.top-0 > div > div:last-child > button { white-space:nowrap!important; flex:0 1 auto!important; padding:8px 10px!important; font-size:12px!important; }
+          #root header.sticky.top-0 > div > div:last-child > div { flex:0 0 auto!important; }
+          #root header.sticky.top-0 > div > div:last-child > div button { padding:6px 8px!important; }
+          #root header.sticky.top-0 > div > div:last-child > div button > span:last-child { display:flex!important; }
+          #root header.sticky.top-0 > div > div:last-child > div button > span:last-child span:first-child { font-size:12px!important; }
+          #root > div > div.md\\:hidden.block.bg-white { display:block!important; position:relative!important; z-index:30!important; width:100%!important; padding:10px 14px!important; }
+          #root > div > div.md\\:hidden.block.bg-white input { width:100%!important; font-size:14px!important; }
           body { font-size:15px; }
           #root .max-w-7xl, #root .max-w-6xl, #root .max-w-5xl, #root .max-w-4xl, #root .max-w-3xl, #root .max-w-2xl { max-width:100%!important; }
           #root .mx-auto { margin-left:auto; margin-right:auto; }
