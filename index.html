@@ -153,7 +153,19 @@
           #root .fixed.inset-0 > div { max-height:calc(100vh - 48px); overflow-y:auto; }
         }
         @page { size:A4; margin:12mm; }
-        @media print { html,body { background:#fff!important; margin:0!important; padding:0!important; } body * { visibility:hidden!important; } #tax-invoice-printable,#tax-invoice-printable * { visibility:visible!important; } #tax-invoice-printable { position:absolute!important; left:0!important; top:0!important; width:100%!important; margin:0!important; color:#111827!important; font-size:10pt!important; } #tax-invoice-printable tr { break-inside:avoid; page-break-inside:avoid; } .no-print { display:none!important; } }
+        @media print {
+          @page { size:A4; margin:10mm; }
+          html,body,#root { background:#fff!important; margin:0!important; padding:0!important; width:auto!important; height:auto!important; overflow:visible!important; }
+          body * { visibility:hidden!important; }
+          #tax-invoice-printable,#tax-invoice-printable * { visibility:visible!important; }
+          #tax-invoice-printable { display:block!important; position:fixed!important; inset:0 auto auto 0!important; width:190mm!important; max-width:190mm!important; min-height:0!important; height:auto!important; overflow:visible!important; margin:0!important; padding:0!important; background:#fff!important; color:#111827!important; font-size:9pt!important; box-shadow:none!important; }
+          #tax-invoice-printable .grid { display:grid!important; grid-template-columns:repeat(2,minmax(0,1fr))!important; gap:8mm!important; }
+          #tax-invoice-printable table { width:100%!important; border-collapse:collapse!important; }
+          #tax-invoice-printable tr { break-inside:avoid!important; page-break-inside:avoid!important; }
+          #tax-invoice-printable h1 { font-size:18pt!important; }
+          #tax-invoice-printable p,#tax-invoice-printable span { overflow-wrap:anywhere!important; }
+          .no-print { display:none!important; }
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased min-h-screen">
@@ -683,6 +695,10 @@
             const [currentView, setCurrentView] = useState('home'); // home, detail, cart, customer-dashboard, seller-dashboard
             const [accountMenuOpen, setAccountMenuOpen] = useState(false);
             const [accountSettingsOpen, setAccountSettingsOpen] = useState(false);
+            const [sellerProfile, setSellerProfile] = useState({ business_name:'', contact_name:'', email:'', phone:'', address:'', city:'', state:'', pincode:'', gstin:'' });
+            const [sellerProfileBusy, setSellerProfileBusy] = useState(false);
+            const [sellerProfileMessage, setSellerProfileMessage] = useState('');
+
             const [selectedProduct, setSelectedProduct] = useState(null);
             const [searchTerm, setSearchTerm] = useState('');
             const [selectedCategory, setSelectedCategory] = useState('All');
@@ -864,6 +880,33 @@
                 }
                 return defaultOrders;
             });
+
+            useEffect(() => {
+                let alive = true;
+                if (!isAuthenticated || !['seller','admin'].includes(String(currentUser?.role || '').toLowerCase())) return () => { alive = false; };
+                (async () => {
+                    const { data, error } = await window.ShopifySupabase.client.from('shopify_lite_seller_profile').select('*').eq('id', true).maybeSingle();
+                    if (error) throw error;
+                    if (alive && data) setSellerProfile({ business_name:data.business_name||'', contact_name:data.contact_name||'', email:data.email||'', phone:data.phone||'', address:data.address||'', city:data.city||'', state:data.state||'', pincode:data.pincode||'', gstin:data.gstin||'' });
+                })().catch(err => console.warn('Could not load seller business profile:', err));
+                return () => { alive = false; };
+            }, [isAuthenticated, currentUser && currentUser.id]);
+
+            const saveSellerProfile = async (event) => {
+                event.preventDefault();
+                if (!currentUser || !['seller','admin'].includes(String(currentUser.role||'').toLowerCase())) { setSellerProfileMessage('Admin sign-in required.'); return; }
+                if (!sellerProfile.business_name.trim() || !sellerProfile.email.trim() || !sellerProfile.phone.trim() || !sellerProfile.address.trim() || !sellerProfile.city.trim() || !sellerProfile.state.trim() || !sellerProfile.pincode.trim()) { setSellerProfileMessage('Please complete business name, email, phone and full address including PIN code.'); return; }
+                if (!/^\\d{6}$/.test(sellerProfile.pincode.trim())) { setSellerProfileMessage('Enter a valid 6-digit PIN code.'); return; }
+                if (sellerProfile.gstin.trim() && !/^\\d{2}[A-Z]{5}\\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/i.test(sellerProfile.gstin.trim())) { setSellerProfileMessage('GSTIN format does not look valid. Check the 15-character GSTIN.'); return; }
+                setSellerProfileBusy(true); setSellerProfileMessage('');
+                try {
+                    const payload = { ...sellerProfile, gstin:sellerProfile.gstin.trim().toUpperCase(), id:true, updated_at:new Date().toISOString() };
+                    const { error } = await window.ShopifySupabase.client.from('shopify_lite_seller_profile').upsert(payload, { onConflict:'id' });
+                    if (error) throw error;
+                    setSellerProfileMessage('Business details saved. They will appear on newly printed invoices.');
+                } catch(err) { setSellerProfileMessage(err.message || 'Could not save business details. Check admin permissions.'); }
+                finally { setSellerProfileBusy(false); }
+            };
 
             useEffect(() => {
                 let alive = true;
@@ -2738,6 +2781,24 @@ setIsVerifyingUpi(true);
                                     </div>
                                 </div>
 
+                                <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                                  <div className="mb-4"><h2 className="font-extrabold text-slate-900">Seller / Business Details</h2><p className="mt-1 text-xs text-slate-500">Saved business details appear in the Sold By section of invoices. Add GSTIN only if your business is registered.</p></div>
+                                  <form onSubmit={saveSellerProfile} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {[
+                                      ['business_name','Business / Firm Name','e.g. Registered firm name'],
+                                      ['contact_name','Contact Person','Full name'],
+                                      ['email','Business Email ID','business@example.com'],
+                                      ['phone','Business Phone Number','10-digit phone number'],
+                                      ['address','Registered Business Address','Building, street, locality'],
+                                      ['city','City','City'],
+                                      ['state','State','State'],
+                                      ['pincode','PIN Code','6-digit PIN code'],
+                                      ['gstin','GSTIN (if registered)','15-character GSTIN']
+                                    ].map(([key,label,placeholder])=><label key={key} className={key==='address'?'md:col-span-2 block text-xs font-bold text-slate-700':'block text-xs font-bold text-slate-700'}>{label}<input value={sellerProfile[key]||''} onChange={e=>setSellerProfile(prev=>({...prev,[key]:e.target.value}))} placeholder={placeholder} maxLength={key==='gstin'?15:undefined} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium text-slate-900" /></label>)}
+                                    <div className="md:col-span-2 flex flex-wrap items-center gap-3"><button disabled={sellerProfileBusy} type="submit" className="rounded-xl bg-teal-700 px-5 py-3 text-sm font-extrabold text-white disabled:opacity-60">{sellerProfileBusy?'Saving…':'Save Business Details'}</button>{sellerProfileMessage&&<span className="text-xs font-semibold text-slate-600">{sellerProfileMessage}</span>}</div>
+                                  </form>
+                                </section>
+
                                 {/* Live order overview: counts are derived from the currently loaded store orders */}
                                 <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
                                     {[
@@ -3645,8 +3706,13 @@ setIsVerifyingUpi(true);
                                     <div className="grid grid-cols-2 gap-6 text-xs border-b border-gray-200 pb-4">
                                         <div>
                                             <h3 className="font-extrabold text-gray-400 uppercase text-[9px] mb-1">Sold By (Merchant)</h3>
-                                            <strong className="text-gray-900 block font-bold">SHOPIFY-LITE MARKETPLACE</strong>
-                                            <span className="text-gray-500 block leading-tight font-semibold text-gray-700">Seller address and GSTIN should be configured with verified business details.</span>
+                                            <strong className="text-gray-900 block font-bold">{sellerProfile.business_name || 'Seller business details not configured'}</strong>
+                                            {sellerProfile.contact_name && <span className="text-gray-600 block">Contact: {sellerProfile.contact_name}</span>}
+                                            {sellerProfile.email && <span className="text-gray-600 block break-all">Email: {sellerProfile.email}</span>}
+                                            {sellerProfile.phone && <span className="text-gray-600 block">Phone: {sellerProfile.phone}</span>}
+                                            {sellerProfile.address && <span className="text-gray-600 block leading-tight">{sellerProfile.address}, {sellerProfile.city}, {sellerProfile.state} - {sellerProfile.pincode}</span>}
+                                            {sellerProfile.gstin && <span className="text-gray-600 block font-bold">GSTIN: {sellerProfile.gstin}</span>}
+                                            {!sellerProfile.business_name && <span className="text-amber-700 block mt-1">Complete Seller / Business Details in the admin dashboard before using this as a tax invoice.</span>}
                                         </div>
                                         <div>
                                             <h3 className="font-extrabold text-gray-400 uppercase text-[9px] mb-1">Billing To (Buyer)</h3>
