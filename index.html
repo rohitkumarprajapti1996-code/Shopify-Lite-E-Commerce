@@ -14,7 +14,6 @@
     
     <!-- Babel standalone compiler for client-side JSX resolution -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="./supabase-client.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
@@ -1445,9 +1444,9 @@ setIsVerifyingUpi(true);
                     triggerToast("Order " + orderNumber + " submitted. Payment proof is awaiting verification; do not make another payment.");
 
                 } catch (err) {
-                    console.error("Razorpay checkout start failed:", err);
+                    console.error("UPI QR order submission failed:", err);
                     setIsVerifyingUpi(false);
-                    triggerToast(err.message || "Could not start secure payment. Please try again.", "error");
+                    triggerToast(err.message || "Could not submit order and payment proof. Please try again.", "error");
                 }
 
             };
