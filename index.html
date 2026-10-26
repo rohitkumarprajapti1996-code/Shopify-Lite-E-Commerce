@@ -1714,19 +1714,24 @@ setIsVerifyingUpi(true);
                                     </button>
                                 )}
 
-                                {/* Shopping Cart */}
+                                {/* Shopping Cart: clear label and item count, following familiar ecommerce navigation patterns */}
                                 <div className="relative">
-                                    <button 
+                                    <button
                                         onClick={() => setCurrentView('cart')}
-                                        className="p-2.5 text-gray-700 hover:text-indigo-600 rounded-full hover:bg-gray-100 relative transition"
-                                        aria-label="Cart"
+                                        className={`relative inline-flex items-center gap-2 rounded-xl border px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 ${currentView === 'cart' ? 'border-teal-700 bg-teal-50 text-teal-800 shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50 hover:text-teal-800'}`}
+                                        aria-label={`Your Cart, ${cart.reduce((tot, i) => tot + i.quantity, 0)} items`}
+                                        title="Open your shopping cart"
                                     >
-                                        <Icon name="ShoppingCart" className="h-5.5 w-5.5" />
-                                        {cart.length > 0 && (
-                                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold h-5 w-5 flex items-center justify-center rounded-full border-2 border-white animate-pulse">
+                                        <span className="relative inline-flex h-8 w-8 items-center justify-center rounded-lg bg-teal-700 text-white shadow-sm">
+                                            <Icon name="ShoppingCart" className="h-4.5 w-4.5" />
+                                            <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-amber-400 px-1 text-[10px] font-extrabold leading-none text-slate-900">
                                                 {cart.reduce((tot, i) => tot + i.quantity, 0)}
                                             </span>
-                                        )}
+                                        </span>
+                                        <span className="hidden sm:flex flex-col items-start leading-tight">
+                                            <span className="text-sm font-bold">Your Cart</span>
+                                            <span className="mt-0.5 text-[10px] font-medium text-slate-500">{cart.reduce((tot, i) => tot + i.quantity, 0)} {cart.reduce((tot, i) => tot + i.quantity, 0) === 1 ? 'item' : 'items'}</span>
+                                        </span>
                                     </button>
                                 </div>
                             </div>
