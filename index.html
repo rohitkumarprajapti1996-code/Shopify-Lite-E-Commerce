@@ -663,6 +663,15 @@
             const [checkoutAddress, setCheckoutAddress] = useState(() => localStorage.getItem('shopify_lite_profile_address') || '');
             const [checkoutPincode, setCheckoutPincode] = useState(() => localStorage.getItem('shopify_lite_profile_pincode') || '');
             const [checkoutLandmark, setCheckoutLandmark] = useState(() => localStorage.getItem('shopify_lite_profile_landmark') || '');
+            const [savedDeliveryAddresses, setSavedDeliveryAddresses] = useState([]);
+            const [newAddressLabel, setNewAddressLabel] = useState('Home');
+            const [newAddressText, setNewAddressText] = useState('');
+            const [newAddressPincode, setNewAddressPincode] = useState('');
+            const [newAddressLandmark, setNewAddressLandmark] = useState('');
+            const [officeStartTime, setOfficeStartTime] = useState('09:00');
+            const [officeEndTime, setOfficeEndTime] = useState('18:00');
+            const [selectedDeliveryAddressId, setSelectedDeliveryAddressId] = useState('');
+
 
             // Merchant Bank Settlement Parameters
             const [merchantBankName, setMerchantBankName] = useState(() => {
@@ -919,6 +928,20 @@
             useEffect(() => {
                 localStorage.setItem('shopify_lite_profile_address', profileAddress);
             }, [profileAddress]);
+            useEffect(() => {
+                if (!currentUser?.id) { setSavedDeliveryAddresses([]); setSelectedDeliveryAddressId(''); return; }
+                try {
+                    const key = 'shopify_lite_addresses_' + currentUser.id;
+                    const saved = JSON.parse(localStorage.getItem(key) || '[]');
+                    setSavedDeliveryAddresses(Array.isArray(saved) ? saved : []);
+                } catch (err) { console.warn('Could not load saved delivery addresses', err); setSavedDeliveryAddresses([]); }
+            }, [currentUser?.id]);
+
+            useEffect(() => {
+                if (!currentUser?.id) return;
+                localStorage.setItem('shopify_lite_addresses_' + currentUser.id, JSON.stringify(savedDeliveryAddresses));
+            }, [savedDeliveryAddresses, currentUser?.id]);
+
 
             // Sync checkout user state with auth credentials on login
             useEffect(() => {
@@ -1134,6 +1157,43 @@
                 } finally {
                     setAuthBusy(false);
                 }
+            };
+
+            const handleAddDeliveryAddress = (e) => {
+                e.preventDefault();
+                if (!currentUser?.id) { triggerToast("Please sign in to save delivery addresses.", "error"); return; }
+                if (!newAddressText.trim() || !/^\d{6}$/.test(newAddressPincode.trim())) {
+                    triggerToast("Enter a full address and valid 6-digit PIN code.", "error"); return;
+                }
+                if (savedDeliveryAddresses.length >= 10) { triggerToast("You can save up to 10 addresses.", "error"); return; }
+                if (newAddressLabel === 'Office' && officeStartTime >= officeEndTime) { triggerToast("Office end time must be later than start time.", "error"); return; }
+                const label = newAddressLabel === 'Office' ? 'Office' : 'Home';
+                const address = {
+                    id: 'addr-' + Date.now(), label, address: newAddressText.trim(),
+                    pincode: newAddressPincode.trim(), landmark: newAddressLandmark.trim(),
+                    days: label === 'Office' ? 'Monday to Friday' : 'Monday to Sunday',
+                    startTime: label === 'Office' ? officeStartTime : '',
+                    endTime: label === 'Office' ? officeEndTime : ''
+                };
+                setSavedDeliveryAddresses(prev => [...prev, address]);
+                setSelectedDeliveryAddressId(address.id);
+                setCheckoutAddress(address.address); setCheckoutPincode(address.pincode); setCheckoutLandmark(address.landmark);
+                setNewAddressText(''); setNewAddressPincode(''); setNewAddressLandmark('');
+                triggerToast(label + " address saved and selected for checkout.");
+            };
+
+            const handleSelectDeliveryAddress = (address) => {
+                if (!address) return;
+                setSelectedDeliveryAddressId(address.id);
+                setCheckoutAddress(address.address || '');
+                setCheckoutPincode(address.pincode || '');
+                setCheckoutLandmark(address.landmark || '');
+            };
+
+            const handleDeleteDeliveryAddress = (addressId) => {
+                setSavedDeliveryAddresses(prev => prev.filter(address => address.id !== addressId));
+                if (selectedDeliveryAddressId === addressId) setSelectedDeliveryAddressId('');
+                triggerToast("Delivery address removed.");
             };
 
             const handleSaveProfile = async (e) => {
@@ -1358,7 +1418,10 @@
                 }
 
 setIsVerifyingUpi(true);
-                const finalAddress = `${checkoutAddress.trim()}${checkoutLandmark.trim() ? ', Landmark: ' + checkoutLandmark.trim() : ''}, PIN: ${checkoutPincode.trim()}`;
+                const chosenAddress = savedDeliveryAddresses.find(address => address.id === selectedDeliveryAddressId);
+                const deliveryWindow = chosenAddress?.label === 'Office' ? `, Delivery days: Monday-Friday, hours: ${chosenAddress.startTime}-${chosenAddress.endTime}` : chosenAddress?.label === 'Home' ? ', Delivery days: Monday-Sunday' : '';
+                const addressLabel = chosenAddress?.label ? chosenAddress.label + ' address: ' : '';
+                const finalAddress = `${addressLabel}${checkoutAddress.trim()}${checkoutLandmark.trim() ? ', Landmark: ' + checkoutLandmark.trim() : ''}, PIN: ${checkoutPincode.trim()}${deliveryWindow}`;
                 try {
                     if (!currentUser || !currentUser.id) throw new Error("Please sign in again before placing an order.");
                     await window.ShopifySupabase.saveCustomerProfile({
@@ -2251,6 +2314,32 @@ setIsVerifyingUpi(true);
                                     </div>
                                 </div>
 
+                                <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-sm space-y-5">
+                                    <div className="flex items-start gap-3">
+                                        <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700"><Icon name="MapPinned" className="h-5 w-5" /></span>
+                                        <div><h3 className="text-lg font-extrabold text-slate-900">My delivery addresses</h3><p className="mt-1 text-sm text-slate-500">Save separate Home and Office addresses, then choose one at checkout.</p></div>
+                                    </div>
+                                    {savedDeliveryAddresses.length > 0 && <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {savedDeliveryAddresses.map(address => <div key={address.id} className={`rounded-2xl border p-4 ${selectedDeliveryAddressId === address.id ? 'border-teal-500 bg-teal-50/50 ring-1 ring-teal-200' : 'border-slate-200 bg-slate-50/60'}`}>
+                                            <div className="flex items-start justify-between gap-3"><div className="flex items-center gap-2"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-teal-800 border border-slate-100"><Icon name={address.label === 'Office' ? 'BriefcaseBusiness' : 'House'} className="h-4 w-4" /></span><div><p className="font-extrabold text-slate-900">{address.label}</p><p className="text-[11px] text-slate-500">{address.days}</p></div></div><button type="button" onClick={() => handleDeleteDeliveryAddress(address.id)} className="text-xs font-bold text-rose-600">Remove</button></div>
+                                            <p className="mt-3 text-sm text-slate-700 break-words">{address.address}</p><p className="mt-1 text-xs text-slate-500">PIN: {address.pincode}{address.landmark ? ' · ' + address.landmark : ''}</p>
+                                            {address.label === 'Office' && <p className="mt-2 text-xs font-semibold text-teal-800">Office delivery: {address.startTime}–{address.endTime}, Monday–Friday</p>}
+                                            <button type="button" onClick={() => handleSelectDeliveryAddress(address)} className={`mt-3 rounded-xl px-3 py-2 text-xs font-bold ${selectedDeliveryAddressId === address.id ? 'bg-teal-700 text-white' : 'border border-teal-200 text-teal-800 hover:bg-teal-50'}`}>{selectedDeliveryAddressId === address.id ? 'Selected for checkout' : 'Use this address'}</button>
+                                        </div>)}
+                                    </div>}
+                                    <form onSubmit={handleAddDeliveryAddress} className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 p-4 sm:p-5 space-y-4">
+                                        <div className="flex items-center justify-between gap-3"><h4 className="font-extrabold text-slate-900">Add a delivery address</h4><span className="text-xs text-slate-500">{savedDeliveryAddresses.length}/10 saved</span></div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div><label className="mb-1 block text-xs font-bold text-slate-600">Address type</label><select value={newAddressLabel} onChange={e => setNewAddressLabel(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"><option value="Home">Home · Monday–Sunday</option><option value="Office">Office · Monday–Friday</option></select></div>
+                                            {newAddressLabel === 'Office' && <><div><label className="mb-1 block text-xs font-bold text-slate-600">Office delivery starts</label><input type="time" value={officeStartTime} onChange={e => setOfficeStartTime(e.target.value)} required className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm" /></div><div><label className="mb-1 block text-xs font-bold text-slate-600">Office delivery ends</label><input type="time" value={officeEndTime} onChange={e => setOfficeEndTime(e.target.value)} required className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm" /></div></>}
+                                            <div className="sm:col-span-2"><label className="mb-1 block text-xs font-bold text-slate-600">Full address *</label><textarea value={newAddressText} onChange={e => setNewAddressText(e.target.value)} required rows="2" placeholder="House/building, street, area, city, state" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm" /></div>
+                                            <div><label className="mb-1 block text-xs font-bold text-slate-600">6-digit PIN code *</label><input value={newAddressPincode} onChange={e => setNewAddressPincode(e.target.value.replace(/\D/g, '').slice(0,6))} required inputMode="numeric" maxLength="6" pattern="[0-9]{6}" placeholder="110001" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm" /></div>
+                                            <div><label className="mb-1 block text-xs font-bold text-slate-600">Landmark (optional)</label><input value={newAddressLandmark} onChange={e => setNewAddressLandmark(e.target.value)} placeholder="Nearby landmark" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm" /></div>
+                                        </div>
+                                        <button type="submit" disabled={savedDeliveryAddresses.length >= 10} className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-teal-800 disabled:opacity-50"><Icon name="Plus" className="h-4 w-4" /> Save {newAddressLabel} address</button>
+                                    </form>
+                                </div>
+
                                 <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-sm">
                                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                                         <div className="flex items-start gap-3">
@@ -3087,6 +3176,14 @@ setIsVerifyingUpi(true);
                                 </div>
 
                                 <form onSubmit={handleProcessPayment} className="space-y-6">
+                                    {savedDeliveryAddresses.length > 0 && <div className="rounded-2xl border border-teal-100 bg-teal-50/50 p-4 space-y-3">
+                                        <div><h3 className="text-sm font-extrabold text-slate-900">Choose delivery address</h3><p className="mt-1 text-xs text-slate-600">Select where this order should be delivered.</p></div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{savedDeliveryAddresses.map(address => <button key={address.id} type="button" onClick={() => handleSelectDeliveryAddress(address)} className={`rounded-xl border p-3 text-left transition ${selectedDeliveryAddressId === address.id ? 'border-teal-600 bg-white ring-2 ring-teal-100' : 'border-slate-200 bg-white hover:border-teal-300'}`}>
+                                            <span className="flex items-center gap-2 font-extrabold text-sm text-slate-900"><Icon name={address.label === 'Office' ? 'BriefcaseBusiness' : 'House'} className="h-4 w-4 text-teal-700" /> {address.label} {selectedDeliveryAddressId === address.id && <Icon name="CheckCircle2" className="ml-auto h-4 w-4 text-teal-700" />}</span>
+                                            <span className="mt-2 block text-xs text-slate-600">{address.address}</span><span className="mt-1 block text-[11px] text-slate-500">PIN {address.pincode} · {address.days}</span>
+                                            {address.label === 'Office' && <span className="mt-1 block text-[11px] font-semibold text-teal-800">Office hours {address.startTime}–{address.endTime}</span>}
+                                        </button>)}</div>
+                                    </div>}
                                     {/* MANDATORY CUSTOMER DETAILS SECTION */}
                                     <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200/80 space-y-3">
                                         <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider border-b border-gray-200 pb-1.5 flex items-center gap-1.5">
