@@ -42,7 +42,7 @@
     async loadCustomerProfile(userId) {
       if (!userId) return null;
       const { data, error } = await client.from("shopify_lite_customer_profiles")
-        .select("user_id,full_name,phone,shipping_address,pincode,updated_at")
+        .select("user_id,full_name,phone,shipping_address,pincode,landmark,updated_at")
         .eq("user_id", userId).maybeSingle();
       if (error) throw error;
       return data || null;
@@ -55,6 +55,7 @@
         phone: String(profile.phone || "").trim(),
         shipping_address: String(profile.shippingAddress || "").trim(),
         pincode: String(profile.pincode || "").trim(),
+        landmark: String(profile.landmark || "").trim(),
         updated_at: new Date().toISOString()
       };
       const { data, error } = await client.from("shopify_lite_customer_profiles")
