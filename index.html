@@ -885,7 +885,7 @@
                 let alive = true;
                 if (!isAuthenticated || !['seller','admin'].includes(String(currentUser?.role || '').toLowerCase())) return () => { alive = false; };
                 (async () => {
-                    const { data, error } = await window.ShopifySupabase.client.from('shopify_lite_seller_profile').select('*').eq('id', true).maybeSingle();
+                    const { data, error } = await window.ShopifySupabase.adminClient.from('shopify_lite_seller_profile').select('*').eq('id', true).maybeSingle();
                     if (error) throw error;
                     if (alive && data) setSellerProfile({ business_name:data.business_name||'', contact_name:data.contact_name||'', email:data.email||'', phone:data.phone||'', address:data.address||'', city:data.city||'', state:data.state||'', pincode:data.pincode||'', gstin:data.gstin||'' });
                 })().catch(err => console.warn('Could not load seller business profile:', err));
@@ -926,7 +926,7 @@
                     const { data, error } = await window.ShopifySupabase.client.auth.getSession();
                     if (error) throw error;
                     if (!data.session) return;
-                    const remoteOrders = await window.ShopifySupabase.loadOrders();
+                    const remoteOrders = await window.ShopifySupabase.loadOrders(currentUser?.role === 'admin');
                     if (alive) setOrders(remoteOrders);
                 })().catch((err) => console.warn('Could not refresh saved Shopify order tracking:', err));
                 return () => { alive = false; };
@@ -937,7 +937,7 @@
                 if (!isAuthenticated || !currentUser?.id) return () => { alive = false; };
 
                 (async () => {
-                    const auth = window.ShopifySupabase.client;
+                    const auth = currentUser?.role === 'admin' ? window.ShopifySupabase.adminClient : window.ShopifySupabase.client;
                     const { data, error } = await auth.auth.getSession();
                     if (error) throw error;
 
@@ -1215,7 +1215,7 @@
                 setAuthError('');
                 setAuthBusy(true);
                 try {
-                    const auth = window.ShopifySupabase.client;
+                    const auth = authRole === 'seller' ? window.ShopifySupabase.adminClient : window.ShopifySupabase.client;
                     if (authRole === 'customer') {
                         const email = customerEmail.trim().toLowerCase();
                         if (!email) throw new Error('Enter your email address.');
@@ -1428,7 +1428,7 @@
             };
 
             const handleLogout = async () => {
-                try { await window.ShopifySupabase.client.auth.signOut(); } catch (err) { console.warn(err); }
+                try { await (currentUser?.role === 'admin' ? window.ShopifySupabase.adminClient : window.ShopifySupabase.client).auth.signOut(); } catch (err) { console.warn(err); }
                 setOtpSent(false);
                 setIsAuthenticated(false);
                 setCurrentUser(null);
@@ -1727,14 +1727,14 @@ setIsVerifyingUpi(true);
                 if (!currentUser || currentUser.role !== 'admin') { triggerToast('Admin sign-in is required to review payment screenshots.', 'error'); return; }
                 setPaymentProofsLoading(true);
                 try {
-                    const { data, error } = await window.ShopifySupabase.client.from('shopify_lite_payment_proofs')
+                    const { data, error } = await window.ShopifySupabase.adminClient.from('shopify_lite_payment_proofs')
                         .select('id,order_id,customer_id,storage_path,claimed_amount,transaction_reference,review_status,review_note,created_at,reviewed_at')
                         .order('created_at', { ascending: false });
                     if (error) throw error;
                     const rows = await Promise.all((data || []).map(async proof => {
                         const [{ data: order, error: orderError }, signed] = await Promise.all([
-                            window.ShopifySupabase.client.from('shopify_lite_orders').select('order_number,customer_name,customer_email,total,payment_status,status').eq('id', proof.order_id).maybeSingle(),
-                            window.ShopifySupabase.client.storage.from('shopify-payment-proofs').createSignedUrl(proof.storage_path, 600)
+                            window.ShopifySupabase.adminClient.from('shopify_lite_orders').select('order_number,customer_name,customer_email,total,payment_status,status').eq('id', proof.order_id).maybeSingle(),
+                            window.ShopifySupabase.adminClient.storage.from('shopify-payment-proofs').createSignedUrl(proof.storage_path, 600)
                         ]);
                         if (orderError) throw orderError;
                         return { ...proof, order: order || {}, signedUrl: signed?.data?.signedUrl || '', signedUrlError: signed?.error?.message || '' };
@@ -1750,11 +1750,11 @@ setIsVerifyingUpi(true);
                 const reviewNote = decision === 'approved' ? 'Admin confirmed payment against bank/UPI transaction history.' : 'Payment not verified; customer must contact store support.';
                 setPaymentProofReviewBusy(proof.id);
                 try {
-                    const { error: proofError } = await window.ShopifySupabase.client.from('shopify_lite_payment_proofs')
+                    const { error: proofError } = await window.ShopifySupabase.adminClient.from('shopify_lite_payment_proofs')
                         .update({ review_status: decision, review_note: reviewNote, reviewed_at: new Date().toISOString() }).eq('id', proof.id);
                     if (proofError) throw proofError;
                     if (decision === 'approved') {
-                        const { error: orderError } = await window.ShopifySupabase.client.from('shopify_lite_orders')
+                        const { error: orderError } = await window.ShopifySupabase.adminClient.from('shopify_lite_orders')
                             .update({ payment_status: 'paid', transaction_reference: proof.transaction_reference || '', paid_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', proof.order_id);
                         if (orderError) throw orderError;
                         setOrders(prev => prev.map(order => order.databaseId === proof.order_id ? { ...order, paymentStatus: 'paid', transactionId: proof.transaction_reference || '' } : order));
@@ -1944,7 +1944,7 @@ setIsVerifyingUpi(true);
                                     Shop Catalog
                                 </button>
 
-                                {isAuthenticated && !['seller', 'admin'].includes(String(currentUser?.role || '').toLowerCase()) ? (
+                                {(!isAuthenticated || ['seller', 'admin'].includes(String(currentUser?.role || '').toLowerCase())) ? (
                                     <div className="flex items-center gap-2">
                                         <button onClick={() => setCurrentView('customer-dashboard')} className="bg-purple-50 text-purple-700 text-xs font-semibold px-3 py-1.5 rounded-lg border border-purple-200 hover:bg-purple-100 flex items-center gap-1.5"><Icon name="User" className="h-4 w-4" /><span>My Account</span></button>
                                         <button onClick={handleLogout} title="Logout" className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-gray-100 transition"><Icon name="LogOut" className="h-5 w-5" /></button>
@@ -3447,7 +3447,7 @@ setIsVerifyingUpi(true);
                                                                         const weightKg = Number(form.weightKg ?? 0.5);
                                                                         if (!Number.isFinite(weightKg) || weightKg <= 0) { triggerToast('Enter a valid package weight greater than zero.', 'error'); return; }
                                                                         try {
-                                                                            const supa = window.ShopifySupabase.client;
+                                                                            const supa = window.ShopifySupabase.adminClient;
                                                                             let { data: sessionData, error: sessionError } = await supa.auth.getSession();
                                                                             if (sessionError) throw new Error('Could not validate your login session. Please sign in again.');
                                                                             if (!sessionData?.session) throw new Error('Your admin session has expired. Please sign in again, then retry AWB creation.');
