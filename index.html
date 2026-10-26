@@ -2781,23 +2781,7 @@ setIsVerifyingUpi(true);
                                     </div>
                                 </div>
 
-                                <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                                  <div className="mb-4"><h2 className="font-extrabold text-slate-900">Seller / Business Details</h2><p className="mt-1 text-xs text-slate-500">Saved business details appear in the Sold By section of invoices. Add GSTIN only if your business is registered.</p></div>
-                                  <form onSubmit={saveSellerProfile} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    {[
-                                      ['business_name','Business / Firm Name','e.g. Registered firm name'],
-                                      ['contact_name','Contact Person','Full name'],
-                                      ['email','Business Email ID','business@example.com'],
-                                      ['phone','Business Phone Number','10-digit phone number'],
-                                      ['address','Registered Business Address','Building, street, locality'],
-                                      ['city','City','City'],
-                                      ['state','State','State'],
-                                      ['pincode','PIN Code','6-digit PIN code'],
-                                      ['gstin','GSTIN (if registered)','15-character GSTIN']
-                                    ].map(([key,label,placeholder])=><label key={key} className={key==='address'?'md:col-span-2 block text-xs font-bold text-slate-700':'block text-xs font-bold text-slate-700'}>{label}<input value={sellerProfile[key]||''} onChange={e=>setSellerProfile(prev=>({...prev,[key]:e.target.value}))} placeholder={placeholder} maxLength={key==='gstin'?15:undefined} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium text-slate-900" /></label>)}
-                                    <div className="md:col-span-2 flex flex-wrap items-center gap-3"><button disabled={sellerProfileBusy} type="submit" className="rounded-xl bg-teal-700 px-5 py-3 text-sm font-extrabold text-white disabled:opacity-60">{sellerProfileBusy?'Saving…':'Save Business Details'}</button>{sellerProfileMessage&&<span className="text-xs font-semibold text-slate-600">{sellerProfileMessage}</span>}</div>
-                                  </form>
-                                </section>
+
 
                                 {/* Live order overview: counts are derived from the currently loaded store orders */}
                                 <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
@@ -3490,7 +3474,7 @@ setIsVerifyingUpi(true);
 
                     {accountSettingsOpen && (
                         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/50 p-4" role="dialog" aria-modal="true" aria-label="Account settings">
-                            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+                            <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
                                 <div className="flex items-center justify-between"><h2 className="text-lg font-black text-slate-900">Account Settings</h2><button type="button" onClick={() => setAccountSettingsOpen(false)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100" aria-label="Close settings"><Icon name="X" className="h-5 w-5"/></button></div>
                                 <p className="mt-1 text-sm text-slate-500">Your signed-in Shopify-Lite account.</p>
                                 <div className="mt-5 space-y-3">
@@ -3498,6 +3482,25 @@ setIsVerifyingUpi(true);
                                     <div className="rounded-xl border border-slate-200 p-3"><div className="text-xs font-bold text-slate-500">Account role</div><div className="mt-1 text-sm font-semibold capitalize text-slate-900">{currentUser?.role || 'Seller'}</div></div>
                                     <p className="text-xs leading-5 text-slate-500">Authentication and access permissions are managed securely through Supabase. For security, passwords and secret keys are never displayed here.</p>
                                 </div>
+                                {['admin','seller'].includes(String(currentUser?.role || '').toLowerCase()) && (
+                                                                    <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                                                                      <div className="mb-4"><h2 className="font-extrabold text-slate-900">Seller / Business Details</h2><p className="mt-1 text-xs text-slate-500">Saved business details appear in the Sold By section of invoices. Add GSTIN only if your business is registered.</p></div>
+                                                                      <form onSubmit={saveSellerProfile} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                                        {[
+                                                                          ['business_name','Business / Firm Name','e.g. Registered firm name'],
+                                                                          ['contact_name','Contact Person','Full name'],
+                                                                          ['email','Business Email ID','business@example.com'],
+                                                                          ['phone','Business Phone Number','10-digit phone number'],
+                                                                          ['address','Registered Business Address','Building, street, locality'],
+                                                                          ['city','City','City'],
+                                                                          ['state','State','State'],
+                                                                          ['pincode','PIN Code','6-digit PIN code'],
+                                                                          ['gstin','GSTIN (if registered)','15-character GSTIN']
+                                                                        ].map(([key,label,placeholder])=><label key={key} className={key==='address'?'md:col-span-2 block text-xs font-bold text-slate-700':'block text-xs font-bold text-slate-700'}>{label}<input value={sellerProfile[key]||''} onChange={e=>setSellerProfile(prev=>({...prev,[key]:e.target.value}))} placeholder={placeholder} maxLength={key==='gstin'?15:undefined} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium text-slate-900" /></label>)}
+                                                                        <div className="md:col-span-2 flex flex-wrap items-center gap-3"><button disabled={sellerProfileBusy} type="submit" className="rounded-xl bg-teal-700 px-5 py-3 text-sm font-extrabold text-white disabled:opacity-60">{sellerProfileBusy?'Saving…':'Save Business Details'}</button>{sellerProfileMessage&&<span className="text-xs font-semibold text-slate-600">{sellerProfileMessage}</span>}</div>
+                                                                      </form>
+                                                                    </section>
+                                )}
                                 <button type="button" onClick={() => setAccountSettingsOpen(false)} className="mt-5 w-full rounded-xl bg-teal-700 px-4 py-3 text-sm font-bold text-white hover:bg-teal-800">Done</button>
                             </div>
                         </div>
