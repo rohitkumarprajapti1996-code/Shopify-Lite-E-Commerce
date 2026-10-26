@@ -1538,6 +1538,28 @@ setIsVerifyingUpi(true);
                     if (!window.ShopifySupabase?.createRazorpayOrder || !window.ShopifySupabase?.verifyRazorpayPayment) throw new Error("Secure Razorpay checkout is unavailable. Please refresh the page and try again.");
                     if (typeof window.Razorpay !== 'function') throw new Error("Razorpay Checkout could not load. Check your internet connection and refresh the page.");
 
+                    const authClient = window.ShopifySupabase.client;
+                    let { data: sessionData, error: sessionError } = await authClient.auth.getSession();
+                    if (sessionError) throw sessionError;
+                    if (!sessionData?.session) {
+                        setIsAuthenticated(false);
+                        setCurrentUser(null);
+                        setAuthRole('customer');
+                        setShowAuthModal(true);
+                        throw new Error("Your sign-in session has expired. Please sign in again, then retry checkout.");
+                    }
+                    if (!sessionData.session.access_token || (sessionData.session.expires_at && sessionData.session.expires_at * 1000 <= Date.now() + 60000)) {
+                        const refreshed = await authClient.auth.refreshSession();
+                        if (refreshed.error || !refreshed.data?.session) {
+                            setIsAuthenticated(false);
+                            setCurrentUser(null);
+                            setAuthRole('customer');
+                            setShowAuthModal(true);
+                            throw new Error("Your sign-in session expired and could not be renewed. Please sign in again, then retry checkout.");
+                        }
+                        sessionData = refreshed.data;
+                    }
+
                     await window.ShopifySupabase.saveCustomerProfile({
                         fullName: checkoutFullName.trim(), phone: checkoutPhone.trim(),
                         shippingAddress: checkoutAddress.trim(), pincode: checkoutPincode.trim(), landmark: checkoutLandmark.trim()
