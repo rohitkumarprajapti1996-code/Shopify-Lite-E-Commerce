@@ -115,19 +115,66 @@
       const { data, error } = await client.from("shopify_lite_orders")
         .select("*, shopify_lite_order_items(*)").order("created_at", { ascending: false });
       if (error) throw error;
-      return (data || []).map(o => ({
-        id: o.order_number, databaseId: o.id, customerName: o.customer_name || "",
-        customerPhone: o.customer_phone || "", customerEmail: o.customer_email || "",
-        items: (o.shopify_lite_order_items || []).map(i => ({
-          id: i.product_id || i.id, title: i.product_title, price: Number(i.unit_price),
-          quantity: Number(i.quantity), sku: i.sku || ""
-        })),
-        subtotal: Number(o.subtotal || 0), gstAmount: Number(o.gst_amount || 0),
-        total: Number(o.total || 0), date: (o.created_at || "").slice(0, 10),
-        status: o.status || "Pending", shippingAddress: o.shipping_address || "",
-        paymentMethod: o.payment_method || "COD", paymentStatus: o.payment_status || "pending",
-        transactionId: o.transaction_reference || ""
-      }));
+      const rows = data || [];
+      const ids = rows.map(o => o.id).filter(Boolean);
+      let dispatchByOrder = {};
+      if (ids.length) {
+        const { data: dispatches, error: dispatchError } = await client.from("shopify_lite_dispatches")
+          .select("order_id,courier,tracking_number,tracking_url,warehouse,dispatched_at,delivered_at,status,notes,updated_at")
+          .in("order_id", ids);
+        if (dispatchError) throw dispatchError;
+        (dispatches || []).forEach(d => { dispatchByOrder[d.order_id] = d; });
+      }
+      return rows.map(o => {
+        const d = dispatchByOrder[o.id] || {};
+        return {
+          id: o.order_number, databaseId: o.id, customerName: o.customer_name || "",
+          customerPhone: o.customer_phone || "", customerEmail: o.customer_email || "",
+          items: (o.shopify_lite_order_items || []).map(i => ({
+            id: i.product_id || i.id, title: i.product_title, price: Number(i.unit_price),
+            quantity: Number(i.quantity), sku: i.sku || ""
+          })),
+          subtotal: Number(o.subtotal || 0), gstAmount: Number(o.gst_amount || 0),
+          total: Number(o.total || 0), date: (o.created_at || "").slice(0, 10),
+          status: d.status === "In Transit" ? "Shipped" : (d.status && d.status !== "Pending" ? d.status : (o.status || "Pending")),
+          shippingAddress: o.shipping_address || "",
+          paymentMethod: o.payment_method || "COD", paymentStatus: o.payment_status || "pending",
+          transactionId: o.transaction_reference || "",
+          courier: d.courier || "", trackingNumber: d.tracking_number || "",
+          trackingUrl: d.tracking_url || "", warehouse: d.warehouse || "",
+          dispatchStatus: d.status || o.status || "Pending",
+          dispatchedAt: d.dispatched_at || null, deliveredAt: d.delivered_at || null
+        };
+      });
+    },
+    async saveDispatch(orderId, details) {
+      if (!/^[0-9a-f-]{36}$/i.test(String(orderId))) throw new Error("Invalid order reference.");
+      const { data: adminAllowed, error: adminError } = await client.rpc("shopify_lite_is_admin");
+      if (adminError) throw adminError;
+      if (adminAllowed !== true) throw new Error("Only the authorized admin can manage shipments.");
+      const courier = String(details.courier || "").trim();
+      if (!courier) throw new Error("Select a logistics partner.");
+      const status = ["Pending", "Packed", "Dispatched", "In Transit", "Delivered", "Exception", "Returned"].includes(details.status) ? details.status : "Dispatched";
+      const now = new Date().toISOString();
+      const row = {
+        order_id: orderId, courier,
+        tracking_number: String(details.trackingNumber || "").trim() || null,
+        tracking_url: String(details.trackingUrl || "").trim() || null,
+        warehouse: String(details.warehouse || "").trim() || null,
+        status,
+        dispatched_at: ["Dispatched", "In Transit", "Delivered"].includes(status) ? now : null,
+        delivered_at: status === "Delivered" ? now : null,
+        updated_by: (await client.auth.getUser()).data?.user?.id || null,
+        updated_at: now
+      };
+      const { data, error } = await client.from("shopify_lite_dispatches")
+        .upsert(row, { onConflict: "order_id" }).select().single();
+      if (error) throw error;
+      const orderStatus = status === "Packed" ? "Packed" : status === "Delivered" ? "Delivered" : status === "Returned" ? "Returned" : status === "Exception" ? "Dispatched" : status === "Pending" ? "Pending" : "Shipped";
+      const { error: orderError } = await client.from("shopify_lite_orders")
+        .update({ status: orderStatus, updated_at: now }).eq("id", orderId);
+      if (orderError) throw orderError;
+      return data;
     },
     async createRazorpayOrder(customer, items) {
       const { data, error } = await client.functions.invoke("razorpay-create-order", {
