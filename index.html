@@ -1733,7 +1733,7 @@ setIsVerifyingUpi(true);
                 if (!currentUser || currentUser.role !== 'admin') { triggerToast('Admin sign-in is required to save shipment details.', 'error'); return; }
                 if (!order.databaseId) { triggerToast('This demo order is not saved in Supabase.', 'error'); return; }
                 const form = dispatchInputs[order.id] || {};
-                const courier = selectedLogisticsPartners[order.id] || order.courier || '';
+                const courier = 'Shiprocket';
                 if (!courier) { triggerToast('Please select a logistics partner first.', 'error'); return; }
                 try {
                     const result = await window.ShopifySupabase.saveDispatch(order.databaseId, {
@@ -3396,18 +3396,10 @@ setIsVerifyingUpi(true);
                                                             </div>
 
                                                             <div className="flex flex-col items-stretch gap-2 w-full sm:w-64">
-                                                                <label htmlFor={`logistics-partner-${ord.id}`} className="text-xs font-extrabold text-teal-800">Select Logistics Partner *</label>
-                                                                <select
-                                                                    id={`logistics-partner-${ord.id}`}
-                                                                    aria-label={`Select logistics partner for order ${ord.id}`}
-                                                                    title="Select Logistics Partner"
-                                                                    value={selectedLogisticsPartners[ord.id] || ord.courier || ''}
-                                                                    onChange={(e) => setSelectedLogisticsPartners(prev => ({ ...prev, [ord.id]: e.target.value }))}
-                                                                    className="w-full min-h-11 text-sm font-bold px-3 py-3 border-2 border-teal-600 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                                                                >
-                                                                    <option value="">-- Choose logistics partner --</option>
-                                                                    {LOGISTICS_PARTNERS.map((partner) => <option key={partner} value={partner}>{partner}</option>)}
-                                                                </select>
+                                                                <div className="w-full rounded-xl border-2 border-teal-600 bg-teal-50 px-3 py-3 text-sm font-extrabold text-teal-900" aria-label={`Logistics partner for order ${ord.id}`}>
+                                                                    <span className="inline-flex items-center gap-2"><Icon name="Truck" className="h-4 w-4" /> Shiprocket</span>
+                                                                    <span className="block text-[10px] font-medium text-teal-700 mt-1">Only available dispatch partner</span>
+                                                                </div>
                                                                 <span className="text-xs font-bold text-gray-600 mt-1">Order Dispatch State</span>
                                                                 <select
                                                                     value={ord.status}
