@@ -129,7 +129,7 @@
       return rows.map(o => {
         const d = dispatchByOrder[o.id] || {};
         return {
-          id: o.order_number, databaseId: o.id, customerName: o.customer_name || "",
+          id: o.order_number, orderNumber: o.order_number, invoiceNumber: o.invoice_number || "", databaseId: o.id, customerName: o.customer_name || "",
           customerPhone: o.customer_phone || "", customerEmail: o.customer_email || "",
           items: (o.shopify_lite_order_items || []).map(i => ({
             id: i.product_id || i.id, title: i.product_title, price: Number(i.unit_price),
