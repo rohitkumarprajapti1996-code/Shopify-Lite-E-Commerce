@@ -65,6 +65,52 @@
             #root .mb-8.rounded-2xl { padding:1.5rem; }
         }
         @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; transition-duration:.01ms!important; } }
+        /* Responsive layout: fit the actual device width without browser zoom. */
+        html { width:100%; max-width:100%; -webkit-text-size-adjust:100%; }
+        body { width:100%; max-width:100%; overflow-x:hidden; }
+        #root { width:100%; max-width:100%; min-width:0; overflow-x:clip; }
+        #root *, #root *::before, #root *::after { min-width:0; }
+        #root img, #root video, #root canvas, #root svg { max-width:100%; }
+        #root input, #root select, #root textarea, #root button { max-width:100%; }
+        #root table { max-width:100%; }
+        #root td, #root th { overflow-wrap:anywhere; }
+        #root pre, #root code { overflow-wrap:anywhere; white-space:pre-wrap; }
+        #root .overflow-x-auto { max-width:100%; -webkit-overflow-scrolling:touch; }
+        #root .fixed.inset-0 { overscroll-behavior:contain; }
+        @media (max-width: 767px) {
+          body { font-size:15px; }
+          #root .max-w-7xl, #root .max-w-6xl, #root .max-w-5xl, #root .max-w-4xl, #root .max-w-3xl, #root .max-w-2xl { max-width:100%!important; }
+          #root .mx-auto { margin-left:auto; margin-right:auto; }
+          #root .grid { grid-template-columns:minmax(0,1fr)!important; }
+          #root .flex { flex-wrap:wrap; }
+          #root .flex > * { max-width:100%; }
+          #root .sticky.top-0 { padding-left:12px!important; padding-right:12px!important; }
+          #root .fixed.inset-0 { padding:10px!important; align-items:flex-start!important; }
+          #root .fixed.inset-0 > div { width:100%!important; max-width:100%!important; max-height:calc(100dvh - 20px); overflow-y:auto; margin-top:0!important; margin-bottom:0!important; padding:16px!important; }
+          #root input:not([type=checkbox]):not([type=radio]), #root select, #root textarea { width:100%; min-height:42px; font-size:16px!important; }
+          #root button { min-height:38px; }
+          #root table { font-size:12px; }
+          #root th, #root td { padding:8px 6px!important; }
+          #root .overflow-x-auto table { min-width:560px; }
+          #tax-invoice-printable { overflow-wrap:anywhere; }
+          #tax-invoice-printable .grid { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
+        }
+        @media (max-width: 420px) {
+          #root .p-8 { padding:14px!important; }
+          #root .p-6 { padding:12px!important; }
+          #root .gap-8 { gap:12px!important; }
+          #root .gap-6 { gap:10px!important; }
+          #root .text-4xl { font-size:1.8rem!important; line-height:1.15!important; }
+          #root .text-3xl { font-size:1.55rem!important; line-height:1.2!important; }
+          #root .text-2xl { font-size:1.3rem!important; }
+          #root .text-xl { font-size:1.1rem!important; }
+          #root .w-\[100vw\] { width:100%!important; }
+          #tax-invoice-printable .grid { grid-template-columns:minmax(0,1fr)!important; }
+        }
+        @media (min-width: 768px) {
+          #root .max-w-7xl { width:100%; }
+          #root .fixed.inset-0 > div { max-height:calc(100vh - 48px); overflow-y:auto; }
+        }
         @page { size:A4; margin:12mm; }
         @media print { html,body { background:#fff!important; margin:0!important; padding:0!important; } body * { visibility:hidden!important; } #tax-invoice-printable,#tax-invoice-printable * { visibility:visible!important; } #tax-invoice-printable { position:absolute!important; left:0!important; top:0!important; width:100%!important; margin:0!important; color:#111827!important; font-size:10pt!important; } #tax-invoice-printable tr { break-inside:avoid; page-break-inside:avoid; } .no-print { display:none!important; } }
     </style>
