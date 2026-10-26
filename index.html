@@ -3833,11 +3833,13 @@ setIsVerifyingUpi(true);
                                     <p className="text-xs text-gray-500 mt-1">{authRole === 'seller' ? 'Authorized store management only' : 'Sign in to shop, view orders and track deliveries'}</p>
                                 </div>
 
-                                <div className={`mb-6 rounded-xl border px-4 py-3 text-left ${authRole === 'seller' ? 'border-indigo-100 bg-indigo-50' : 'border-teal-100 bg-teal-50'}`}>
-                                    <div className="text-xs font-extrabold uppercase tracking-wider">{authRole === 'seller' ? 'Seller workspace' : 'Customer account'}</div>
-                                    <p className="mt-1 text-xs text-gray-600">{authRole === 'seller' ? 'Manage listings, orders, payments, dispatches and Shiprocket tools.' : 'Shop products, manage your profile and track your own orders.'}</p>
-                                    <button type="button" onClick={() => { setAuthRole(authRole === 'seller' ? 'customer' : 'seller'); setAuthMode('login'); setAuthError(''); setEmailOtpSent(false); setAuthOtp(''); setCustomerPassword(''); setSellerPassword(''); setConfirmPassword(''); }} className="mt-2 text-xs font-bold underline underline-offset-2">{authRole === 'seller' ? 'Go to Customer Login' : 'Seller / Admin Login instead'}</button>
-                                </div>
+                                {authRole === 'customer' && (
+                                    <div className="mb-6 rounded-xl border border-teal-100 bg-teal-50 px-4 py-3 text-left">
+                                        <div className="text-xs font-extrabold uppercase tracking-wider">Customer account</div>
+                                        <p className="mt-1 text-xs text-gray-600">Shop products, manage your profile and track your own orders.</p>
+                                        <button type="button" onClick={() => { setAuthRole('seller'); setAuthMode('login'); setAuthError(''); setEmailOtpSent(false); setAuthOtp(''); setCustomerPassword(''); setSellerPassword(''); setConfirmPassword(''); }} className="mt-2 text-xs font-bold underline underline-offset-2">Seller / Admin Login instead</button>
+                                    </div>
+                                )}
 
                                 <form onSubmit={handleAuthSubmit} className="space-y-4">
                                     {authRole === 'customer' ? (
