@@ -123,6 +123,17 @@
           #root .overflow-x-auto table { min-width:560px; }
           #tax-invoice-printable { overflow-wrap:anywhere; }
           #tax-invoice-printable .grid { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
+          /* Keep the product catalogue compact: two product cards per phone row. */
+          #root main .grid.grid-cols-1.sm\\:grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-4 {
+            display:grid!important; grid-template-columns:repeat(2,minmax(0,1fr))!important; gap:12px!important;
+          }
+          #root main .grid.grid-cols-1.sm\\:grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-4 > div { min-width:0!important; }
+          #root main .grid.grid-cols-1.sm\\:grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-4 > div > div:first-of-type { height:140px!important; }
+          #root main .grid.grid-cols-1.sm\\:grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-4 > div .p-4 { padding:10px!important; }
+          #root main .mb-8.rounded-2xl { padding:20px!important; margin-bottom:22px!important; }
+          #root main .mb-8.rounded-2xl h1 { font-size:clamp(25px,7vw,34px)!important; line-height:1.12!important; }
+          #root main .mb-8.rounded-2xl p { font-size:14px!important; line-height:1.6!important; }
+          #root main .mb-8.rounded-2xl button { justify-content:center!important; }
         }
         @media (max-width: 420px) {
           #root .p-8 { padding:14px!important; }
