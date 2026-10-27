@@ -1190,6 +1190,7 @@
             const [isAiTyping, setIsAiTyping] = useState(false);
 
             const [sellerActiveTab, setSellerActiveTab] = useState('inventory');
+            const [fulfillmentOrderSearch, setFulfillmentOrderSearch] = useState('');
             const [paymentProofs, setPaymentProofs] = useState([]);
             const [paymentProofsLoading, setPaymentProofsLoading] = useState(false);
             const [paymentProofReviewBusy, setPaymentProofReviewBusy] = useState('');
@@ -3280,7 +3281,12 @@ setIsVerifyingUpi(true);
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-gray-100 font-medium text-gray-700">
-                                                    {orders.map((ord) => (
+                                                    {orders.filter((ord) => {
+                                                    const query = fulfillmentOrderSearch.trim().toLowerCase();
+                                                    if (!query) return true;
+                                                    const searchable = [ord.id, ord.databaseId, ord.customerName, ord.customerPhone, ord.customerEmail, ord.shippingAddress, ord.status, ord.paymentStatus, ord.paymentMethod, ...(Array.isArray(ord.items) ? ord.items.map(item => item.title || item.name || '') : [])].filter(Boolean).join(' ').toLowerCase();
+                                                    return searchable.includes(query);
+                                                }).map((ord) => (
                                                         <tr key={ord.id} className="hover:bg-gray-50">
                                                             <td className="p-3 whitespace-nowrap">{ord.date}</td>
                                                             <td className="p-3 font-bold text-gray-900">{ord.id}</td>
@@ -3438,9 +3444,25 @@ setIsVerifyingUpi(true);
                                         <h3 className="font-extrabold text-gray-900 text-base mb-4 flex items-center gap-1.5">
                                             <Icon name="Truck" className="h-5 w-5 text-indigo-600" /> Order Fulfillment Statuses
                                         </h3>
+                                        <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                            <label htmlFor="fulfillment-order-search" className="mb-2 block text-xs font-bold text-slate-700">Search orders</label>
+                                            <div className="relative">
+                                                <Icon name="Search" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                                <input id="fulfillment-order-search" type="search" value={fulfillmentOrderSearch} onChange={(e) => setFulfillmentOrderSearch(e.target.value)} placeholder="Order ID, customer, phone, email, product or address..." className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-10 text-sm" />
+                                                {fulfillmentOrderSearch && <button type="button" onClick={() => setFulfillmentOrderSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs font-bold text-slate-500 hover:bg-slate-100" aria-label="Clear order search">Clear</button>}
+                                            </div>
+                                            <p className="mt-2 text-[11px] text-slate-500">Search by order number, customer name, phone, email, product name or delivery address.</p>
+                                        </div>
                                         
                                         {orders.length === 0 ? (
                                             <p className="text-xs text-gray-500 text-center py-6">No store transactions received yet.</p>
+                                        ) : orders.filter((ord) => {
+                                            const query = fulfillmentOrderSearch.trim().toLowerCase();
+                                            if (!query) return true;
+                                            const searchable = [ord.id, ord.databaseId, ord.customerName, ord.customerPhone, ord.customerEmail, ord.shippingAddress, ord.status, ord.paymentStatus, ord.paymentMethod, ...(Array.isArray(ord.items) ? ord.items.map(item => item.title || item.name || '') : [])].filter(Boolean).join(' ').toLowerCase();
+                                            return searchable.includes(query);
+                                        }).length === 0 ? (
+                                            <p className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">No orders match “{fulfillmentOrderSearch}”. Try another order number or customer detail.</p>
                                         ) : (
                                             <div className="space-y-4">
                                                 {orders.map((ord) => (
