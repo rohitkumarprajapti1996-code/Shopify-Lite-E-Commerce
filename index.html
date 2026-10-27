@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f766e">
+    <meta name="description" content="Shop quality products with clear pricing and order tracking from Shopify-Lite.">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/svg+xml" href="./icon.svg">
     <title>Shopify.Lite — Modern Shopping Experience</title>
     
     <!-- Tailwind CSS CDN -->
@@ -727,11 +731,36 @@
             const [searchTerm, setSearchTerm] = useState('');
             const [storePincode, setStorePincode] = useState(() => { try { return localStorage.getItem('shopify_lite_store_pincode') || ''; } catch { return ''; } });
             const [showLocationModal, setShowLocationModal] = useState(false);
+            const [installPromptEvent, setInstallPromptEvent] = useState(null);
+            const [installHelpVisible, setInstallHelpVisible] = useState(false);
             const [locationPincodeInput, setLocationPincodeInput] = useState('');
             const [selectedCategory, setSelectedCategory] = useState('All');
             const [onlySales, setOnlySales] = useState(false);
             const [sortBy, setSortBy] = useState('featured');
             const [qrError, setQrError] = useState(false);
+
+            useEffect(() => {
+                const handleInstallPrompt = (event) => { event.preventDefault(); setInstallPromptEvent(event); };
+                const handleInstalled = () => { setInstallPromptEvent(null); setInstallHelpVisible(false); };
+                window.addEventListener('beforeinstallprompt', handleInstallPrompt);
+                window.addEventListener('appinstalled', handleInstalled);
+                if ('serviceWorker' in navigator && /^https?:$/.test(window.location.protocol)) {
+                    navigator.serviceWorker.register('./service-worker.js').catch((error) => console.warn('Offline support unavailable:', error));
+                }
+                return () => {
+                    window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
+                    window.removeEventListener('appinstalled', handleInstalled);
+                };
+            }, []);
+
+            const handleInstallApp = async () => {
+                if (!installPromptEvent) { setInstallHelpVisible(true); return; }
+                try {
+                    installPromptEvent.prompt();
+                    await installPromptEvent.userChoice;
+                } catch (error) { console.warn('Install prompt was not completed:', error); }
+                setInstallPromptEvent(null);
+            };
 
             // Verified storage parameters (avoids logging out or order loss on refresh)
             const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -1999,6 +2028,7 @@ setIsVerifyingUpi(true);
                             {/* Control Actions */}
                             <div className="flex items-center gap-2 sm:gap-4">
                                 <button onClick={() => { setLocationPincodeInput(storePincode); setShowLocationModal(true); }} className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-slate-700 hover:bg-slate-50" title="Set delivery location"><Icon name="MapPin" className="h-4 w-4 text-indigo-600"/><span className="text-xs">{storePincode ? 'Deliver to ' + storePincode : 'Set location'}</span></button>
+                                <button onClick={handleInstallApp} className="inline-flex items-center gap-1.5 rounded-xl border border-teal-200 bg-teal-50 px-3 py-2 text-xs font-bold text-teal-800 hover:bg-teal-100" title="Install Shopify-Lite"><Icon name="Download" className="h-4 w-4"/><span>Install</span></button>
                                 <button 
                                     onClick={() => { setCurrentView('home'); setSelectedCategory('All'); }}
                                     className={`text-sm font-medium px-3 py-2 rounded-md transition ${currentView === 'home' ? 'text-indigo-600 bg-indigo-50 font-bold' : 'text-gray-600 hover:bg-gray-100'}`}
@@ -2045,6 +2075,17 @@ setIsVerifyingUpi(true);
                     <div className="sm:hidden bg-white border-b border-gray-200 px-4 py-2 no-print">
                         <button onClick={() => { setLocationPincodeInput(storePincode); setShowLocationModal(true); }} className="w-full flex items-center gap-2 text-left text-sm text-gray-700"><Icon name="MapPin" className="h-4 w-4 text-indigo-600"/><span>{storePincode ? 'Delivering to PIN ' + storePincode : 'Set your delivery location'}</span><Icon name="ChevronRight" className="h-4 w-4 ml-auto text-gray-400"/></button>
                     </div>
+
+                    {installHelpVisible && (
+                        <div className="fixed inset-0 z-[80] bg-black/50 flex items-center justify-center p-4 no-print">
+                            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative">
+                                <button onClick={() => setInstallHelpVisible(false)} className="absolute right-3 top-3 p-2 text-gray-400 hover:text-gray-700" aria-label="Close install help"><Icon name="X" className="h-5 w-5"/></button>
+                                <div className="flex items-center gap-3 mb-4"><div className="rounded-xl bg-teal-50 p-3 text-teal-700"><Icon name="Download" className="h-6 w-6"/></div><div><h2 className="text-lg font-extrabold text-gray-900">Install Shopify-Lite</h2><p className="text-xs text-gray-500">Add the store to your home screen for quick access.</p></div></div>
+                                <ol className="list-decimal pl-5 space-y-2 text-sm text-gray-700"><li><strong>iPhone / iPad:</strong> Open this page in Safari, tap Share, then choose <strong>Add to Home Screen</strong>.</li><li><strong>Android / Chrome:</strong> Open the browser menu (⋮) and choose <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li><li><strong>Desktop:</strong> Use the install icon in your browser address bar or browser menu if available.</li></ol>
+                                <button onClick={() => setInstallHelpVisible(false)} className="mt-5 w-full rounded-xl bg-indigo-600 px-4 py-3 font-bold text-white">Got it</button>
+                            </div>
+                        </div>
+                    )}
 
                     {showLocationModal && (
                         <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4 no-print">
@@ -4138,7 +4179,7 @@ setIsVerifyingUpi(true);
                                 <div className="bg-gray-100 p-1.5 rounded text-gray-500">
                                     <Icon name="ShoppingBag" className="h-4 w-4" />
                                 </div>
-                                <span>© 2026 Shopify.Lite India. RWH - Mail Hub Plot No-23, Tower-2 Ground floor Navi Mumbai -400703. Customer invoices show recorded order totals. This seller does not separately charge GST..</span>
+                                <span>© 2026 Shopify-Lite. Product prices and order totals are shown before checkout. No GST is separately charged by this seller.</span>
                             </div>
                             <div className="flex gap-4 justify-center">
                                 <span className="hover:text-indigo-600 cursor-pointer">Security Center</span>
