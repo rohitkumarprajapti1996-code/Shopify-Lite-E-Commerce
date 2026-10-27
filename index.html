@@ -725,6 +725,9 @@
 
             const [selectedProduct, setSelectedProduct] = useState(null);
             const [searchTerm, setSearchTerm] = useState('');
+            const [storePincode, setStorePincode] = useState(() => { try { return localStorage.getItem('shopify_lite_store_pincode') || ''; } catch { return ''; } });
+            const [showLocationModal, setShowLocationModal] = useState(false);
+            const [locationPincodeInput, setLocationPincodeInput] = useState('');
             const [selectedCategory, setSelectedCategory] = useState('All');
             const [onlySales, setOnlySales] = useState(false);
             const [sortBy, setSortBy] = useState('featured');
@@ -1995,6 +1998,7 @@ setIsVerifyingUpi(true);
 
                             {/* Control Actions */}
                             <div className="flex items-center gap-2 sm:gap-4">
+                                <button onClick={() => { setLocationPincodeInput(storePincode); setShowLocationModal(true); }} className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-slate-700 hover:bg-slate-50" title="Set delivery location"><Icon name="MapPin" className="h-4 w-4 text-indigo-600"/><span className="text-xs">{storePincode ? 'Deliver to ' + storePincode : 'Set location'}</span></button>
                                 <button 
                                     onClick={() => { setCurrentView('home'); setSelectedCategory('All'); }}
                                     className={`text-sm font-medium px-3 py-2 rounded-md transition ${currentView === 'home' ? 'text-indigo-600 bg-indigo-50 font-bold' : 'text-gray-600 hover:bg-gray-100'}`}
@@ -2010,7 +2014,7 @@ setIsVerifyingUpi(true);
                                     onClick={() => { setAuthRole('seller'); setAuthMode('login'); setAuthError(''); setEmailOtpSent(false); setAuthOtp(''); setShowAuthModal(true); }}
                                     className={`inline-flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-semibold transition ${isAuthenticated && ['seller','admin'].includes(String(currentUser?.role || '').toLowerCase()) ? 'border-teal-200 bg-teal-50 text-teal-800' : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'}`}
                                 ><Icon name="LayoutDashboard" className="h-4 w-4" /><span>{isAuthenticated && ['seller','admin'].includes(String(currentUser?.role || '').toLowerCase()) ? 'Admin Panel' : 'Seller Login'}</span></button>}
-                                {isAuthenticated && String(currentUser?.role || '').toLowerCase() === 'customer' && <button onClick={() => setCurrentView('cart')} className="relative inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 hover:bg-slate-50" title="Your Cart"><Icon name="ShoppingCart" className="h-5 w-5"/><span className="text-xs">{cart.reduce((tot, i) => tot + i.quantity, 0)} items</span></button>}
+                                <button onClick={() => { if (isAuthenticated && String(currentUser?.role || '').toLowerCase() === 'customer') { setCurrentView('cart'); } else { setAuthRole('customer'); setAuthMode('login'); setAuthError(''); setEmailOtpSent(false); setAuthOtp(''); setShowAuthModal(true); } }} className="relative inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 hover:bg-slate-50" title="Your Cart"><Icon name="ShoppingCart" className="h-5 w-5"/><span className="hidden sm:inline text-xs">Cart</span><span className="absolute -right-1 -top-1 min-w-5 h-5 px-1 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center">{cart.reduce((tot, i) => tot + i.quantity, 0)}</span></button>
                                 {isAuthenticated && <button onClick={handleLogout} title="Logout" className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-gray-100 transition"><Icon name="LogOut" className="h-5 w-5"/></button>}
 
                             </div>
@@ -2037,6 +2041,24 @@ setIsVerifyingUpi(true);
                             )}
                         </div>
                     </div>
+
+                    <div className="sm:hidden bg-white border-b border-gray-200 px-4 py-2 no-print">
+                        <button onClick={() => { setLocationPincodeInput(storePincode); setShowLocationModal(true); }} className="w-full flex items-center gap-2 text-left text-sm text-gray-700"><Icon name="MapPin" className="h-4 w-4 text-indigo-600"/><span>{storePincode ? 'Delivering to PIN ' + storePincode : 'Set your delivery location'}</span><Icon name="ChevronRight" className="h-4 w-4 ml-auto text-gray-400"/></button>
+                    </div>
+
+                    {showLocationModal && (
+                        <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4 no-print">
+                            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative">
+                                <button onClick={() => setShowLocationModal(false)} className="absolute right-3 top-3 p-2 text-gray-400 hover:text-gray-700" aria-label="Close location dialog"><Icon name="X" className="h-5 w-5"/></button>
+                                <div className="flex items-center gap-3 mb-4"><div className="rounded-xl bg-indigo-50 p-3 text-indigo-600"><Icon name="MapPin" className="h-6 w-6"/></div><div><h2 className="text-lg font-extrabold text-gray-900">Where should we deliver?</h2><p className="text-xs text-gray-500">Enter your 6-digit delivery PIN code.</p></div></div>
+                                <form onSubmit={(e) => { e.preventDefault(); const pin = locationPincodeInput.trim(); if (!/^\\d{6}$/.test(pin)) { triggerToast('Please enter a valid 6-digit PIN code.', 'error'); return; } setStorePincode(pin); try { localStorage.setItem('shopify_lite_store_pincode', pin); } catch {} setShowLocationModal(false); triggerToast('Delivery PIN saved. Final availability is confirmed at checkout.', 'success'); }}>
+                                    <label htmlFor="store-location-pincode" className="block text-xs font-bold text-gray-700 mb-2">Delivery PIN code</label>
+                                    <input id="store-location-pincode" value={locationPincodeInput} onChange={(e) => setLocationPincodeInput(e.target.value.replace(/\\D/g, '').slice(0, 6))} inputMode="numeric" pattern="[0-9]{6}" maxLength={6} placeholder="Enter 6-digit PIN code" className="w-full border border-gray-300 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-indigo-500 outline-none" required />
+                                    <div className="mt-4 flex gap-2"><button type="submit" className="flex-1 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 text-sm">Continue</button><button type="button" onClick={() => setShowLocationModal(false)} className="rounded-xl border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-600">Skip</button></div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Toast Notification System */}
                     {toast && (
