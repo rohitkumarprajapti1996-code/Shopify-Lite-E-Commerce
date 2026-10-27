@@ -1594,13 +1594,9 @@
                 return cart.reduce((total, item) => total + (item.activePrice * item.quantity), 0);
             }, [cart]);
 
-            const calculatedGSTAmount = useMemo(() => {
-                return parseFloat((cartSubtotal * 0.18).toFixed(2));
-            }, [cartSubtotal]);
-
-            const cartGrandTotal = useMemo(() => {
-                return cartSubtotal + calculatedGSTAmount;
-            }, [cartSubtotal, calculatedGSTAmount]);
+            // Seller is not GST registered: product prices are the final checkout prices.
+            const calculatedGSTAmount = 0;
+            const cartGrandTotal = cartSubtotal;
 
             // Settlement payout calculation
             const merchantTotalIncoming = useMemo(() => {
@@ -2462,7 +2458,7 @@ setIsVerifyingUpi(true);
                                                     <span>₹{cartSubtotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                                                 </div>
                                                 <div className="flex justify-between items-center text-indigo-600 font-medium">
-                                                    <span>GST Component (Standard 18%)</span>
+                                                    <span>Tax</span>
                                                     <span>+ ₹{calculatedGSTAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                                                 </div>
                                                 <div className="flex justify-between">
@@ -2472,7 +2468,7 @@ setIsVerifyingUpi(true);
                                             </div>
 
                                             <div className="flex justify-between items-center py-4 text-sm font-bold text-gray-900">
-                                                <span>Grand Total (Incl. GST)</span>
+                                                <span>Grand Total</span>
                                                 <span className="text-lg text-indigo-700 font-extrabold">
                                                     ₹{cartGrandTotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                                                 </span>
@@ -3751,11 +3747,11 @@ setIsVerifyingUpi(true);
 
                                     <div className="bg-gray-100 rounded-2xl p-3 flex items-center justify-between text-xs font-bold text-gray-800">
                                         <div>
-                                            <span className="text-gray-400 block font-normal">Total Due (Incl. 18% GST)</span>
+                                            <span className="text-gray-400 block font-normal">Total Due</span>
                                             <strong className="text-base text-gray-900 font-black">₹{cartGrandTotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</strong>
                                         </div>
                                         <div className="text-right">
-                                            <span className="text-gray-400 block font-normal">Total GST Component Included</span>
+                                            <span className="text-gray-400 block font-normal">Separate GST</span>
                                             <strong className="text-indigo-700 font-black">₹{calculatedGSTAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</strong>
                                         </div>
                                     </div>
