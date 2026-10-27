@@ -3482,9 +3482,19 @@ setIsVerifyingUpi(true);
                                                                             }
                                                                             const { data, error } = await supa.functions.invoke('shiprocket-create-shipment', { body: { orderId: ord.databaseId, weightKg }, headers: { Authorization: 'Bearer ' + sessionData.session.access_token } });
                                                                             if (error) {
-                                                                                let detail = data?.error || '';
-                                                                                try { if (!detail && error.context?.json) { const body = await error.context.json(); detail = body?.error || body?.message || ''; } } catch (_) {}
-                                                                                throw new Error(detail || error.message || 'Shiprocket request failed. Check the Supabase function logs.');
+                                                                                let body = data && typeof data === 'object' ? data : {};
+                                                                                try {
+                                                                                    if (error.context?.json) body = await error.context.json();
+                                                                                } catch (_) {}
+                                                                                const stage = body?.stage ? ' [' + String(body.stage) + ']' : '';
+                                                                                const rawDetails = body?.details;
+                                                                                const details = typeof rawDetails === 'string'
+                                                                                    ? rawDetails
+                                                                                    : rawDetails && typeof rawDetails === 'object'
+                                                                                        ? JSON.stringify(rawDetails)
+                                                                                        : '';
+                                                                                const safeDetails = details ? ' — Shiprocket details: ' + details.slice(0, 700) : '';
+                                                                                throw new Error((body?.error || body?.message || error.message || 'Shiprocket request failed.') + stage + safeDetails);
                                                                             }
                                                                             if (!data?.ok || !data?.awb) throw new Error(data?.error || 'Shiprocket did not return an AWB.');
                                                                             setDispatchInputs(prev => ({ ...prev, [ord.id]: { ...(prev[ord.id] || {}), trackingNumber: data.awb, trackingUrl: data.trackingUrl || '' } }));
