@@ -2112,7 +2112,7 @@ setIsVerifyingUpi(true);
                                 <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                     <div>
                                         <h2 className="text-xl font-bold text-gray-900">Explore Market Hubs</h2>
-                                        <p className="text-xs text-gray-500 mt-0.5">Find premium products with tax invoice options</p>
+                                        <p className="text-xs text-gray-500 mt-0.5">Shop quality products with clear, upfront pricing</p>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
@@ -2480,7 +2480,7 @@ setIsVerifyingUpi(true);
                                                     <span>₹{cartSubtotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                                                 </div>
                                                 <div className="flex justify-between items-center text-indigo-600 font-medium">
-                                                    <span>Separate GST</span>
+                                                    <span>GST (if applicable)</span>
                                                     <span>+ ₹{calculatedGSTAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                                                 </div>
                                                 <div className="flex justify-between">
@@ -2512,7 +2512,7 @@ setIsVerifyingUpi(true);
                                             </button>
                                             
                                             <p className="text-[10px] text-gray-400 text-center mt-3 leading-relaxed">
-                                                A digital GST-compliant tax invoice will be made available instantly inside your account dashboard.
+                                                Your customer invoice / order receipt will be available inside your account dashboard.
                                             </p>
                                         </div>
                                     </div>
@@ -2724,7 +2724,7 @@ setIsVerifyingUpi(true);
                                                             className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold px-3 py-1.5 rounded-lg border border-indigo-150 flex items-center gap-1"
                                                         >
                                                             <Icon name="Receipt" className="h-3.5 w-3.5" />
-                                                            View Tax Invoice
+                                                            View Customer Invoice
                                                         </button>
                                                     </div>
                                                 </div>
@@ -2751,7 +2751,7 @@ setIsVerifyingUpi(true);
                                                         <p className="text-[10px] text-gray-500 mt-0.5">ID: {order.transactionId}</p>
                                                     </div>
                                                     <div>
-                                                        <h6 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">GST Component (18%)</h6>
+                                                        <h6 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">GST Amount</h6>
                                                         <span className="text-xs font-bold text-indigo-700">₹{order.gstAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                                                     </div>
                                                 </div>
@@ -3271,7 +3271,7 @@ setIsVerifyingUpi(true);
                                             
                                             <div className="flex items-center gap-3">
                                                 <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-center">
-                                                    <span className="text-[9px] text-indigo-600 font-extrabold block uppercase tracking-wider">Total GST Collected</span>
+                                                    <span className="text-[9px] text-indigo-600 font-extrabold block uppercase tracking-wider">GST Amount on Orders</span>
                                                     <strong className="text-sm font-black text-indigo-900">
                                                         ₹{orders.reduce((acc, o) => acc + o.gstAmount, 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                                                     </strong>
@@ -3293,7 +3293,7 @@ setIsVerifyingUpi(true);
                                                         <th className="p-3">Reference ID</th>
                                                         <th className="p-3">Customer Contact</th>
                                                         <th className="p-3">Payment Mode</th>
-                                                        <th className="p-3 text-right">GST Collect (18%)</th>
+                                                        <th className="p-3 text-right">GST Amount</th>
                                                         <th className="p-3 text-right">Grand Total</th>
                                                         <th className="p-3 text-center rounded-r-lg">Actions</th>
                                                     </tr>
@@ -3935,7 +3935,7 @@ setIsVerifyingUpi(true);
                                         onClick={() => window.print()}
                                         className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-xl text-xs transition flex items-center gap-1.5"
                                     >
-                                        <Icon name="Download" className="h-4 w-4" /> Print / Save Tax Invoice
+                                        <Icon name="Download" className="h-4 w-4" /> Print / Save Customer Invoice
                                     </button>
                                 </div>
                             </div>
@@ -4138,12 +4138,12 @@ setIsVerifyingUpi(true);
                                 <div className="bg-gray-100 p-1.5 rounded text-gray-500">
                                     <Icon name="ShoppingBag" className="h-4 w-4" />
                                 </div>
-                                <span>© 2026 Shopify.Lite India. RWH - Mail Hub Plot No-23, Tower-2 Ground floor Navi Mumbai -400703. All tax invoicing calculations comply with standard CGST / SGST regulations.</span>
+                                <span>© 2026 Shopify.Lite India. RWH - Mail Hub Plot No-23, Tower-2 Ground floor Navi Mumbai -400703. Customer invoices show recorded order totals. This seller does not separately charge GST..</span>
                             </div>
                             <div className="flex gap-4 justify-center">
                                 <span className="hover:text-indigo-600 cursor-pointer">Security Center</span>
                                 <span className="hover:text-indigo-600 cursor-pointer">Merchant Terms</span>
-                                <span className="hover:text-indigo-600 cursor-pointer">GST Helplines</span>
+                                <span className="hover:text-indigo-600 cursor-pointer">Help & Support</span>
                             </div>
                         </div>
                     </footer>
