@@ -3492,6 +3492,26 @@ setIsVerifyingUpi(true);
                                                                     placeholder="e.g. 0.5"
                                                                     className="w-full text-xs px-3 py-2 border border-gray-300 rounded-lg bg-white"
                                                                 />
+                                                                {String(ord.paymentMethod || ord.payment_method || '').toLowerCase().includes('razorpay') && String(ord.paymentStatus || ord.payment_status || '').toLowerCase() !== 'paid' && (
+                                                                    <button type="button" onClick={async () => {
+                                                                        try {
+                                                                            const supa = window.ShopifySupabase.adminClient;
+                                                                            let { data: sessionData, error: sessionError } = await supa.auth.getSession();
+                                                                            if (sessionError || !sessionData?.session) throw new Error('Please sign in to the admin account again.');
+                                                                            if (sessionData.session.expires_at * 1000 <= Date.now() + 60000) {
+                                                                                const refreshed = await supa.auth.refreshSession();
+                                                                                if (refreshed.error || !refreshed.data?.session) throw new Error('Admin session expired. Sign in again.');
+                                                                                sessionData = refreshed.data;
+                                                                            }
+                                                                            const result = await supa.functions.invoke('razorpay-reconcile-order', { body: { orderId: ord.databaseId }, headers: { Authorization: 'Bearer ' + sessionData.session.access_token } });
+                                                                            if (result.error || result.data?.status !== 'paid') throw new Error(result.data?.message || result.data?.error || result.error?.message || 'No captured payment matched this order.');
+                                                                            setOrders(prev => prev.map(o => o.databaseId === ord.databaseId ? { ...o, paymentStatus: 'paid', payment_status: 'paid', transactionId: result.data.paymentId, status: 'Confirmed' } : o));
+                                                                            triggerToast('Payment verified for ' + (result.data.orderNumber || ord.orderNumber) + '. Retry AWB generation.', 'success');
+                                                                        } catch (err) { triggerToast(err.message || 'Payment verification failed.', 'error'); }
+                                                                    }} className="mb-2 w-full rounded-lg border-2 border-teal-300 bg-teal-50 hover:bg-teal-100 text-teal-900 font-extrabold px-3 py-3 text-sm">
+                                                                        <span className="inline-flex items-center justify-center gap-2"><Icon name="ShieldCheck" className="h-4 w-4" /> Verify Razorpay Payment</span>
+                                                                    </button>
+                                                                )}
                                                                 <button
                                                                     type="button"
                                                                     onClick={async () => {
