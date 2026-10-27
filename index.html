@@ -3821,8 +3821,8 @@ setIsVerifyingUpi(true);
                                             <p className="text-[10px] text-gray-400">Order Invoice / Purchase Summary</p>
                                         </div>
                                         <div className="text-right">
-                                            <h2 className="text-sm font-bold text-gray-900">TAX INVOICE</h2>
-                                            <p className="text-[10px] text-gray-500 font-bold mt-1">Invoice No: {viewingInvoiceOrder.invoiceNumber || "Invoice serial pending"}</p>
+                                            <h2 className="text-sm font-bold text-gray-900">CUSTOMER INVOICE / ORDER RECEIPT</h2>
+                                            <p className="text-[10px] text-gray-500 font-bold mt-1">Invoice Reference: {viewingInvoiceOrder.invoiceNumber || viewingInvoiceOrder.orderNumber || viewingInvoiceOrder.id || viewingInvoiceOrder.databaseId || "Reference unavailable"}</p>
                                             <p className="text-[10px] text-gray-500">Date: {viewingInvoiceOrder.date}</p>
                                             <div className="mt-2 flex flex-col items-end">
                                                 <InvoiceBarcode value={viewingInvoiceOrder.invoiceNumber || viewingInvoiceOrder.orderNumber || viewingInvoiceOrder.transactionId || 'INVOICE'} />
@@ -3858,16 +3858,16 @@ setIsVerifyingUpi(true);
                                                     <th className="p-2">Product Description</th>
                                                     <th className="p-2 text-right">Unit Price</th>
                                                     <th className="p-2 text-center">Qty</th>
-                                                    <th className="p-2 text-right">Taxable Value</th>
+                                                    <th className="p-2 text-right">Line Total</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-100 text-gray-700">
                                                 {viewingInvoiceOrder.items.map((it, idx) => (
                                                     <tr key={idx}>
                                                         <td className="p-2 font-semibold text-gray-900">{it.title}</td>
-                                                        <td className="p-2 text-right">₹{(it.price / 1.18).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</td>
+                                                        <td className="p-2 text-right">₹{Number(it.price || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                                         <td className="p-2 text-center">{it.quantity}</td>
-                                                        <td className="p-2 text-right">₹{((it.price / 1.18) * it.quantity).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</td>
+                                                        <td className="p-2 text-right">₹{(Number(it.price || 0) * Number(it.quantity || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                                     </tr>
                                                 ))}
                                             </tbody>
@@ -3877,19 +3877,19 @@ setIsVerifyingUpi(true);
                                     <div className="flex justify-end pt-4 border-t border-gray-200">
                                         <div className="w-64 text-xs space-y-1.5 text-gray-600">
                                             <div className="flex justify-between">
-                                                <span>Taxable Subtotal (Excl. Tax)</span>
-                                                <span className="font-medium text-gray-900">₹{(viewingInvoiceOrder.total - viewingInvoiceOrder.gstAmount).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                                                <span>Order Total</span>
+                                                <span className="font-medium text-gray-900">₹{Number(viewingInvoiceOrder.total || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                             </div>
-                                            <div className="flex justify-between font-medium text-indigo-700">
-                                                <span>GST Component Collected (18%)</span>
-                                                <span>+ ₹{viewingInvoiceOrder.gstAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                                            <div className="flex justify-between">
+                                                <span>GST</span>
+                                                <span>Not separately stated — seller not GST registered</span>
                                             </div>
                                             <div className="flex justify-between">
                                                 <span>Shipping Charges</span>
                                                 <span className="text-emerald-600 font-bold">FREE</span>
                                             </div>
                                             <div className="flex justify-between border-t border-gray-200 pt-1.5 font-bold text-gray-900 text-sm">
-                                                <span>Grand Total (Incl. Tax)</span>
+                                                <span>Grand Total</span>
                                                 <span className="text-indigo-700 font-black">₹{viewingInvoiceOrder.total.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
                                             </div>
                                         </div>
@@ -3902,13 +3902,13 @@ setIsVerifyingUpi(true);
                                             <p className="text-gray-500">Transaction Ref Number: <strong>{viewingInvoiceOrder.transactionId}</strong></p>
                                         </div>
                                         <div className="text-center bg-white border border-gray-200 p-2 rounded-lg font-bold">
-                                            <span className="text-emerald-600 block">{String(viewingInvoiceOrder.paymentStatus || 'pending').toUpperCase()}</span>
-                                            <span className="text-gray-400 text-[8px]">SHOPIFY-LITE INVOICE</span>
+                                            <span className="text-emerald-600 block">{String(viewingInvoiceOrder.paymentStatus || viewingInvoiceOrder.payment_status || 'pending').toUpperCase()}</span>
+                                            <span className="text-gray-400 text-[8px]">SHOPIFY-LITE ORDER RECEIPT</span>
                                         </div>
                                     </div>
 
-                                    <p className="text-[9px] text-gray-400 text-center leading-relaxed">
-                                        Computer-generated order invoice. Configure verified seller, GSTIN and tax details before using this as a statutory tax invoice.
+                                    <p className="text-[9px] text-gray-500 text-center leading-relaxed">
+                                        Computer-generated customer invoice / order receipt. Seller has indicated that the business is not GST registered; no GSTIN or GST amount is represented on this document. Confirm the checkout pricing and applicable tax treatment before issuing this document as a final commercial invoice.
                                     </p>
                                 </div>
 
