@@ -1,0 +1,18 @@
+{
+  "name": "Shopify-Lite India",
+  "short_name": "Shopify-Lite",
+  "description": "Shop quality products with clear pricing and order tracking.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f7f8",
+  "theme_color": "#0f766e",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
