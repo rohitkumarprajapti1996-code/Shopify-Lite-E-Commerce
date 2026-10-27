@@ -16,6 +16,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./supabase-client.js"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
     <style>
@@ -198,6 +199,29 @@
 
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
+
+        function InvoiceBarcode({ value }) {
+            const barcodeRef = React.useRef(null);
+            useEffect(() => {
+                if (!barcodeRef.current || !window.JsBarcode || !value) return;
+                try {
+                    window.JsBarcode(barcodeRef.current, String(value).toUpperCase().replace(/[^\x20-\x7E]/g, '-'), {
+                        format: 'CODE128',
+                        displayValue: true,
+                        font: 'monospace',
+                        fontSize: 11,
+                        textMargin: 3,
+                        height: 42,
+                        margin: 2,
+                        background: '#ffffff',
+                        lineColor: '#111827'
+                    });
+                } catch (error) {
+                    console.warn('Invoice barcode could not be rendered.');
+                }
+            }, [value]);
+            return <svg ref={barcodeRef} role="img" aria-label={'Invoice barcode ' + value} style={{ width: '220px', maxWidth: '100%', height: 'auto' }} />;
+        }
 
         const Icon = ({ name, className = "h-5 w-5", ...props }) => {
             const svgProps = {
@@ -3752,6 +3776,10 @@ setIsVerifyingUpi(true);
                                             <h2 className="text-sm font-bold text-gray-900">TAX INVOICE</h2>
                                             <p className="text-[10px] text-gray-500 font-bold mt-1">Invoice No: {viewingInvoiceOrder.invoiceNumber || "Invoice serial pending"}</p>
                                             <p className="text-[10px] text-gray-500">Date: {viewingInvoiceOrder.date}</p>
+                                            <div className="mt-2 flex flex-col items-end">
+                                                <InvoiceBarcode value={viewingInvoiceOrder.invoiceNumber || viewingInvoiceOrder.orderNumber || viewingInvoiceOrder.transactionId || 'INVOICE'} />
+                                                <span className="text-[8px] text-gray-400 mt-1">Scan for invoice reference</span>
+                                            </div>
                                         </div>
                                     </div>
 
