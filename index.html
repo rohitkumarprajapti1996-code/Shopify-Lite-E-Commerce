@@ -1097,7 +1097,8 @@
 
                 return () => { alive = false; };
             }, [isAuthenticated, currentUser && currentUser.id]);
-            // Five-minute inactivity timeout for customer accounts only.
+            // Long inactivity safety timeout for customer accounts. Supabase persists and refreshes the session;
+            // ordinary catalogue browsing and checkout must not force frequent sign-ins.
             useEffect(() => {
                 if (!isAuthenticated || !currentUser || !currentUser.id || currentUser.role !== 'customer') return undefined;
                 var timeoutId = null;
@@ -1124,8 +1125,8 @@
                         localStorage.removeItem('shopify_lite_profile_address');
                         localStorage.removeItem('shopify_lite_profile_phone');
                         localStorage.removeItem('shopify_lite_profile_pincode');
-                        triggerToast('Signed out after 5 minutes of inactivity. Please sign in again.', 'warning');
-                    }, 300000);
+                        triggerToast('You were signed out after 30 minutes of inactivity. Please sign in again.', 'warning');
+                    }, 1800000);
                 };
                 var activityEvents = ['pointerdown', 'keydown', 'touchstart', 'scroll', 'click'];
                 activityEvents.forEach(function (eventName) {
@@ -3659,8 +3660,20 @@ setIsVerifyingUpi(true);
                                 <p className="mt-1 text-sm text-slate-500">Your signed-in Shopify-Lite account.</p>
                                 <div className="mt-5 space-y-3">
                                     <div className="rounded-xl border border-slate-200 p-3"><div className="text-xs font-bold text-slate-500">Email</div><div className="mt-1 break-all text-sm font-semibold text-slate-900">{currentUser?.email || 'Not available'}</div></div>
-                                    <div className="rounded-xl border border-slate-200 p-3"><div className="text-xs font-bold text-slate-500">Account role</div><div className="mt-1 text-sm font-semibold capitalize text-slate-900">{currentUser?.role || 'Seller'}</div></div>
-                                    <p className="text-xs leading-5 text-slate-500">Authentication and access permissions are managed securely through Supabase. For security, passwords and secret keys are never displayed here.</p>
+                                    <div className="rounded-xl border border-slate-200 p-3"><div className="text-xs font-bold text-slate-500">Account role</div><div className="mt-1 text-sm font-semibold capitalize text-slate-900">{currentUser?.role || 'Customer'}</div></div>
+                                    {String(currentUser?.role || '').toLowerCase() === 'customer' && (
+                                      <div className="rounded-xl border border-slate-200 p-4 space-y-3">
+                                        <div><h3 className="text-sm font-extrabold text-slate-900">Customer information & delivery address</h3><p className="text-xs text-slate-500 mt-1">These details are loaded from your saved customer profile.</p></div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                          <div><div className="text-xs font-bold text-slate-500">Full name</div><div className="mt-1 text-sm text-slate-900 break-words">{profileDisplayName || checkoutFullName || 'Not saved yet'}</div></div>
+                                          <div><div className="text-xs font-bold text-slate-500">Mobile number</div><div className="mt-1 text-sm text-slate-900 break-words">{checkoutPhone || currentUser?.phone || 'Not saved yet'}</div></div>
+                                          <div><div className="text-xs font-bold text-slate-500">PIN code</div><div className="mt-1 text-sm text-slate-900">{checkoutPincode || 'Not saved yet'}</div></div>
+                                          <div className="sm:col-span-2"><div className="text-xs font-bold text-slate-500">Delivery address</div><div className="mt-1 text-sm text-slate-900 break-words">{profileAddress || checkoutAddress || 'No delivery address saved yet'}</div></div>
+                                        </div>
+                                        <button type="button" onClick={() => { setAccountSettingsOpen(false); setCurrentView('customer-dashboard'); }} className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white">Manage customer account</button>
+                                      </div>
+                                    )}
+                                    <p className="text-xs leading-5 text-slate-500">Authentication and access permissions are managed securely through Supabase. Card details are not stored by Shopify-Lite; use the available payment options at checkout.</p>
                                 </div>
                                 {['admin','seller'].includes(String(currentUser?.role || '').toLowerCase()) && (
                                                                     <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
