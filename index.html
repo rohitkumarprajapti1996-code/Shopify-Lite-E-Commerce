@@ -2813,7 +2813,9 @@
                                                     <div>
                                                         <h6 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Payment Method</h6>
                                                         <span className="text-xs font-bold text-gray-800">{order.paymentMethod}</span>
-                                                        <p className="text-[10px] text-gray-500 mt-0.5">ID: {order.transactionId}</p>
+                                                        <p className="text-[10px] text-gray-500 mt-0.5">Payment status: <strong className={order.paymentStatus === 'paid' ? 'text-emerald-700' : 'text-amber-700'}>{order.paymentStatus || 'pending'}</strong></p>
+                                                        <p className="text-[10px] text-gray-500 mt-0.5">ID: {order.transactionId || 'Not available'}</p>
+                                                        {order.paymentMethod === 'UPI QR' && order.paymentStatus !== 'paid' && <button type="button" onClick={() => { setPendingPaymentOrder(order); setPaymentProofFile(null); setPaymentReference(''); setShowPaymentProofModal(true); }} className="mt-2 rounded-lg bg-teal-700 px-3 py-2 text-[11px] font-bold text-white hover:bg-teal-800">{order.paymentProofSubmitted ? 'View payment instructions' : 'Pay / upload screenshot'}</button>}
                                                     </div>
                                                     <div>
                                                         <h6 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">GST Amount</h6>
