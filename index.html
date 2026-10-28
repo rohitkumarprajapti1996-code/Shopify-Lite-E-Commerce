@@ -836,10 +836,13 @@
 
             // Secure Payment System Parameters
             const [showPaymentGate, setShowPaymentGate] = useState(false);
+            const [showPaymentProofModal, setShowPaymentProofModal] = useState(false);
             const [isVerifyingUpi, setIsVerifyingUpi] = useState(false);
             const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('upi');
             const [paymentProofFile, setPaymentProofFile] = useState(null);
             const [paymentReference, setPaymentReference] = useState('');
+            const [pendingPaymentOrder, setPendingPaymentOrder] = useState(null);
+            const [paymentProofBusy, setPaymentProofBusy] = useState(false);
             
             // Payment fields
             const [paymentCardNumber, setPaymentCardNumber] = useState('');
@@ -1727,136 +1730,86 @@
 
             const handleProcessPayment = async (e) => {
                 e.preventDefault();
-
-                if (cart.length === 0) {
-                    triggerToast("Your cart is empty!", "error");
-                    return;
+                if (cart.length === 0) { triggerToast("Your cart is empty.", "error"); return; }
+                if (!checkoutFullName.trim() || !checkoutPhone.trim() || !checkoutAddress.trim() || !/^\d{6}$/.test(checkoutPincode.trim())) {
+                    triggerToast("Enter your name, mobile, complete address and valid 6-digit PIN code.", "error"); return;
                 }
-
-                // Mandatory fields validation
-                if (!checkoutFullName.trim() || !checkoutPhone.trim() || !checkoutAddress.trim() || !checkoutPincode.trim()) {
-                    triggerToast("Please fill all customer information fields.", "error");
-                    return;
-                }
-
-                if (checkoutPincode.trim().length !== 6 || isNaN(checkoutPincode)) {
-                    triggerToast("Please enter a valid 6-digit Pincode.", "error");
-                    return;
-                }
-
-                // Live inventory check
                 for (const item of cart) {
                     const currentProduct = products.find(p => p.id === item.id);
-                    if (!currentProduct || currentProduct.stock < item.quantity) {
-                        triggerToast(`Order failed! "${item.title}" just ran out of stock or does not have ${item.quantity} units left.`, "error");
-                        return;
+                    if (!currentProduct || Number(currentProduct.stock) < Number(item.quantity)) {
+                        triggerToast('Insufficient stock for ' + item.title + '. Please update your cart.', 'error'); return;
                     }
                 }
-
-setIsVerifyingUpi(true);
-                const chosenAddress = savedDeliveryAddresses.find(address => address.id === selectedDeliveryAddressId);
-                const deliveryWindow = chosenAddress?.label === 'Office' ? `, Delivery days: Monday-Friday, hours: ${chosenAddress.startTime}-${chosenAddress.endTime}` : chosenAddress?.label === 'Home' ? ', Delivery days: Monday-Sunday' : '';
-                const addressLabel = chosenAddress?.label ? chosenAddress.label + ' address: ' : '';
-                const finalAddress = `${addressLabel}${checkoutAddress.trim()}${checkoutLandmark.trim() ? ', Landmark: ' + checkoutLandmark.trim() : ''}, PIN: ${checkoutPincode.trim()}${deliveryWindow}`;
+                if (!currentUser?.id || !window.ShopifySupabase?.createOrder) {
+                    triggerToast("Please sign in again before placing your order.", "error"); return;
+                }
+                setIsVerifyingUpi(true);
                 try {
-                    if (!currentUser || !currentUser.id) throw new Error("Please sign in again before placing an order.");
-                    if (!window.ShopifySupabase?.createRazorpayOrder || !window.ShopifySupabase?.verifyRazorpayPayment) throw new Error("Secure Razorpay checkout is unavailable. Please refresh the page and try again.");
-                    if (typeof window.Razorpay !== 'function') throw new Error("Razorpay Checkout could not load. Check your internet connection and refresh the page.");
-
                     const authClient = window.ShopifySupabase.client;
                     let { data: sessionData, error: sessionError } = await authClient.auth.getSession();
                     if (sessionError) throw sessionError;
-                    if (!sessionData?.session) {
-                        setIsAuthenticated(false);
-                        setCurrentUser(null);
-                        setAuthRole('customer');
-                        setShowAuthModal(true);
-                        throw new Error("Your sign-in session has expired. Please sign in again, then retry checkout.");
-                    }
-                    if (!sessionData.session.access_token || (sessionData.session.expires_at && sessionData.session.expires_at * 1000 <= Date.now() + 60000)) {
+                    if (!sessionData?.session) throw new Error("Your session has expired. Sign in again and retry.");
+                    if (sessionData.session.expires_at && sessionData.session.expires_at * 1000 <= Date.now() + 60000) {
                         const refreshed = await authClient.auth.refreshSession();
-                        if (refreshed.error || !refreshed.data?.session) {
-                            setIsAuthenticated(false);
-                            setCurrentUser(null);
-                            setAuthRole('customer');
-                            setShowAuthModal(true);
-                            throw new Error("Your sign-in session expired and could not be renewed. Please sign in again, then retry checkout.");
-                        }
-                        sessionData = refreshed.data;
+                        if (refreshed.error || !refreshed.data?.session) throw new Error("Could not renew your sign-in session. Please sign in again.");
                     }
-
+                    const chosenAddress = savedDeliveryAddresses.find(address => address.id === selectedDeliveryAddressId);
+                    const deliveryWindow = chosenAddress?.label === 'Office' ? ', Delivery days: Monday-Friday, hours: ' + chosenAddress.startTime + '-' + chosenAddress.endTime : chosenAddress?.label === 'Home' ? ', Delivery days: Monday-Sunday' : '';
+                    const addressLabel = chosenAddress?.label ? chosenAddress.label + ' address: ' : '';
+                    const finalAddress = addressLabel + checkoutAddress.trim() + (checkoutLandmark.trim() ? ', Landmark: ' + checkoutLandmark.trim() : '') + ', PIN: ' + checkoutPincode.trim() + deliveryWindow;
                     await window.ShopifySupabase.saveCustomerProfile({
                         fullName: checkoutFullName.trim(), phone: checkoutPhone.trim(),
                         shippingAddress: checkoutAddress.trim(), pincode: checkoutPincode.trim(), landmark: checkoutLandmark.trim()
                     }, currentUser.id);
-                    setProfileDisplayName(checkoutFullName.trim());
-                    setProfileAddress(checkoutAddress.trim());
-                    setCurrentUser(prev => prev ? { ...prev, name: checkoutFullName.trim(), phone: checkoutPhone.trim() } : prev);
-                    localStorage.setItem('shopify_lite_profile_name', checkoutFullName.trim());
-                    localStorage.setItem('shopify_lite_profile_address', checkoutAddress.trim());
-                    localStorage.setItem('shopify_lite_profile_phone', checkoutPhone.trim());
-                    localStorage.setItem('shopify_lite_profile_pincode', checkoutPincode.trim());
-
-                    const paymentOrder = await window.ShopifySupabase.createRazorpayOrder({
-                        name: checkoutFullName.trim(), phone: checkoutPhone.trim(),
-                        email: currentUser.email || '', address: finalAddress
-                    }, cart.map(item => ({ id: item.id, quantity: Number(item.quantity) })));
-                    if (!paymentOrder?.keyId || !paymentOrder?.razorpayOrderId || !paymentOrder?.orderId) throw new Error("Razorpay did not return all required checkout details. Please contact support before retrying.");
-
-                    const response = await new Promise((resolve, reject) => {
-                        let settled = false;
-                        const finish = (callback, value) => { if (settled) return; settled = true; callback(value); };
-                        const checkout = new window.Razorpay({
-                            key: paymentOrder.keyId, amount: paymentOrder.amount, currency: paymentOrder.currency || 'INR',
-                            name: 'Shopify.Lite', description: 'Order ' + paymentOrder.orderNumber,
-                            order_id: paymentOrder.razorpayOrderId,
-                            prefill: paymentOrder.customer || { name: checkoutFullName.trim(), email: currentUser.email || '', contact: checkoutPhone.trim() },
-                            notes: { shopify_lite_order_id: paymentOrder.orderId }, theme: { color: '#4f46e5' },
-                            modal: { ondismiss: () => finish(reject, new Error("Payment window closed. Your order has not been confirmed; check My Orders before retrying.")) },
-                            handler: result => finish(resolve, result)
-                        });
-                        checkout.on('payment.failed', event => finish(reject, new Error(event?.error?.description || event?.error?.reason || "Payment failed. Your order has not been confirmed.")));
-                        checkout.open();
-                    });
-
-                    const verified = await window.ShopifySupabase.verifyRazorpayPayment(paymentOrder.orderId, response);
-                    if (verified?.status !== 'paid') throw new Error("Payment could not be verified. Your order remains unpaid; please contact support before retrying.");
-                    const savedOrder = {
-                        id: paymentOrder.orderNumber, orderNumber: paymentOrder.orderNumber, databaseId: paymentOrder.orderId,
+                    const result = await window.ShopifySupabase.createOrder({
+                        customerName: checkoutFullName.trim(), customerPhone: checkoutPhone.trim(),
+                        customerEmail: currentUser.email || '', shippingAddress: finalAddress,
+                        subtotal: cartSubtotal, gstAmount: 0, total: cartGrandTotal, paymentMethod: 'UPI QR'
+                    }, cart.map(item => ({ id: item.id, sku: item.sku, title: item.title, price: item.activePrice, quantity: item.quantity })), currentUser.id);
+                    const order = {
+                        id: result.order_number, orderNumber: result.order_number, databaseId: result.id,
                         customerName: checkoutFullName.trim(), customerPhone: checkoutPhone.trim(), customerEmail: currentUser.email || '',
-                        items: cart.map(item => ({ id: item.id, title: item.title, price: item.activePrice, quantity: item.quantity })),
-                        subtotal: cartSubtotal, gstAmount: calculatedGSTAmount, total: Number(paymentOrder.amount) / 100,
-                        date: new Date().toISOString().split('T')[0], status: 'Confirmed', paymentStatus: 'paid',
-                        shippingAddress: finalAddress, paymentMethod: 'Razorpay', transactionId: response.razorpay_payment_id
+                        items: cart.map(item => ({ id:item.id, title:item.title, price:item.activePrice, quantity:item.quantity })),
+                        subtotal:Number(result.subtotal ?? cartSubtotal), gstAmount:0, total:Number(result.total ?? cartGrandTotal),
+                        date:(result.created_at || new Date().toISOString()).slice(0,10), status:'Pending', paymentStatus:'pending',
+                        shippingAddress:finalAddress, paymentMethod:'UPI QR', transactionId:''
                     };
-                    setOrders(prev => [savedOrder, ...prev]);
-                    try {
-                        await window.ShopifySupabase.sendOrderConfirmation({
-                            userId: currentUser.id, email: currentUser.email, orderNumber: paymentOrder.orderNumber,
-                            customerName: checkoutFullName.trim(), customerPhone: checkoutPhone.trim(), address: finalAddress,
-                            paymentMethod: 'Razorpay', paymentStatus: 'paid', total: savedOrder.total,
-                            items: cart.map(item => ({ title: item.title, price: item.activePrice, quantity: item.quantity }))
-                        });
-                    } catch (emailErr) { console.warn("Payment verified; confirmation email failed:", emailErr); }
-                    setCart([]);
-                    setShowPaymentGate(false);
-                    setPaymentProofFile(null);
-                    setPaymentReference('');
-                    setProfileAddress(checkoutAddress.trim());
+                    setOrders(prev => [order, ...prev.filter(item => item.databaseId !== order.databaseId)]);
+                    setPendingPaymentOrder(order);
+                    setPaymentProofFile(null); setPaymentReference('');
+                    setCart([]); setShowPaymentGate(false); setShowPaymentProofModal(true);
+                    setProfileDisplayName(checkoutFullName.trim()); setProfileAddress(checkoutAddress.trim());
                     setCurrentView('customer-dashboard');
-                    triggerToast("Payment verified successfully. Order " + paymentOrder.orderNumber + " is confirmed.");
+                    try { await window.ShopifySupabase.sendOrderConfirmation({
+                        userId:currentUser.id, email:currentUser.email, orderNumber:order.orderNumber,
+                        customerName:order.customerName, customerPhone:order.customerPhone, address:finalAddress,
+                        paymentMethod:'UPI QR', paymentStatus:'pending', total:order.total,
+                        items:order.items.map(item=>({title:item.title,price:item.price,quantity:item.quantity}))
+                    }); } catch (emailErr) { console.warn('Order saved, but confirmation email could not be sent:', emailErr); }
+                    triggerToast('Order ' + order.orderNumber + ' created. Complete UPI payment and upload the screenshot for admin verification.');
                 } catch (err) {
-                    console.error("Razorpay checkout failed:", err);
-                    triggerToast(err.message || "Could not complete secure checkout. Please try again.", "error");
-                } finally {
-                    setIsVerifyingUpi(false);
-                }
+                    console.error('Checkout failed:', err);
+                    triggerToast(err.message || 'Could not create the order. Please try again.', 'error');
+                } finally { setIsVerifyingUpi(false); }
             };
 
-            
+            const submitUpiPaymentProof = async (e) => {
+                e.preventDefault();
+                if (!pendingPaymentOrder || !currentUser?.id) { triggerToast('Open the pending order payment panel first.', 'error'); return; }
+                if (!paymentProofFile) { triggerToast('Upload your UPI payment screenshot first.', 'error'); return; }
+                setPaymentProofBusy(true);
+                try {
+                    await window.ShopifySupabase.submitUpiPaymentProof(currentUser.id, pendingPaymentOrder, paymentProofFile, paymentReference);
+                    setOrders(prev => prev.map(order => order.databaseId === pendingPaymentOrder.databaseId
+                        ? { ...order, paymentStatus:'pending', paymentMethod:'UPI QR', paymentProofSubmitted:true } : order));
+                    setShowPaymentProofModal(false); setPaymentProofFile(null); setPaymentReference('');
+                    triggerToast('Payment screenshot submitted. The order remains pending until the admin verifies the actual credit.');
+                } catch (err) {
+                    triggerToast(err.message || 'Could not submit payment proof. You can retry without placing another order.', 'error');
+                } finally { setPaymentProofBusy(false); }
+            };
 
-
-            const loadPaymentProofs = async () => {
+                        const loadPaymentProofs = async () => {
                 if (!currentUser || currentUser.role !== 'admin') { triggerToast('Admin sign-in is required to review payment screenshots.', 'error'); return; }
                 setPaymentProofsLoading(true);
                 try {
@@ -2118,6 +2071,26 @@ setIsVerifyingUpi(true);
                     <div className="sm:hidden bg-white border-b border-gray-200 px-4 py-2 no-print">
                         <button onClick={() => { setLocationPincodeInput(storePincode); setShowLocationModal(true); }} className="w-full flex items-center gap-2 text-left text-sm text-gray-700"><Icon name="MapPin" className="h-4 w-4 text-indigo-600"/><span>{storePincode ? 'Delivering to PIN ' + storePincode : 'Set your delivery location'}</span><Icon name="ChevronRight" className="h-4 w-4 ml-auto text-gray-400"/></button>
                     </div>
+
+                    {showPaymentProofModal && pendingPaymentOrder && (
+                      <div className="fixed inset-0 z-[95] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+                        <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
+                          <div className="flex items-start justify-between gap-3"><div><span className="rounded-full bg-amber-100 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-800">Payment pending verification</span><h2 className="mt-3 text-xl font-black text-slate-900">Pay for {pendingPaymentOrder.orderNumber}</h2><p className="mt-1 text-sm text-slate-500">Order total: ₹{Number(pendingPaymentOrder.total).toLocaleString('en-IN',{maximumFractionDigits:2})}</p></div><button type="button" onClick={() => setShowPaymentProofModal(false)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100" aria-label="Close payment instructions"><Icon name="X" className="h-5 w-5"/></button></div>
+                          <div className="mt-4 rounded-2xl border border-teal-100 bg-teal-50 p-4 text-center">
+                            <img alt="UPI payment QR code" className="mx-auto h-48 w-48 rounded-xl border border-white bg-white p-2" src={"https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=" + encodeURIComponent("upi://pay?pa=rohitkumarprajapti1996-2@okaxis&pn=Shopify-Lite&am=" + Number(pendingPaymentOrder.total).toFixed(2) + "&cu=INR&tn=" + pendingPaymentOrder.orderNumber)}/>
+                            <p className="mt-2 text-sm font-extrabold text-teal-950">rohitkumarprajapti1996-2@okaxis</p>
+                            <a href={"upi://pay?pa=rohitkumarprajapti1996-2@okaxis&pn=Shopify-Lite&am=" + Number(pendingPaymentOrder.total).toFixed(2) + "&cu=INR&tn=" + pendingPaymentOrder.orderNumber} className="mt-3 inline-flex rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-bold text-white">Open UPI app</a>
+                          </div>
+                          <form onSubmit={submitUpiPaymentProof} className="mt-4 space-y-3">
+                            <label className="block text-xs font-bold text-slate-700">Payment reference / UTR (optional)<input value={paymentReference} onChange={e=>setPaymentReference(e.target.value)} placeholder="Enter UTR after paying" className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"/></label>
+                            <label className="block text-xs font-bold text-slate-700">Payment screenshot (JPG, PNG or WebP, max 5 MB) *<input type="file" accept="image/jpeg,image/png,image/webp" required onChange={e=>setPaymentProofFile(e.target.files?.[0] || null)} className="mt-1 block w-full rounded-xl border border-slate-200 p-2 text-sm"/></label>
+                            <p className="text-xs leading-5 text-slate-500">Submitting proof does not instantly mark the order as paid. The admin must verify the actual credit in the bank/UPI account.</p>
+                            <button type="submit" disabled={paymentProofBusy || !paymentProofFile} className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-extrabold text-white disabled:opacity-50">{paymentProofBusy ? 'Uploading proof…' : 'Submit payment screenshot'}</button>
+                            <button type="button" onClick={()=>setShowPaymentProofModal(false)} className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700">I will pay later</button>
+                          </form>
+                        </div>
+                      </div>
+                    )}
 
                     {installHelpVisible && (
                         <div className="fixed inset-0 z-[80] bg-black/50 flex items-center justify-center p-4 no-print">
@@ -3882,17 +3855,11 @@ setIsVerifyingUpi(true);
                                     </div>
 
 
-                                    <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-4 space-y-3">
-                                        <div className="flex items-center gap-2 text-sm font-black text-indigo-950">
-                                            <Icon name="ShieldCheck" className="h-5 w-5 text-indigo-700" />
-                                            Pay securely with Razorpay
-                                        </div>
-                                        <p className="text-xs leading-relaxed text-indigo-900">Click the secure payment button below to open Razorpay Checkout. Available payment methods are controlled by your Razorpay account and may include UPI, cards, net banking and wallets.</p>
-                                        <div className="flex items-center gap-2 rounded-xl bg-white p-3 text-xs text-gray-700">
-                                            <Icon name="Lock" className="h-4 w-4 text-emerald-600" />
-                                            Payment is verified by the server. Your order is confirmed only after verification succeeds.
-                                        </div>
-                                        <p className="text-[10px] text-indigo-800">Test Mode is enabled for testing. Test transactions do not charge real money.</p>
+                                    <div className="rounded-2xl border border-teal-200 bg-teal-50 p-4 space-y-2">
+                                        <div className="flex items-center gap-2 text-sm font-black text-teal-950"><Icon name="QrCode" className="h-5 w-5 text-teal-700"/> UPI QR payment</div>
+                                        <p className="text-xs leading-relaxed text-teal-900">No card details are collected here. Place the order to get the UPI payment instructions, then upload your payment screenshot. The order remains pending until the admin checks the actual bank/UPI credit.</p>
+                                        <p className="text-xs font-bold text-teal-900">UPI ID: rohitkumarprajapti1996-2@okaxis</p>
+                                        <p className="text-[10px] text-teal-800">Submitting a screenshot does not automatically mark an order as paid.</p>
                                     </div>
 
                                     {/* Security Shield Warnings & Network Verifier */}
