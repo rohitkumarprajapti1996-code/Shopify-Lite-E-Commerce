@@ -1771,6 +1771,11 @@
                         });
                         if (paymentOrderError) throw new Error(paymentOrderError.message || 'Could not start Razorpay checkout.');
                         if (!paymentOrder?.razorpayOrderId || !paymentOrder?.keyId || !paymentOrder?.orderId) throw new Error(paymentOrder?.error || 'Razorpay did not return a valid payment order. Check Supabase Edge Function secrets and logs.');
+                        if (!window.Razorpay) throw new Error('Razorpay Checkout did not load. Refresh the page and try again.');
+                        const serverTotal = Number(paymentOrder.amount) / 100;
+                        if (!Number.isFinite(serverTotal) || Math.abs(serverTotal - Number(cartGrandTotal)) > 0.01) {
+                            throw new Error('The server total differs from your cart total. Refresh your cart before paying; no payment has been opened.');
+                        }
                         const razorpay = new window.Razorpay({
                             key: paymentOrder.keyId,
                             amount: paymentOrder.amount,
@@ -1819,6 +1824,10 @@
                                     triggerToast(verifyErr.message || 'Payment verification failed. Do not pay again until the order status is checked.', 'error');
                                 } finally { setIsVerifyingUpi(false); }
                             }
+                        });
+                        razorpay.on('payment.failed', (event) => {
+                            const reason = event?.error?.description || event?.error?.reason || 'Payment was not completed.';
+                            triggerToast(reason + ' Your order remains unpaid. Check My Orders before trying again.', 'error');
                         });
                         razorpay.open();
                         return;
