@@ -105,7 +105,10 @@
         claimed_amount:Number(order.total), transaction_reference:String(transactionReference || "").trim(),
         review_status:"pending"
       }).select().single();
-      if (error) throw error;
+      if (error) {
+        await client.storage.from("shopify-payment-proofs").remove([path]).catch(() => {});
+        throw error;
+      }
       return data;
     },
     async sendOrderConfirmation(order) {
@@ -150,7 +153,7 @@
           customerEmail: order.customerEmail || "", shippingAddress: order.shippingAddress,
           subtotal: Number(order.subtotal), gstAmount: Number(order.gstAmount), total: Number(order.total),
           paymentMethod: order.paymentMethod, transactionId: "",
-          checkoutMetadata: { source: "shopify-lite-github-pages", payment_status: "pending", payment_ui_is_demo: true }
+          checkoutMetadata: { source: "shopify-lite-github-pages", payment_status: "pending", payment_ui_is_demo: false, payment_verification: "manual_admin_review" }
         },
         p_items: items.map(item => ({ id: item.id, sku: item.sku || null, title: item.title, price: Number(item.price), quantity: Number(item.quantity) }))
       });
