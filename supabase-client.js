@@ -65,6 +65,48 @@
       if (error) throw error;
       return data;
     },
+    async loadCustomerAddresses(userId) {
+      if (!userId) return [];
+      const { data, error } = await client.from("shopify_lite_customer_addresses")
+        .select("*").eq("user_id", userId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data || []).map(a => ({
+        id:a.id, label:a.label, address:a.address, pincode:a.pincode,
+        landmark:a.landmark || "", days:a.label === "Office" ? "Monday to Friday" : "Monday to Sunday",
+        startTime:a.start_time || "", endTime:a.end_time || ""
+      }));
+    },
+    async saveCustomerAddress(userId, address) {
+      if (!userId) throw new Error("Sign in to save an address.");
+      const row = {
+        user_id:userId, label:address.label, address:String(address.address || "").trim(),
+        pincode:String(address.pincode || "").trim(), landmark:String(address.landmark || "").trim(),
+        start_time:address.startTime || "", end_time:address.endTime || "", updated_at:new Date().toISOString()
+      };
+      const { data, error } = await client.from("shopify_lite_customer_addresses").insert(row).select().single();
+      if (error) throw error;
+      return data;
+    },
+    async deleteCustomerAddress(userId, addressId) {
+      if (!userId) throw new Error("Sign in to remove an address.");
+      const { error } = await client.from("shopify_lite_customer_addresses").delete().eq("user_id", userId).eq("id", addressId);
+      if (error) throw error;
+    },
+    async submitUpiPaymentProof(userId, order, file, transactionReference) {
+      if (!userId || !order?.id) throw new Error("Sign in and create an order first.");
+      if (!file || !["image/jpeg","image/png","image/webp"].includes(file.type) || file.size > 5*1024*1024)
+        throw new Error("Upload a JPG, PNG or WebP payment screenshot under 5 MB.");
+      const path = userId + "/" + order.id + "-" + Date.now() + "." + (file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg");
+      const uploaded = await client.storage.from("shopify-payment-proofs").upload(path, file, { upsert:false, contentType:file.type });
+      if (uploaded.error) throw uploaded.error;
+      const { data, error } = await client.from("shopify_lite_payment_proofs").insert({
+        order_id:order.id, customer_id:userId, storage_path:path,
+        claimed_amount:Number(order.total), transaction_reference:String(transactionReference || "").trim(),
+        review_status:"pending"
+      }).select().single();
+      if (error) throw error;
+      return data;
+    },
     async sendOrderConfirmation(order) {
       const { data, error } = await client.functions.invoke("shopify-order-confirmation", { body: { order } });
       if (error) throw new Error(error.message || "Order saved, but confirmation email could not be sent.");
