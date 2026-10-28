@@ -93,14 +93,15 @@
       if (error) throw error;
     },
     async submitUpiPaymentProof(userId, order, file, transactionReference) {
-      if (!userId || !order?.id) throw new Error("Sign in and create an order first.");
+      const databaseOrderId = order?.databaseId || order?.id;
+      if (!userId || !databaseOrderId) throw new Error("Sign in and create an order first.");
       if (!file || !["image/jpeg","image/png","image/webp"].includes(file.type) || file.size > 5*1024*1024)
         throw new Error("Upload a JPG, PNG or WebP payment screenshot under 5 MB.");
       const path = userId + "/" + order.id + "-" + Date.now() + "." + (file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg");
       const uploaded = await client.storage.from("shopify-payment-proofs").upload(path, file, { upsert:false, contentType:file.type });
       if (uploaded.error) throw uploaded.error;
       const { data, error } = await client.from("shopify_lite_payment_proofs").insert({
-        order_id:order.id, customer_id:userId, storage_path:path,
+        order_id:databaseOrderId, customer_id:userId, storage_path:path,
         claimed_amount:Number(order.total), transaction_reference:String(transactionReference || "").trim(),
         review_status:"pending"
       }).select().single();
