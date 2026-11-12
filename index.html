@@ -178,21 +178,36 @@
     <!-- Container root for the React application -->
     <div id="startup-error" style="display:none;max-width:680px;margin:40px auto;padding:24px;font-family:system-ui,sans-serif;color:#182235;background:#fff;border:1px solid #dfe8eb;border-radius:16px;box-shadow:0 8px 30px rgba(20,45,60,.08)">
       <h2 style="font-size:22px;font-weight:800;margin:0 0 8px">Shopify-Lite couldn't start</h2>
-      <p style="margin:0 0 12px;color:#66758b">The page loaded, but a script failed. Please share the error below with support.</p>
+      <p style="margin:0 0 12px;color:#66758b">The store could not finish loading. Please share the error below with support.</p>
       <pre id="startup-error-detail" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;background:#f3f7f8;padding:12px;border-radius:8px"></pre>
       <button onclick="location.reload()" style="margin-top:12px;padding:10px 16px;border-radius:8px;background:#0f766e;color:#fff;font-weight:700">Reload page</button>
     </div>
     <script>
       window.addEventListener('error', function(event) {
+        var root = document.getElementById('root');
         var box = document.getElementById('startup-error');
         var detail = document.getElementById('startup-error-detail');
         if (!box || !detail) return;
+        // Ignore failed images/styles and runtime errors after the app has mounted.
+        if (event.target && event.target !== window) {
+          var tag = String(event.target.tagName || '').toUpperCase();
+          var src = String(event.target.src || '');
+          if (tag !== 'SCRIPT' || !/(react|react-dom|supabase|babel)/i.test(src)) return;
+        } else if (root && root.childElementCount > 0) {
+          console.error('Shopify-Lite runtime error:', event.error || event.message);
+          return;
+        }
         box.style.display = 'block';
-        detail.textContent = (event.message || 'Script loading error') + (event.filename ? '\\n' + event.filename : '') + (event.lineno ? ':' + event.lineno : '');
+        detail.textContent = (event.message || 'A required application script failed to load') + (event.filename ? '\\n' + event.filename : '') + (event.lineno ? ':' + event.lineno : '');
       });
       window.addEventListener('unhandledrejection', function(event) {
+        var root = document.getElementById('root');
         var box = document.getElementById('startup-error');
         var detail = document.getElementById('startup-error-detail');
+        if (root && root.childElementCount > 0) {
+          console.error('Shopify-Lite background request failed:', event.reason);
+          return;
+        }
         if (!box || !detail) return;
         box.style.display = 'block';
         detail.textContent = 'Startup request failed: ' + String(event.reason && (event.reason.message || event.reason) || event.reason);
@@ -2961,6 +2976,37 @@
                         {/* 5. Merchant Command Center Panel */}
                         {currentView === 'seller-dashboard' && (
                             <div className="space-y-8 mt-4">
+                                {/* Diwali festive greeting banner */}
+                                <section className="relative isolate overflow-hidden rounded-3xl border border-amber-300/40 bg-gradient-to-r from-[#32104f] via-[#7b174d] to-[#d45a18] px-5 py-6 text-white shadow-xl sm:px-8 sm:py-7" aria-label="Happy Diwali greeting">
+                                    <div className="pointer-events-none absolute inset-0 opacity-70" aria-hidden="true">
+                                        <svg viewBox="0 0 1200 220" preserveAspectRatio="xMidYMid slice" className="h-full w-full">
+                                            <defs>
+                                                <radialGradient id="diwaliGlow"><stop offset="0%" stopColor="#ffd66b" stopOpacity=".8"/><stop offset="100%" stopColor="#ffd66b" stopOpacity="0"/></radialGradient>
+                                            </defs>
+                                            <circle cx="120" cy="30" r="100" fill="url(#diwaliGlow)"/>
+                                            <circle cx="1060" cy="190" r="150" fill="url(#diwaliGlow)"/>
+                                            {[90,220,960,1100].map((x,i)=><g key={i} transform={`translate(${x} ${i%2?45:115})`} stroke="#ffd77a" strokeWidth="2" fill="none" opacity=".85">
+                                                {Array.from({length:12},(_,n)=><line key={n} x1="0" y1="-12" x2="0" y2="-42" transform={`rotate(${n*30})`}/>)}
+                                                <circle r="5" fill="#ffe6a0" stroke="none"/>
+                                            </g>)}
+                                            <path d="M0 190 Q300 150 600 190 T1200 180 V220 H0Z" fill="#260b37" opacity=".35"/>
+                                        </svg>
+                                    </div>
+                                    <div className="relative flex flex-col items-center justify-between gap-5 text-center sm:flex-row sm:text-left">
+                                        <div className="flex items-center gap-3 sm:gap-5">
+                                            <div className="hidden text-5xl drop-shadow-[0_0_14px_rgba(255,205,89,.8)] sm:block" aria-hidden="true">🪔</div>
+                                            <div>
+                                                <span className="inline-flex rounded-full border border-amber-200/40 bg-amber-100/15 px-3 py-1 text-[10px] font-black uppercase tracking-[.22em] text-amber-100">Festival of Lights</span>
+                                                <h2 className="mt-2 text-3xl font-black tracking-tight text-amber-100 sm:text-4xl">Happy Diwali!</h2>
+                                                <p className="mt-1 max-w-xl text-sm text-orange-50/95 sm:text-base">Wishing you and your family happiness, prosperity and bright new beginnings.</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3 text-4xl drop-shadow-[0_0_12px_rgba(255,210,105,.65)] sm:gap-5 sm:text-5xl" aria-hidden="true">
+                                            <span>✨</span><span>🪔</span><span>🎆</span><span>🪔</span><span>✨</span>
+                                        </div>
+                                    </div>
+                                    <div className="pointer-events-none absolute -bottom-8 left-1/2 h-16 w-2/3 -translate-x-1/2 rounded-full bg-amber-300/20 blur-2xl" aria-hidden="true"></div>
+                                </section>
                                 <div className="bg-gradient-to-r from-slate-900 to-indigo-950 rounded-2xl p-6 text-white shadow-lg border border-slate-800">
                                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                         <div>
@@ -3005,7 +3051,7 @@
                                         </div>
                                     ))}
                                 </div>
-                                {/* Payment analytics and Razorpay account status */}
+                                {/* Payment analytics and payment methods status */}
                                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
                                   <div className="xl:col-span-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                                     <div className="flex items-center justify-between gap-3 mb-4">
@@ -3029,10 +3075,10 @@
                                     </div>
                                   </div>
                                   <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                                    <div className="flex items-center gap-2"><Icon name="CreditCard" className="h-5 w-5 text-indigo-600"/><h2 className="font-extrabold text-slate-900">Razorpay Account</h2></div>
-                                    <p className="mt-2 text-xs leading-5 text-slate-500">Your store already uses the Razorpay checkout integration. Account settlement details and live payment records must be confirmed in the Razorpay Dashboard.</p>
-                                    <a href="https://dashboard.razorpay.com/" target="_blank" rel="noreferrer" className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-xs font-extrabold text-white">Open Razorpay Dashboard <Icon name="ExternalLink" className="h-4 w-4"/></a>
-                                    <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-[11px] leading-5 text-amber-900">For security, never enter or display Razorpay Secret Key in this page. Store credentials only in Supabase secrets.</div>
+                                    <div className="flex items-center gap-2"><Icon name="QrCode" className="h-5 w-5 text-teal-700"/><h2 className="font-extrabold text-slate-900">UPI QR Payments</h2></div>
+                                    <p className="mt-2 text-xs leading-5 text-slate-500">New customer checkouts use UPI QR with manual payment-proof review. Verify the actual credit in your bank or UPI app before marking an order as paid.</p>
+                                    <div className="mt-3 rounded-xl border border-teal-200 bg-teal-50 p-3 text-[11px] leading-5 text-teal-900">Store UPI ID: <strong>rohitkumarprajapti1996-2@okaxis</strong></div>
+                                    <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-[11px] leading-5 text-amber-900">Older Razorpay orders remain in order history for reconciliation. This does not enable Razorpay for new checkouts.</div>
                                   </div>
                                   <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                                     <div className="flex items-center gap-2"><Icon name="Truck" className="h-5 w-5 text-teal-700"/><h2 className="font-extrabold text-slate-900">Shiprocket Account</h2></div>
