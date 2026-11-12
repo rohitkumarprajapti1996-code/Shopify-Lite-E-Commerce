@@ -177,7 +177,7 @@
     <!-- Container root for the React application -->
     <div id="startup-error" style="display:none;max-width:680px;margin:40px auto;padding:24px;font-family:system-ui,sans-serif;color:#182235;background:#fff;border:1px solid #dfe8eb;border-radius:16px;box-shadow:0 8px 30px rgba(20,45,60,.08)">
       <h2 style="font-size:22px;font-weight:800;margin:0 0 8px">Shopify-Lite couldn't start</h2>
-      <p style="margin:0 0 12px;color:#66758b">The page loaded, but a script failed. Please share the error below with support.</p>
+      <p style="margin:0 0 12px;color:#66758b">The store could not finish loading. Please share the error below with support.</p>
       <pre id="startup-error-detail" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;background:#f3f7f8;padding:12px;border-radius:8px"></pre>
       <button onclick="location.reload()" style="margin-top:12px;padding:10px 16px;border-radius:8px;background:#0f766e;color:#fff;font-weight:700">Reload page</button>
     </div>
@@ -852,7 +852,6 @@
             const [showPaymentGate, setShowPaymentGate] = useState(false);
             const [showPaymentProofModal, setShowPaymentProofModal] = useState(false);
             const [isVerifyingUpi, setIsVerifyingUpi] = useState(false);
-            const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('upi');
             const [paymentProofFile, setPaymentProofFile] = useState(null);
             const [paymentReference, setPaymentReference] = useState('');
             const [pendingPaymentOrder, setPendingPaymentOrder] = useState(null);
@@ -2949,7 +2948,7 @@
                                         </div>
                                     ))}
                                 </div>
-                                {/* Payment analytics and Razorpay account status */}
+                                {/* Payment analytics and UPI QR payment status */}
                                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
                                   <div className="xl:col-span-2 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                                     <div className="flex items-center justify-between gap-3 mb-4">
@@ -2973,10 +2972,10 @@
                                     </div>
                                   </div>
                                   <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                                    <div className="flex items-center gap-2"><Icon name="CreditCard" className="h-5 w-5 text-indigo-600"/><h2 className="font-extrabold text-slate-900">Razorpay Account</h2></div>
-                                    <p className="mt-2 text-xs leading-5 text-slate-500">Your store already uses the Razorpay checkout integration. Account settlement details and live payment records must be confirmed in the Razorpay Dashboard.</p>
-                                    <a href="https://dashboard.razorpay.com/" target="_blank" rel="noreferrer" className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-xs font-extrabold text-white">Open Razorpay Dashboard <Icon name="ExternalLink" className="h-4 w-4"/></a>
-                                    <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-[11px] leading-5 text-amber-900">For security, never enter or display Razorpay Secret Key in this page. Store credentials only in Supabase secrets.</div>
+                                    <div className="flex items-center gap-2"><Icon name="QrCode" className="h-5 w-5 text-teal-700"/><h2 className="font-extrabold text-slate-900">UPI QR Payments</h2></div>
+                                    <p className="mt-2 text-xs leading-5 text-slate-500">New customer checkouts use UPI QR with manual payment-proof review. Verify the actual credit in your bank or UPI app before marking an order as paid.</p>
+                                    <div className="mt-3 rounded-xl border border-teal-200 bg-teal-50 p-3 text-[11px] leading-5 text-teal-900">Store UPI ID: <strong>rohitkumarprajapti1996-2@okaxis</strong></div>
+                                    <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-[11px] leading-5 text-amber-900">Older Razorpay orders remain in order history for reconciliation. This does not enable Razorpay for new checkouts.</div>
                                   </div>
                                   <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                                     <div className="flex items-center gap-2"><Icon name="Truck" className="h-5 w-5 text-teal-700"/><h2 className="font-extrabold text-slate-900">Shiprocket Account</h2></div>
