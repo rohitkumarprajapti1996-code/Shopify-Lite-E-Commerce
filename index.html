@@ -1366,9 +1366,20 @@
                             triggerToast('Password updated. You can now sign in with your new password.');
                             return;
                         }
-                        const result = await auth.auth.signInWithPassword({ email, password:customerPassword });
-                        if (result.error) throw result.error;
-                        const user = result.data.user;
+                        // Customer sign-in is OTP-only: request a one-time email code, then verify it before creating a session.
+                        if (!emailOtpSent) {
+                            const sent = await auth.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+                            if (sent.error) throw sent.error;
+                            setEmailOtpSent(true);
+                            setAuthOtp('');
+                            triggerToast('A one-time sign-in code has been sent to your email. Enter it to continue.');
+                            return;
+                        }
+                        if (!/^\\d{6,8}$/.test(authOtp.trim())) throw new Error('Enter the verification code sent to your email.');
+                        const verifiedLogin = await auth.auth.verifyOtp({ email, token:authOtp.trim(), type:'email' });
+                        if (verifiedLogin.error) throw verifiedLogin.error;
+                        const user = verifiedLogin.data?.user || verifiedLogin.data?.session?.user;
+                        if (!user?.id) throw new Error('Email code was accepted but no customer session was returned. Request a new code and try again.');
                         // Clear browser profile cache first so another account's details cannot leak across sessions.
                         ['shopify_lite_profile_name','shopify_lite_profile_address','shopify_lite_profile_phone','shopify_lite_profile_pincode'].forEach(k => localStorage.removeItem(k));
                         setProfileDisplayName('');
@@ -2113,7 +2124,7 @@
                                     <button onClick={()=>{setLocationPincodeInput(storePincode);setShowLocationModal(true);}} className="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left text-slate-700 transition hover:border-teal-300 hover:bg-teal-50 sm:inline-flex" title="Set delivery location"><Icon name="MapPin" className="h-5 w-5 text-teal-700"/><span className="whitespace-nowrap text-xs font-medium">{storePincode?'Deliver to '+storePincode:'Set delivery location'}</span></button>
                                     <button onClick={handleInstallApp} className="hidden items-center gap-2 rounded-xl border border-teal-200 bg-teal-50 px-3.5 py-2.5 text-xs font-bold text-teal-800 transition hover:bg-teal-100 lg:inline-flex" title="Install Shopify-Lite"><Icon name="Download" className="h-4 w-4"/><span>Install</span></button>
                                     <button onClick={()=>{setCurrentView('home');setSelectedCategory('All');}} className={`hidden rounded-xl px-3.5 py-2.5 text-sm font-semibold transition lg:inline-flex ${currentView==='home'?'bg-teal-50 text-teal-800':'text-slate-600 hover:bg-slate-50 hover:text-teal-800'}`}>Shop Catalog</button>
-                                    <button onClick={()=>{setAuthRole('customer');setAuthMode('login');setAuthError('');setEmailOtpSent(false);setAuthOtp('');setShowAuthModal(true);}} className="inline-flex items-center gap-2 whitespace-nowrap rounded-xl border border-teal-200 bg-white px-3 py-2.5 text-sm font-semibold text-teal-800 transition hover:bg-teal-50 sm:px-4"><Icon name="User" className="h-4 w-4"/><span>{isAuthenticated&&String(currentUser?.role||'').toLowerCase()==='customer'?'My Account':'Customer Login'}</span></button>
+                                    <button onClick={()=>{if(isAuthenticated&&currentUser?.id&&String(currentUser?.role||'').toLowerCase()==='customer'){setCurrentView('customer-dashboard');setShowAuthModal(false);}else{setAuthRole('customer');setAuthMode('login');setAuthError('');setEmailOtpSent(false);setAuthOtp('');setCustomerPassword('');setShowAuthModal(true);}}} className="inline-flex items-center gap-2 whitespace-nowrap rounded-xl border border-teal-200 bg-white px-3 py-2.5 text-sm font-semibold text-teal-800 transition hover:bg-teal-50 sm:px-4"><Icon name="User" className="h-4 w-4"/><span>{isAuthenticated&&String(currentUser?.role||'').toLowerCase()==='customer'?'My Account':'Customer Login'}</span></button>
                                     {(!isAuthenticated||['seller','admin'].includes(String(currentUser?.role||'').toLowerCase()))&&<button onClick={()=>{setAuthRole('seller');setAuthMode('login');setAuthError('');setEmailOtpSent(false);setAuthOtp('');setShowAuthModal(true);}} className="hidden items-center gap-2 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800 xl:inline-flex"><Icon name="LayoutDashboard" className="h-4 w-4"/><span>{isAuthenticated&&['seller','admin'].includes(String(currentUser?.role||'').toLowerCase())?'Admin Panel':'Seller Login'}</span></button>}
                                     <button onClick={()=>{if(isAuthenticated&&String(currentUser?.role||'').toLowerCase()==='customer'){setCurrentView('cart');}else{setAuthRole('customer');setAuthMode('login');setAuthError('');setEmailOtpSent(false);setAuthOtp('');setShowAuthModal(true);}}} className="relative inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-slate-700 transition hover:border-teal-200 hover:bg-teal-50" title="Your Cart"><Icon name="ShoppingCart" className="h-5 w-5"/><span className="hidden text-xs font-medium sm:inline">Cart</span><span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-teal-700 px-1 text-[10px] font-bold text-white">{cart.reduce((tot,i)=>tot+i.quantity,0)}</span></button>
                                     {isAuthenticated&&<button onClick={handleLogout} title="Logout" className="rounded-xl p-2 text-slate-500 transition hover:bg-rose-50 hover:text-rose-600"><Icon name="LogOut" className="h-5 w-5"/></button>}
@@ -4191,16 +4202,16 @@
                                                     <input type="email" required autoComplete="email" placeholder="you@example.com" value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} className="w-full pl-10 pr-4 py-3 border rounded-xl text-sm bg-white" />
                                                 </div>
                                             </div>
-                                            {(authMode === 'forgot' && emailOtpSent || authMode === 'signup' && emailOtpSent) && (
+                                            {(authMode === 'login' && emailOtpSent || authMode === 'forgot' && emailOtpSent || authMode === 'signup' && emailOtpSent) && (
                                                 <div>
                                                     <label className="block text-[10px] font-extrabold text-gray-500 uppercase mb-1 tracking-wider">Email verification code</label>
                                                     <input type="text" inputMode="numeric" autoComplete="one-time-code" required value={authOtp} onChange={e=>setAuthOtp(e.target.value)} placeholder="Enter code from email" className="w-full px-4 py-3 border rounded-xl text-sm" />
                                                 </div>
                                             )}
-                                            {authMode !== 'forgot' && (authMode !== 'signup' || emailOtpSent) || authMode === 'forgot' && emailOtpSent ? (
+                                            {(authMode === 'signup' || authMode === 'forgot') && emailOtpSent ? (
                                                 <>
                                                     <div>
-                                                        <label className="block text-[10px] font-extrabold text-gray-500 uppercase mb-1 tracking-wider">{authMode === 'forgot' ? 'New password' : 'Password'}</label>
+                                                        <label className="block text-[10px] font-extrabold text-gray-500 uppercase mb-1 tracking-wider">{authMode === 'forgot' ? 'New password' : 'Create password'}</label>
                                                         <div className="relative"><input type={showCustomerPassword ? 'text' : 'password'} required autoComplete={authMode === 'login' ? 'current-password' : 'new-password'} value={customerPassword} onChange={e=>setCustomerPassword(e.target.value)} placeholder={authMode === 'forgot' ? 'At least 8 characters' : 'Enter password'} className="w-full px-4 pr-12 py-3 border rounded-xl text-sm" /><button type="button" aria-label={showCustomerPassword ? 'Hide password' : 'Show password'} onClick={()=>setShowCustomerPassword(v=>!v)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-gray-500 hover:bg-gray-100"><Icon name={showCustomerPassword ? 'EyeOff' : 'Eye'} className="h-4 w-4"/></button></div>
                                                     </div>
                                                     {authMode !== 'login' && (
@@ -4260,7 +4271,7 @@
                                         <button type="submit" disabled={authBusy} className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-wait text-white font-bold py-3 px-4 rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2">
                                             <Icon name="Lock" className="h-4 w-4" />
                                             {authBusy ? 'Please wait…' : authRole === 'customer'
-                                                ? (authMode === 'signup' ? (!emailOtpSent ? 'Send email code' : 'Verify code & create account') : authMode === 'forgot' ? (!emailOtpSent ? 'Send recovery code' : 'Verify code & reset password') : 'Sign in with password')
+                                                ? (authMode === 'signup' ? (!emailOtpSent ? 'Send email code' : 'Verify code & create account') : authMode === 'forgot' ? (!emailOtpSent ? 'Send recovery code' : 'Verify code & reset password') : (!emailOtpSent ? 'Send sign-in code' : 'Verify code & sign in'))
                                                 : (authMode === 'forgot' ? (!emailOtpSent ? 'Send recovery code' : 'Verify code & reset password') : 'Admin sign in')}
                                         </button>
                                     </div>
