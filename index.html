@@ -626,6 +626,40 @@
           #root main .sl-product-card:hover,#root main .sl-product-card:hover .sl-product-image { transform:none!important; }
         }
 
+        
+        /* Category and trending blocks introduced in the matching storefront concept */
+        #root main .sl-category-section,
+        #root main .sl-trending-section { margin-top:28px!important; }
+        #root main .sl-category-grid { grid-template-columns:repeat(6,minmax(0,1fr))!important; }
+        #root main .sl-category-tile {
+          min-height:132px!important;
+          border-radius:20px!important;
+          background:linear-gradient(145deg,#fff,#f6fbfa)!important;
+          box-shadow:0 8px 22px rgba(15,65,72,.045)!important;
+        }
+        #root main .sl-category-tile:hover {
+          transform:translateY(-5px)!important;
+          border-color:#9bcfc9!important;
+          box-shadow:0 16px 30px rgba(8,127,117,.12)!important;
+        }
+        #root main .sl-trending-grid { grid-template-columns:repeat(4,minmax(0,1fr))!important; }
+        #root main .sl-trending-card { border-radius:20px!important; }
+        #root main .sl-trending-card:hover {
+          transform:translateY(-6px)!important;
+          border-color:#9bcfc9!important;
+          box-shadow:0 18px 36px rgba(8,127,117,.12)!important;
+        }
+        #root main .sl-trending-image img { mix-blend-mode:multiply; filter:drop-shadow(0 8px 10px rgba(20,55,60,.10)); }
+        @media(max-width:1100px) {
+          #root main .sl-category-grid { grid-template-columns:repeat(3,minmax(0,1fr))!important; }
+        }
+        @media(max-width:767px) {
+          #root main .sl-category-grid { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
+          #root main .sl-category-tile { min-height:108px!important; padding:12px!important; }
+          #root main .sl-trending-grid { grid-template-columns:repeat(2,minmax(0,1fr))!important; gap:10px!important; }
+          #root main .sl-trending-image { height:118px!important; }
+        }
+
         </style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased min-h-screen">
@@ -1748,11 +1782,12 @@
             const filteredProducts = useMemo(() => {
                 const matching = products.filter(product => {
                     const term = searchTerm.trim().toLowerCase();
-                    const matchesSearch = !term ||
+                    const isPaymentTestProduct = /test|payment/i.test(String(product.title || ''));
+                    const matchesSearch = !isPaymentTestProduct && (!term ||
                                           product.title.toLowerCase().includes(term) ||
                                           product.description.toLowerCase().includes(term) ||
                                           product.category.toLowerCase().includes(term) ||
-                                          product.tags.some(tag => tag.toLowerCase().includes(term));
+                                          product.tags.some(tag => tag.toLowerCase().includes(term)));
                     const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
                     const matchesSale = !onlySales || product.salePrice !== null;
                     const matchesWishlist = !showWishlistOnly || wishlistIds.includes(product.id);
@@ -2699,7 +2734,7 @@
                                     </div>
                                     <div className="relative z-10 mx-auto grid w-full max-w-[520px] grid-cols-2 items-center gap-3 sm:gap-4">
                                         <div className="pointer-events-none absolute -inset-5 rounded-full bg-teal-300/10 blur-3xl"></div>
-                                        {products.filter(p => p && p.image).slice(0,3).map((product,index) => (
+                                        {products.filter(p => p && p.image && !/test|payment/i.test(String(p.title || ''))).slice(0,3).map((product,index) => (
                                             <div key={product.id || product.sku || index} className={`relative overflow-hidden rounded-2xl border border-white/20 bg-white/95 p-2.5 shadow-2xl ${index===0?'col-span-2 mx-auto w-[72%] rotate-[-2deg] sm:w-[66%]':index===1?'translate-y-1 rotate-[2deg]':'-translate-y-1 rotate-[-2deg]'}`}>
                                                 <div className={`overflow-hidden rounded-xl bg-slate-100 ${index===0?'h-32 sm:h-40':'h-24 sm:h-32'}`}>
                                                     <img src={product.image} alt={product.title || 'Shop product'} loading="lazy" className="h-full w-full object-contain transition duration-500 hover:scale-105"/>
@@ -2710,10 +2745,57 @@
                                                 </div>
                                             </div>
                                         ))}
-                                        {products.filter(p => p && p.image).length===0 && <div className="col-span-2 grid min-h-56 place-items-center rounded-2xl border border-white/20 bg-white/10"><div className="flex items-center gap-5 text-teal-50"><Icon name="ShoppingBag" className="h-16 w-16"/><Icon name="Headphones" className="h-12 w-12"/><Icon name="Watch" className="h-12 w-12"/></div></div>}
+                                        {products.filter(p => p && p.image && !/test|payment/i.test(String(p.title || ''))).length===0 && <div className="col-span-2 grid min-h-56 place-items-center rounded-2xl border border-white/20 bg-white/10"><div className="flex items-center gap-5 text-teal-50"><Icon name="ShoppingBag" className="h-16 w-16"/><Icon name="Headphones" className="h-12 w-12"/><Icon name="Watch" className="h-12 w-12"/></div></div>}
                                     </div>
                                     <div className="pointer-events-none absolute -right-24 -top-28 h-80 w-80 rounded-full border border-white/10"></div>
                                     <div className="pointer-events-none absolute -bottom-36 left-[38%] h-80 w-80 rounded-full border border-white/10"></div>
+                                </section>
+
+
+                                {/* Shop by category — visual shortcuts to the existing catalogue filters */}
+                                <section className="sl-category-section mb-10">
+                                    <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-[.22em] text-teal-700">Discover your style</p>
+                                            <h2 className="mt-1 text-2xl font-black tracking-tight text-slate-900">Shop by category</h2>
+                                            <p className="mt-1 text-sm text-slate-500">Explore collections picked for everyday essentials</p>
+                                        </div>
+                                    </div>
+                                    <div className="sl-category-grid mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                                        {CATEGORIES.filter(category => category !== 'All').slice(0,6).map((category,index) => (
+                                            <button key={category} type="button" onClick={() => { setSelectedCategory(category); setCurrentView('home'); }} className="sl-category-tile group flex min-h-[116px] flex-col items-start justify-between rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition">
+                                                <span className="grid h-10 w-10 place-items-center rounded-xl bg-teal-50 text-teal-700 transition group-hover:bg-teal-700 group-hover:text-white">
+                                                    <Icon name={['Shirt','Footprints','Sparkles','Gem','Headphones','House'][index]} className="h-5 w-5"/>
+                                                </span>
+                                                <span className="mt-3 flex w-full items-center justify-between gap-2 text-xs font-extrabold text-slate-800"><span>{category}</span><Icon name="ArrowUpRight" className="h-3.5 w-3.5 shrink-0 text-teal-700"/></span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </section>
+
+                                {/* Trending picks — sourced from current store products */}
+                                <section className="sl-trending-section mb-10">
+                                    <div className="mb-4 flex items-end justify-between gap-3">
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-[.22em] text-teal-700">Popular right now</p>
+                                            <h2 className="mt-1 text-2xl font-black tracking-tight text-slate-900">Trending picks</h2>
+                                        </div>
+                                        <button type="button" onClick={() => { setSelectedCategory('All'); setOnlySales(false); setShowWishlistOnly(false); }} className="rounded-xl border border-teal-100 bg-white px-3 py-2 text-xs font-extrabold text-teal-800 shadow-sm transition hover:bg-teal-50">View all products <span aria-hidden="true">→</span></button>
+                                    </div>
+                                    <div className="sl-trending-grid grid grid-cols-2 gap-3 md:grid-cols-4">
+                                        {products.filter(p => p && p.image && !/test|payment/i.test(String(p.title || ''))).slice(0,4).map(product => (
+                                            <button key={product.id || product.sku || product.title} type="button" onClick={() => { setSelectedProduct(product); setCurrentView('detail'); }} className="sl-trending-card group overflow-hidden rounded-2xl border border-slate-200 bg-white text-left shadow-sm transition">
+                                                <span className="sl-trending-image block h-36 overflow-hidden bg-slate-50 p-3">
+                                                    <img src={product.image} alt={product.title || 'Product'} loading="lazy" className="h-full w-full object-contain transition duration-500 group-hover:scale-110"/>
+                                                </span>
+                                                <span className="block px-4 pb-4 pt-3">
+                                                    <span className="block truncate text-[10px] font-black uppercase tracking-wider text-teal-700">{product.category || 'Featured'}</span>
+                                                    <span className="mt-1 block min-h-9 text-sm font-extrabold leading-5 text-slate-900">{product.title}</span>
+                                                    <span className="mt-2 block text-base font-black text-teal-800">₹{Number(product.salePrice !== null ? product.salePrice : product.price || 0).toLocaleString('en-IN')}</span>
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </section>
 
                                 <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
