@@ -1235,6 +1235,10 @@
             const [isAiTyping, setIsAiTyping] = useState(false);
 
             const [sellerActiveTab, setSellerActiveTab] = useState('inventory');
+            const [adminSidebarOpen, setAdminSidebarOpen] = useState(true);
+            const [adminProfileMenuOpen, setAdminProfileMenuOpen] = useState(false);
+            const [adminHeaderSearch, setAdminHeaderSearch] = useState('');
+            const [adminHeaderSearchOpen, setAdminHeaderSearchOpen] = useState(false);
             const [fulfillmentOrderSearch, setFulfillmentOrderSearch] = useState('');
             const [paymentProofs, setPaymentProofs] = useState([]);
             const [paymentProofsLoading, setPaymentProofsLoading] = useState(false);
@@ -2063,75 +2067,66 @@
             return (
                 <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800 antialiased select-none">
                     
-                    {/* Header Strip */}
-                    <div className="bg-gradient-to-r from-indigo-700 via-purple-700 to-indigo-900 text-white text-xs font-semibold py-2 px-4 text-center flex items-center justify-center gap-2 no-print">
+                    {/* Store promotion is hidden inside the admin workspace */}
+                    {!(isAuthenticated && currentView === 'seller-dashboard' && ['seller','admin'].includes(String(currentUser?.role || '').toLowerCase())) && <div className="bg-gradient-to-r from-indigo-700 via-purple-700 to-indigo-900 text-white text-xs font-semibold py-2 px-4 text-center flex items-center justify-center gap-2 no-print">
                         <Icon name="Percent" className="h-4 w-4 animate-bounce" />
                         <span>FESTIVE SALE! Enjoy value pricing and free PAN-India express home delivery on eligible orders today!</span>
-                    </div>
+                    </div>}
 
-                    <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm no-print">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-                            
-                            {/* Brand Logo */}
-                            <div 
-                                onClick={() => { setCurrentView('home'); setSelectedCategory('All'); }} 
-                                className="flex items-center gap-2 cursor-pointer group"
-                            >
-                                <div className="bg-indigo-600 text-white p-2 rounded-lg shadow-md group-hover:bg-indigo-700 transition">
-                                    <Icon name="ShoppingBag" className="h-6 w-6" />
+                    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm no-print">
+                        {isAuthenticated && currentView === 'seller-dashboard' && ['seller','admin'].includes(String(currentUser?.role || '').toLowerCase()) ? (
+                            <div className="h-16 w-full px-4 sm:px-6 flex items-center gap-4">
+                                <button type="button" onClick={()=>setAdminSidebarOpen(v=>!v)} className="rounded-xl p-2 text-slate-700 hover:bg-slate-100" aria-label="Toggle admin sidebar" title="Toggle menu"><Icon name="Menu" className="h-6 w-6"/></button>
+                                <div className="flex min-w-0 items-center gap-3">
+                                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-violet-700 text-white shadow"><Icon name="ShoppingBag" className="h-6 w-6"/></span>
+                                    <span className="hidden font-extrabold tracking-tight text-slate-900 sm:block">Shopify<span className="text-violet-700">.Lite</span><small className="block text-[10px] font-medium text-slate-500">E-Commerce Admin</small></span>
                                 </div>
-                                <span className="font-extrabold text-2xl tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 bg-clip-text text-transparent">
-                                    Shopify<span className="text-gray-900">.Lite</span>
-                                </span>
+                                <div className="relative ml-2 hidden max-w-xl flex-1 md:block">
+                                    <Icon name="Search" className="absolute left-3 top-3 h-4 w-4 text-slate-400"/>
+                                    <input value={adminHeaderSearch} onFocus={()=>setAdminHeaderSearchOpen(true)} onChange={e=>{setAdminHeaderSearch(e.target.value);setAdminHeaderSearchOpen(true);}} onKeyDown={e=>{if(e.key==='Escape'){setAdminHeaderSearch('');setAdminHeaderSearchOpen(false);} if(e.key==='Enter'&&adminHeaderSearch.trim()){const q=adminHeaderSearch.toLowerCase();const productMatch=products.some(p=>String(p.title||'').toLowerCase().includes(q));setSellerActiveTab(productMatch?'inventory':'fulfillment');setAdminHeaderSearchOpen(false);document.getElementById('shopify-admin-workspace')?.scrollIntoView({behavior:'smooth'});}}} placeholder="Search orders, products, customers..." className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm outline-none transition focus:border-violet-300 focus:bg-white focus:ring-2 focus:ring-violet-100"/>
+                                    {adminHeaderSearchOpen&&adminHeaderSearch.trim()&&<div className="absolute left-0 right-0 top-full z-[80] mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+                                        {products.filter(p=>String(p.title||'').toLowerCase().includes(adminHeaderSearch.toLowerCase())).slice(0,3).map(p=><button key={p.id} type="button" onClick={()=>{setSellerActiveTab('inventory');setAdminHeaderSearchOpen(false);document.getElementById('shopify-admin-workspace')?.scrollIntoView({behavior:'smooth'});}} className="block w-full border-b border-slate-100 px-4 py-3 text-left text-sm hover:bg-violet-50"><span className="font-semibold text-slate-800">{p.title}</span><span className="ml-2 text-xs text-slate-400">Product</span></button>)}
+                                        {orders.filter(o=>[o.id,o.orderNumber,o.customerName,o.customerEmail,o.status].some(v=>String(v||'').toLowerCase().includes(adminHeaderSearch.toLowerCase()))).slice(0,3).map(o=><button key={o.id||o.orderNumber} type="button" onClick={()=>{setSellerActiveTab('fulfillment');setAdminHeaderSearchOpen(false);document.getElementById('shopify-admin-workspace')?.scrollIntoView({behavior:'smooth'});}} className="block w-full border-b border-slate-100 px-4 py-3 text-left text-sm hover:bg-violet-50"><span className="font-semibold text-slate-800">{o.orderNumber||o.id||'Order'}</span><span className="ml-2 text-xs text-slate-400">Order · {o.customerName||'Customer'}</span></button>)}
+                                        {products.filter(p=>String(p.title||'').toLowerCase().includes(adminHeaderSearch.toLowerCase())).length===0&&orders.filter(o=>[o.id,o.orderNumber,o.customerName,o.customerEmail,o.status].some(v=>String(v||'').toLowerCase().includes(adminHeaderSearch.toLowerCase()))).length===0&&<div className="px-4 py-3 text-sm text-slate-500">No matching orders or products found.</div>}
+                                    </div>}
+                                </div>
+                                <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-4">
+                                    <button type="button" onClick={()=>triggerToast(`${orders.filter(o=>['pending','payment pending'].includes(String(o.status||'').toLowerCase())).length} orders currently need attention.`,'info')} className="relative rounded-full p-2 text-slate-600 hover:bg-slate-100" title="Order notifications" aria-label="Notifications"><Icon name="Bell" className="h-5 w-5"/>{orders.some(o=>['pending','payment pending'].includes(String(o.status||'').toLowerCase()))&&<span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-red-500"/>}</button>
+                                    <div className="relative">
+                                        <button type="button" onClick={()=>setAdminProfileMenuOpen(v=>!v)} className="flex items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-slate-50" aria-expanded={adminProfileMenuOpen}>
+                                            <span className="grid h-9 w-9 place-items-center rounded-full bg-violet-700 font-bold text-white">{String(currentUser?.name||currentUser?.email||'A').charAt(0).toUpperCase()}</span>
+                                            <span className="hidden text-left sm:block"><span className="block text-sm font-bold text-slate-900">{currentUser?.name||'Admin'}</span><span className="block text-[11px] text-slate-500">{String(currentUser?.role||'Admin').replace(/^./,c=>c.toUpperCase())}</span></span>
+                                            <Icon name="ChevronDown" className="h-4 w-4 text-slate-500"/>
+                                        </button>
+                                        {adminProfileMenuOpen&&<div className="absolute right-0 top-full z-[90] mt-2 w-52 rounded-xl border border-slate-200 bg-white p-2 shadow-xl"><div className="border-b border-slate-100 px-3 py-2"><p className="text-sm font-bold text-slate-800">{currentUser?.name||'Admin'}</p><p className="truncate text-xs text-slate-500">{currentUser?.email||''}</p></div><button type="button" onClick={()=>{setAdminProfileMenuOpen(false);handleLogout();}} className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50"><Icon name="LogOut" className="h-4 w-4"/>Sign out</button></div>}
+                                    </div>
+                                </div>
                             </div>
-
-                            {/* Catalog Search Bar */}
-                            <div className="hidden md:flex flex-1 max-w-lg relative">
-                                <Icon name="Search" className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Search clothes, earbuds, powerbanks, running shoes..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition"
-                                />
-                                {searchTerm && (
-                                    <Icon 
-                                        name="X" 
-                                        onClick={() => setSearchTerm('')} 
-                                        className="absolute right-3 top-2.5 h-5 w-5 text-gray-400 cursor-pointer hover:text-gray-600" 
-                                    />
-                                )}
+                        ) : (
+                            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+                                <div onClick={() => { setCurrentView('home'); setSelectedCategory('All'); }} className="flex items-center gap-2 cursor-pointer group">
+                                    <div className="bg-indigo-600 text-white p-2 rounded-lg shadow-md group-hover:bg-indigo-700 transition"><Icon name="ShoppingBag" className="h-6 w-6" /></div>
+                                    <span className="font-extrabold text-2xl tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-800 bg-clip-text text-transparent">Shopify<span className="text-gray-900">.Lite</span></span>
+                                </div>
+                                <div className="hidden md:flex flex-1 max-w-lg relative">
+                                    <Icon name="Search" className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                                    <input type="text" placeholder="Search clothes, earbuds, powerbanks, running shoes..." value={searchTerm} onChange={e=>setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition"/>
+                                </div>
+                                <div className="flex items-center gap-2 sm:gap-4">
+                                    <button onClick={()=>{setLocationPincodeInput(storePincode);setShowLocationModal(true);}} className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-slate-700 hover:bg-slate-50" title="Set delivery location"><Icon name="MapPin" className="h-4 w-4 text-indigo-600"/><span className="text-xs">{storePincode?'Deliver to '+storePincode:'Set location'}</span></button>
+                                    <button onClick={handleInstallApp} className="inline-flex items-center gap-1.5 rounded-xl border border-teal-200 bg-teal-50 px-3 py-2 text-xs font-bold text-teal-800 hover:bg-teal-100" title="Install Shopify-Lite"><Icon name="Download" className="h-4 w-4"/><span>Install</span></button>
+                                    <button onClick={()=>{setCurrentView('home');setSelectedCategory('All');}} className={`text-sm font-medium px-3 py-2 rounded-md transition ${currentView==='home'?'text-indigo-600 bg-indigo-50 font-bold':'text-gray-600 hover:bg-gray-100'}`}>Shop Catalog</button>
+                                    <button onClick={()=>{setAuthRole('customer');setAuthMode('login');setAuthError('');setEmailOtpSent(false);setAuthOtp('');setShowAuthModal(true);}} className="inline-flex items-center gap-1.5 rounded-xl border border-teal-200 bg-teal-50 px-4 py-2 text-sm font-semibold text-teal-800 hover:bg-teal-100"><Icon name="User" className="h-4 w-4"/><span>{isAuthenticated&&String(currentUser?.role||'').toLowerCase()==='customer'?'My Account':'Customer Login'}</span></button>
+                                    {(!isAuthenticated||['seller','admin'].includes(String(currentUser?.role||'').toLowerCase()))&&<button onClick={()=>{setAuthRole('seller');setAuthMode('login');setAuthError('');setEmailOtpSent(false);setAuthOtp('');setShowAuthModal(true);}} className="inline-flex items-center gap-1.5 rounded-xl border border-teal-200 bg-teal-50 px-4 py-2 text-sm font-semibold text-teal-800"><Icon name="LayoutDashboard" className="h-4 w-4"/><span>{isAuthenticated&&['seller','admin'].includes(String(currentUser?.role||'').toLowerCase())?'Admin Panel':'Seller Login'}</span></button>}
+                                    <button onClick={()=>{if(isAuthenticated&&String(currentUser?.role||'').toLowerCase()==='customer'){setCurrentView('cart');}else{setAuthRole('customer');setAuthMode('login');setAuthError('');setEmailOtpSent(false);setAuthOtp('');setShowAuthModal(true);}}} className="relative inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 hover:bg-slate-50" title="Your Cart"><Icon name="ShoppingCart" className="h-5 w-5"/><span className="hidden sm:inline text-xs">Cart</span><span className="absolute -right-1 -top-1 min-w-5 h-5 px-1 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center">{cart.reduce((tot,i)=>tot+i.quantity,0)}</span></button>
+                                    {isAuthenticated&&<button onClick={handleLogout} title="Logout" className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-gray-100 transition"><Icon name="LogOut" className="h-5 w-5"/></button>}
+                                </div>
                             </div>
-
-                            {/* Control Actions */}
-                            <div className="flex items-center gap-2 sm:gap-4">
-                                <button onClick={() => { setLocationPincodeInput(storePincode); setShowLocationModal(true); }} className="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-slate-700 hover:bg-slate-50" title="Set delivery location"><Icon name="MapPin" className="h-4 w-4 text-indigo-600"/><span className="text-xs">{storePincode ? 'Deliver to ' + storePincode : 'Set location'}</span></button>
-                                <button onClick={handleInstallApp} className="inline-flex items-center gap-1.5 rounded-xl border border-teal-200 bg-teal-50 px-3 py-2 text-xs font-bold text-teal-800 hover:bg-teal-100" title="Install Shopify-Lite"><Icon name="Download" className="h-4 w-4"/><span>Install</span></button>
-                                <button 
-                                    onClick={() => { setCurrentView('home'); setSelectedCategory('All'); }}
-                                    className={`text-sm font-medium px-3 py-2 rounded-md transition ${currentView === 'home' ? 'text-indigo-600 bg-indigo-50 font-bold' : 'text-gray-600 hover:bg-gray-100'}`}
-                                >
-                                    Shop Catalog
-                                </button>
-
-                                <button
-                                    onClick={() => { setAuthRole('customer'); setAuthMode('login'); setAuthError(''); setEmailOtpSent(false); setAuthOtp(''); setShowAuthModal(true); }}
-                                    className={`inline-flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-semibold transition ${isAuthenticated && String(currentUser?.role || '').toLowerCase() === 'customer' ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-teal-200 bg-teal-50 text-teal-800 hover:bg-teal-100'}`}
-                                ><Icon name="User" className="h-4 w-4" /><span>{isAuthenticated && String(currentUser?.role || '').toLowerCase() === 'customer' ? 'My Account' : 'Customer Login'}</span></button>
-                                {(!isAuthenticated || ['seller', 'admin'].includes(String(currentUser?.role || '').toLowerCase())) && <button
-                                    onClick={() => { setAuthRole('seller'); setAuthMode('login'); setAuthError(''); setEmailOtpSent(false); setAuthOtp(''); setShowAuthModal(true); }}
-                                    className={`inline-flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-semibold transition ${isAuthenticated && ['seller','admin'].includes(String(currentUser?.role || '').toLowerCase()) ? 'border-teal-200 bg-teal-50 text-teal-800' : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'}`}
-                                ><Icon name="LayoutDashboard" className="h-4 w-4" /><span>{isAuthenticated && ['seller','admin'].includes(String(currentUser?.role || '').toLowerCase()) ? 'Admin Panel' : 'Seller Login'}</span></button>}
-                                <button onClick={() => { if (isAuthenticated && String(currentUser?.role || '').toLowerCase() === 'customer') { setCurrentView('cart'); } else { setAuthRole('customer'); setAuthMode('login'); setAuthError(''); setEmailOtpSent(false); setAuthOtp(''); setShowAuthModal(true); } }} className="relative inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 hover:bg-slate-50" title="Your Cart"><Icon name="ShoppingCart" className="h-5 w-5"/><span className="hidden sm:inline text-xs">Cart</span><span className="absolute -right-1 -top-1 min-w-5 h-5 px-1 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center">{cart.reduce((tot, i) => tot + i.quantity, 0)}</span></button>
-                                {isAuthenticated && <button onClick={handleLogout} title="Logout" className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-gray-100 transition"><Icon name="LogOut" className="h-5 w-5"/></button>}
-
-                            </div>
-                        </div>
+                        )}
                     </header>
 
-                    {/* Mobile Search */}
-                    <div className="md:hidden block bg-white px-4 py-2.5 border-b border-gray-200 no-print">
+                    {/* Storefront-only mobile search */}
+                    {!(isAuthenticated && currentView === 'seller-dashboard' && ['seller','admin'].includes(String(currentUser?.role || '').toLowerCase())) && <div className="md:hidden block bg-white px-4 py-2.5 border-b border-gray-200 no-print">
                         <div className="relative">
                             <Icon name="Search" className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                             <input
@@ -2149,11 +2144,11 @@
                                 />
                             )}
                         </div>
-                    </div>
+                    </div>}
 
-                    <div className="sm:hidden bg-white border-b border-gray-200 px-4 py-2 no-print">
+                    {!(isAuthenticated && currentView === 'seller-dashboard' && ['seller','admin'].includes(String(currentUser?.role || '').toLowerCase())) && <div className="sm:hidden bg-white border-b border-gray-200 px-4 py-2 no-print">
                         <button onClick={() => { setLocationPincodeInput(storePincode); setShowLocationModal(true); }} className="w-full flex items-center gap-2 text-left text-sm text-gray-700"><Icon name="MapPin" className="h-4 w-4 text-indigo-600"/><span>{storePincode ? 'Delivering to PIN ' + storePincode : 'Set your delivery location'}</span><Icon name="ChevronRight" className="h-4 w-4 ml-auto text-gray-400"/></button>
-                    </div>
+                    </div>}
 
                     {showPaymentProofModal && pendingPaymentOrder && (
                       <div className="fixed inset-0 z-[95] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
@@ -2973,7 +2968,7 @@
                         {/* 5. Merchant Command Center Panel */}
                         {currentView === 'seller-dashboard' && (
                             <div className="mt-4 grid grid-cols-1 gap-5 lg:grid-cols-[220px_minmax(0,1fr)]">
-                                <aside className="overflow-hidden rounded-2xl text-white shadow-xl lg:sticky lg:top-24 lg:self-start" style={{background:'linear-gradient(180deg,#10172b 0%,#17132f 72%,#35104f 100%)'}}>
+                                <aside className={`overflow-hidden rounded-2xl text-white shadow-xl lg:sticky lg:top-24 lg:self-start ${adminSidebarOpen?'block':'hidden'}`} style={{background:'linear-gradient(180deg,#10172b 0%,#17132f 72%,#35104f 100%)'}}>
                                     <div className="border-b border-white/10 px-5 py-5">
                                         <div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-violet-600 text-xl">🛍</span><div><div className="font-black tracking-tight">Shopify-Lite</div><div className="text-[11px] text-slate-300">E-Commerce Admin</div></div></div>
                                     </div>
