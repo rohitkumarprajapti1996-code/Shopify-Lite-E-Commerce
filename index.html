@@ -8,6 +8,10 @@
     <link rel="manifest" href="./manifest.json">
     <link rel="icon" type="image/svg+xml" href="./icon.svg">
     <title>Shopify.Lite — Modern Shopping Experience</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -171,6 +175,117 @@
           #tax-invoice-printable p,#tax-invoice-printable span { overflow-wrap:anywhere!important; }
           .no-print { display:none!important; }
         }
+
+        /* Shopify-Lite premium visual refresh — presentation only */
+        :root {
+          --sl-ink:#142b35; --sl-muted:#647985; --sl-primary:#087f75;
+          --sl-primary-dark:#06665f; --sl-accent:#f2a900; --sl-canvas:#f4f8f8;
+          --sl-border:#dce8e8; --sl-card:#ffffff; --sl-soft:#e9f5f3;
+        }
+        body { font-family:'DM Sans',ui-sans-serif,system-ui,sans-serif!important; background:var(--sl-canvas)!important; color:var(--sl-ink)!important; }
+        #root h1,#root h2,#root h3,#root h4 { font-family:'Manrope','DM Sans',sans-serif; letter-spacing:-.025em; }
+        #root h1 { font-weight:800; }
+        #root h2 { font-weight:800; }
+        #root main { color:var(--sl-ink); }
+        #root .bg-white { background-color:#fff; }
+        #root .bg-gray-50 { background-color:#f4f8f8!important; }
+        #root .text-gray-900 { color:#142b35!important; }
+        #root .text-gray-700 { color:#344f59!important; }
+        #root .text-gray-500,#root .text-gray-400 { color:#71848d!important; }
+        #root .border-gray-100,#root .border-gray-200 { border-color:#dce8e8!important; }
+        #root button { font-family:'DM Sans',sans-serif; }
+        #root button:not(:disabled) { cursor:pointer; }
+        #root button:active:not(:disabled) { transform:translateY(1px) scale(.985); }
+        #root button.bg-indigo-600,#root button.bg-indigo-700,
+        #root button.bg-teal-700,#root button.bg-teal-800 {
+          box-shadow:0 7px 16px rgba(8,127,117,.18);
+          transition:transform .2s ease,box-shadow .2s ease,filter .2s ease;
+        }
+        #root button.bg-indigo-600:hover,#root button.bg-indigo-700:hover,
+        #root button.bg-teal-700:hover,#root button.bg-teal-800:hover {
+          box-shadow:0 12px 24px rgba(8,127,117,.25); transform:translateY(-2px);
+        }
+        #root .rounded-2xl.border,#root .rounded-3xl.border,
+        #root .rounded-xl.border { border-color:#dce8e8!important; }
+        #root .bg-white.rounded-2xl,#root .bg-white.rounded-3xl,
+        #root .bg-white.rounded-xl {
+          box-shadow:0 8px 24px rgba(24,58,66,.055);
+          transition:box-shadow .24s ease,border-color .24s ease,transform .24s ease;
+        }
+        #root .bg-white.rounded-2xl:hover { border-color:#b8dcd7!important; box-shadow:0 16px 34px rgba(24,58,66,.105); }
+        #root header.sticky.top-0 { border-bottom:1px solid #dce8e8!important; box-shadow:0 7px 24px rgba(20,45,53,.07)!important; }
+        #root input:not([type=checkbox]):not([type=radio]),#root select,#root textarea {
+          border:1px solid #d7e4e5; background:#fff; color:#193640;
+        }
+        #root input:focus,#root select:focus,#root textarea:focus {
+          border-color:#0b9488!important; box-shadow:0 0 0 4px rgba(8,127,117,.10)!important;
+        }
+        /* Product cards: richer image stage, softer corners and tactile hover */
+        #root main .sl-product-card {
+          border:1px solid #dce8e8!important; border-radius:20px!important;
+          background:linear-gradient(180deg,#fff 0%,#fcfefe 100%)!important;
+          box-shadow:0 7px 22px rgba(19,55,63,.055)!important;
+          transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s ease,border-color .28s ease!important;
+          isolation:isolate;
+        }
+        #root main .sl-product-card:hover {
+          transform:translateY(-7px)!important; border-color:#9ed2cb!important;
+          box-shadow:0 20px 42px rgba(13,91,85,.14)!important;
+        }
+        #root main .sl-product-image-wrap {
+          height:224px!important; padding:15px!important;
+          background:radial-gradient(circle at 50% 42%,#fff 0%,#f0f8f7 62%,#e7f2f1 100%)!important;
+          border-bottom:1px solid #e5eeee;
+        }
+        #root main .sl-product-image {
+          object-fit:contain!important; filter:drop-shadow(0 9px 10px rgba(24,55,60,.12));
+          transition:transform .45s cubic-bezier(.2,.8,.2,1),filter .35s ease!important;
+        }
+        #root main .sl-product-card:hover .sl-product-image {
+          transform:scale(1.075) translateY(-3px)!important;
+          filter:drop-shadow(0 14px 13px rgba(24,55,60,.18));
+        }
+        #root main .sl-product-card h3 { font-family:'Manrope',sans-serif; font-size:14px; line-height:1.45; font-weight:800; color:#17343e!important; }
+        #root main .sl-product-card .sl-product-category {
+          color:#087f75!important; font-size:10px; font-weight:800; letter-spacing:.12em;
+        }
+        #root main .sl-product-card .sl-product-price { color:#087f75!important; font-weight:800!important; }
+        #root main .sl-product-card .sl-product-buy {
+          border-radius:11px!important; padding:9px 12px!important;
+          font-weight:800!important; letter-spacing:.01em;
+        }
+        #root main .sl-product-card .sl-product-cart {
+          border-radius:11px!important; background:#e8f5f3!important; color:#087f75!important;
+          border:1px solid #c8e5e0!important; box-shadow:none!important;
+        }
+        #root main .sl-product-card .sl-product-cart:hover { background:#d7eeea!important; transform:translateY(-2px); }
+        /* Main campaign and market filter panels */
+        #root main section.relative.mb-8 { border-radius:26px!important; box-shadow:0 18px 40px rgba(13,74,76,.16)!important; }
+        #root main .bg-white.rounded-2xl.p-5,#root main .bg-white.rounded-2xl.p-6 {
+          border:1px solid #dce8e8!important; box-shadow:0 8px 24px rgba(24,58,66,.05)!important;
+        }
+        /* Customer account, checkout and admin surfaces share the same visual language */
+        #root .rounded-3xl { border-radius:22px; }
+        #root .rounded-2xl { border-radius:18px; }
+        #root .rounded-xl { border-radius:13px; }
+        #root .shadow-xl { box-shadow:0 18px 42px rgba(20,50,58,.12); }
+        #root aside { border:1px solid rgba(255,255,255,.08); }
+        #root table thead { background:#edf5f4; color:#29464e; }
+        #root table tbody tr:hover { background:#f3faf9; }
+        @media (min-width:768px) {
+          #root main .sl-product-image-wrap { height:238px!important; }
+        }
+        @media (max-width:767px) {
+          #root main .sl-product-image-wrap { height:142px!important; padding:9px!important; }
+          #root main .sl-product-card { border-radius:15px!important; }
+          #root main .sl-product-card h3 { font-size:12px!important; }
+          #root main .sl-product-card .sl-product-buy { padding:7px 8px!important; font-size:10px!important; }
+        }
+        @media (prefers-reduced-motion:reduce) {
+          #root main .sl-product-card,#root main .sl-product-image { transition:none!important; }
+          #root main .sl-product-card:hover,#root main .sl-product-card:hover .sl-product-image { transform:none!important; }
+        }
+
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased min-h-screen">
@@ -2352,7 +2467,7 @@
                                                 return (
                                                     <div 
                                                         key={product.id} 
-                                                        className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition duration-200 overflow-hidden flex flex-col group relative"
+                                                        className="sl-product-card bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition duration-200 overflow-hidden flex flex-col group relative"
                                                     >
                                                         <button onClick={() => toggleWishlist(product)} className={`absolute top-3 right-3 z-20 rounded-full p-2 shadow-sm border transition ${wishlistIds.includes(product.id) ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-white/95 border-gray-200 text-gray-500 hover:text-rose-600'}`} title={wishlistIds.includes(product.id) ? 'Remove from wishlist' : 'Save to wishlist'} aria-label={wishlistIds.includes(product.id) ? 'Remove from wishlist' : 'Save to wishlist'}><Icon name="Heart" className="h-4 w-4" fill={wishlistIds.includes(product.id) ? 'currentColor' : 'none'} /></button>
                                                         {isOnSale && (
@@ -2364,7 +2479,7 @@
 
                                                         <div 
                                                             onClick={() => { setSelectedProduct(product); setCurrentView('detail'); }}
-                                                            className="h-48 w-full overflow-hidden bg-gray-100 cursor-pointer relative"
+                                                            className="sl-product-image-wrap h-48 w-full overflow-hidden bg-gray-100 cursor-pointer relative"
                                                         >
                                                             <img 
                                                                 src={product.image} 
@@ -2373,12 +2488,12 @@
                                                                     e.target.onerror = null;
                                                                     e.target.src = `https://placehold.co/600x480/4f46e5/ffffff?text=${encodeURIComponent(product.title)}`;
                                                                 }}
-                                                                className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                                                                className="sl-product-image w-full h-full object-cover group-hover:scale-105 transition duration-300"
                                                             />
                                                         </div>
 
                                                         <div className="p-4 flex-1 flex flex-col">
-                                                            <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">
+                                                            <span className="sl-product-category text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">
                                                                 {product.category}
                                                             </span>
 
@@ -2419,7 +2534,7 @@
                                                                             </span>
                                                                         </div>
                                                                     ) : (
-                                                                        <span className="text-base font-extrabold text-gray-900">
+                                                                        <span className="sl-product-price text-base font-extrabold text-gray-900">
                                                                             ₹{product.price.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                                                                         </span>
                                                                     )}
@@ -2429,8 +2544,8 @@
                                                                     <span className="bg-red-50 text-red-600 text-[10px] font-bold px-2 py-1.5 rounded">Sold Out</span>
                                                                 ) : (
                                                                     <div className="flex items-center gap-1.5">
-                                                                        <button onClick={() => { addToCart(product); setCurrentView('cart'); }} className="rounded-lg bg-teal-700 hover:bg-teal-800 text-white px-2.5 py-2 text-[11px] font-extrabold transition" title="Buy now">Buy Now</button>
-                                                                        <button onClick={() => addToCart(product)} className="bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-lg transition shadow-sm hover:shadow active:scale-95" title="Add to Cart"><Icon name="ShoppingCart" className="h-4 w-4" /></button>
+                                                                        <button onClick={() => { addToCart(product); setCurrentView('cart'); }} className="sl-product-buy rounded-lg bg-teal-700 hover:bg-teal-800 text-white px-2.5 py-2 text-[11px] font-extrabold transition" title="Buy now">Buy Now</button>
+                                                                        <button onClick={() => addToCart(product)} className="sl-product-cart bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-lg transition shadow-sm hover:shadow active:scale-95" title="Add to Cart"><Icon name="ShoppingCart" className="h-4 w-4" /></button>
                                                                     </div>
                                                                 )}
                                                             </div>
