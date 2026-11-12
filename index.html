@@ -2976,6 +2976,37 @@
                         {/* 5. Merchant Command Center Panel */}
                         {currentView === 'seller-dashboard' && (
                             <div className="space-y-8 mt-4">
+                                {/* Diwali festive greeting banner */}
+                                <section className="relative isolate overflow-hidden rounded-3xl border border-amber-300/40 bg-gradient-to-r from-[#32104f] via-[#7b174d] to-[#d45a18] px-5 py-6 text-white shadow-xl sm:px-8 sm:py-7" aria-label="Happy Diwali greeting">
+                                    <div className="pointer-events-none absolute inset-0 opacity-70" aria-hidden="true">
+                                        <svg viewBox="0 0 1200 220" preserveAspectRatio="xMidYMid slice" className="h-full w-full">
+                                            <defs>
+                                                <radialGradient id="diwaliGlow"><stop offset="0%" stopColor="#ffd66b" stopOpacity=".8"/><stop offset="100%" stopColor="#ffd66b" stopOpacity="0"/></radialGradient>
+                                            </defs>
+                                            <circle cx="120" cy="30" r="100" fill="url(#diwaliGlow)"/>
+                                            <circle cx="1060" cy="190" r="150" fill="url(#diwaliGlow)"/>
+                                            {[90,220,960,1100].map((x,i)=><g key={i} transform={`translate(${x} ${i%2?45:115})`} stroke="#ffd77a" strokeWidth="2" fill="none" opacity=".85">
+                                                {Array.from({length:12},(_,n)=><line key={n} x1="0" y1="-12" x2="0" y2="-42" transform={`rotate(${n*30})`}/>)}
+                                                <circle r="5" fill="#ffe6a0" stroke="none"/>
+                                            </g>)}
+                                            <path d="M0 190 Q300 150 600 190 T1200 180 V220 H0Z" fill="#260b37" opacity=".35"/>
+                                        </svg>
+                                    </div>
+                                    <div className="relative flex flex-col items-center justify-between gap-5 text-center sm:flex-row sm:text-left">
+                                        <div className="flex items-center gap-3 sm:gap-5">
+                                            <div className="hidden text-5xl drop-shadow-[0_0_14px_rgba(255,205,89,.8)] sm:block" aria-hidden="true">🪔</div>
+                                            <div>
+                                                <span className="inline-flex rounded-full border border-amber-200/40 bg-amber-100/15 px-3 py-1 text-[10px] font-black uppercase tracking-[.22em] text-amber-100">Festival of Lights</span>
+                                                <h2 className="mt-2 text-3xl font-black tracking-tight text-amber-100 sm:text-4xl">Happy Diwali!</h2>
+                                                <p className="mt-1 max-w-xl text-sm text-orange-50/95 sm:text-base">Wishing you and your family happiness, prosperity and bright new beginnings.</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3 text-4xl drop-shadow-[0_0_12px_rgba(255,210,105,.65)] sm:gap-5 sm:text-5xl" aria-hidden="true">
+                                            <span>✨</span><span>🪔</span><span>🎆</span><span>🪔</span><span>✨</span>
+                                        </div>
+                                    </div>
+                                    <div className="pointer-events-none absolute -bottom-8 left-1/2 h-16 w-2/3 -translate-x-1/2 rounded-full bg-amber-300/20 blur-2xl" aria-hidden="true"></div>
+                                </section>
                                 <div className="bg-gradient-to-r from-slate-900 to-indigo-950 rounded-2xl p-6 text-white shadow-lg border border-slate-800">
                                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                         <div>
