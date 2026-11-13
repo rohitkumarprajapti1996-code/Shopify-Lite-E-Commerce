@@ -296,7 +296,8 @@
           customerPhone: o.customer_phone || "", customerEmail: o.customer_email || "",
           items: (o.shopify_lite_order_items || []).map(i => ({
             id: i.product_id || i.id, title: i.product_title, price: Number(i.unit_price),
-            quantity: Number(i.quantity), sku: i.sku || ""
+            quantity: Number(i.quantity), lineTotal: Number(i.line_total ?? (Number(i.unit_price) * Number(i.quantity))),
+            sku: i.sku || ""
           })),
           subtotal: Number(o.subtotal || 0), gstAmount: Number(o.gst_amount || 0),
           total: Number(o.total || 0), date: (o.created_at || "").slice(0, 10),
