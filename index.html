@@ -3818,6 +3818,7 @@
                                             {id:'payments',label:'Payments',icon:'CreditCard'},
                                             {id:'payment-proofs',label:'Payment Review',icon:'FileCheck'},
                                             {id:'add-listing',label:'Add Product',icon:'PlusCircle'},
+                                            {id:'business-details',label:'Business Details',icon:'Building2'},
                                             {id:'bank-settlement',label:'Bank Settlement',icon:'Landmark'}
                                         ].map((item,i)=>(
                                             <button key={item.label} type="button" onClick={()=>{if(item.id!=='dashboard'){setSellerActiveTab(item.id);if(item.id==='payment-proofs')loadPaymentProofs();document.getElementById('shopify-admin-workspace')?.scrollIntoView({behavior:'smooth',block:'start'});}}} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold transition ${item.id==='dashboard'?'bg-violet-600 text-white shadow-lg':'text-slate-200 hover:bg-white/10'}`}>
@@ -3866,6 +3867,7 @@
                                                 {label:'Generate AWB',icon:'Truck',tab:'fulfillment',tone:'bg-emerald-50 text-emerald-700'},
                                                 {label:'Verify Payment',icon:'QrCode',tab:'payment-proofs',tone:'bg-rose-50 text-rose-700'},
                                                 {label:'Download Invoice',icon:'FileText',tab:'fulfillment',tone:'bg-amber-50 text-amber-700'},
+                                                {label:'Business Details',icon:'Building2',tab:'business-details',tone:'bg-teal-50 text-teal-700'},
                                                 {label:'Bank Settlement',icon:'Landmark',tab:'bank-settlement',tone:'bg-violet-50 text-violet-700'}
                                             ].map(action=><button key={action.label} type="button" onClick={()=>{setSellerActiveTab(action.tab);if(action.tab==='payment-proofs')loadPaymentProofs();document.getElementById('shopify-admin-workspace')?.scrollIntoView({behavior:'smooth',block:'start'});}} className={`flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 p-3 text-center text-xs font-bold shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${action.tone}`}><Icon name={action.icon} className="h-6 w-6"/>{action.label}</button>)}
                                         </div>
@@ -4366,6 +4368,58 @@
                                             </table>
                                         </div>
                                     </div>
+                                )}
+
+                                {/* Store business information used on customer invoices */}
+                                {sellerActiveTab === 'business-details' && (
+                                    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+                                        <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+                                            <div className="flex items-start gap-3">
+                                                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-teal-50 text-teal-800"><Icon name="Building2" className="h-6 w-6"/></span>
+                                                <div>
+                                                    <h2 className="text-xl font-black text-slate-900">Seller / Business Details</h2>
+                                                    <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">Enter your store's business information. These details appear in the <strong>Sold By (Merchant)</strong> section of customer invoices.</p>
+                                                </div>
+                                            </div>
+                                            <span className={sellerProfile.business_name ? "rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700" : "rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700"}>{sellerProfile.business_name ? "Business profile saved" : "Setup required"}</span>
+                                        </div>
+                                        <form onSubmit={saveSellerProfile} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                            <label className="block text-xs font-bold text-slate-700">Business / Firm Name *
+                                                <input type="text" required value={sellerProfile.business_name} onChange={e=>setSellerProfile(prev=>({...prev,business_name:e.target.value}))} placeholder="Your registered business or store name" className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm font-medium text-slate-900"/>
+                                            </label>
+                                            <label className="block text-xs font-bold text-slate-700">Contact Person
+                                                <input type="text" value={sellerProfile.contact_name} onChange={e=>setSellerProfile(prev=>({...prev,contact_name:e.target.value}))} placeholder="Owner / authorised contact name" className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm font-medium text-slate-900"/>
+                                            </label>
+                                            <label className="block text-xs font-bold text-slate-700">Business Email *
+                                                <input type="email" required value={sellerProfile.email} onChange={e=>setSellerProfile(prev=>({...prev,email:e.target.value}))} placeholder="business@example.com" className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm font-medium text-slate-900"/>
+                                            </label>
+                                            <label className="block text-xs font-bold text-slate-700">Business Phone *
+                                                <input type="tel" required value={sellerProfile.phone} onChange={e=>setSellerProfile(prev=>({...prev,phone:e.target.value}))} placeholder="10-digit mobile number" className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm font-medium text-slate-900"/>
+                                            </label>
+                                            <label className="block text-xs font-bold text-slate-700 sm:col-span-2">Registered Business Address *
+                                                <textarea required rows="2" value={sellerProfile.address} onChange={e=>setSellerProfile(prev=>({...prev,address:e.target.value}))} placeholder="Building, street, area and locality" className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm font-medium text-slate-900"/>
+                                            </label>
+                                            <label className="block text-xs font-bold text-slate-700">City *
+                                                <input type="text" required value={sellerProfile.city} onChange={e=>setSellerProfile(prev=>({...prev,city:e.target.value}))} placeholder="City" className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm font-medium text-slate-900"/>
+                                            </label>
+                                            <label className="block text-xs font-bold text-slate-700">State *
+                                                <input type="text" required value={sellerProfile.state} onChange={e=>setSellerProfile(prev=>({...prev,state:e.target.value}))} placeholder="State" className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm font-medium text-slate-900"/>
+                                            </label>
+                                            <label className="block text-xs font-bold text-slate-700">6-digit PIN Code *
+                                                <input type="text" required inputMode="numeric" maxLength="6" pattern="[0-9]{6}" value={sellerProfile.pincode} onChange={e=>setSellerProfile(prev=>({...prev,pincode:e.target.value.replace(/\D/g,'').slice(0,6)}))} placeholder="110001" className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm font-medium text-slate-900"/>
+                                            </label>
+                                            <label className="block text-xs font-bold text-slate-700">GSTIN <span className="font-normal text-slate-400">(optional)</span>
+                                                <input type="text" maxLength="15" value={sellerProfile.gstin} onChange={e=>setSellerProfile(prev=>({...prev,gstin:e.target.value.toUpperCase()}))} placeholder="15-character GSTIN, if registered" className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm font-medium uppercase text-slate-900"/>
+                                            </label>
+                                            <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4 sm:col-span-2">
+                                                <button type="submit" disabled={sellerProfileBusy} className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-5 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-teal-800 disabled:cursor-wait disabled:opacity-60"><Icon name="Save" className="h-4 w-4"/>{sellerProfileBusy ? "Saving business details…" : "Save Business Details"}</button>
+                                                {sellerProfileMessage && <p role="status" className="text-sm font-semibold text-slate-600">{sellerProfileMessage}</p>}
+                                            </div>
+                                        </form>
+                                        <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50 p-4 text-xs leading-5 text-blue-900">
+                                            <strong>Invoice note:</strong> Your business name, contact, phone, email and address will appear on newly opened invoices after saving. Enter a GSTIN only when the business is registered for GST. This form does not register or verify a GSTIN.
+                                        </div>
+                                    </section>
                                 )}
 
                                 {/* Subtab 4: Bank Payout Setup & Settlement hub */}
