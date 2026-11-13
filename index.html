@@ -1516,6 +1516,7 @@
             const [officeStartTime, setOfficeStartTime] = useState('09:00');
             const [officeEndTime, setOfficeEndTime] = useState('18:00');
             const [selectedDeliveryAddressId, setSelectedDeliveryAddressId] = useState('');
+            const [editingAddressId, setEditingAddressId] = useState('');
 
 
             // Merchant Bank Settlement Parameters
@@ -1870,6 +1871,32 @@
             }, [currentUser, profileDisplayName, profileAddress]);
 
             const [viewingInvoiceOrder, setViewingInvoiceOrder] = useState(null);
+            const [selectedCustomerOrder, setSelectedCustomerOrder] = useState(null);
+            const [customerOrderFilter, setCustomerOrderFilter] = useState('All');
+            const [customerOrderSearch, setCustomerOrderSearch] = useState('');
+            const customerOrders = useMemo(() => {
+                if (!currentUser?.id || currentUser.role !== 'customer') return [];
+                return orders
+                    .filter(order => String(order.customerId || '') === String(currentUser.id))
+                    .slice()
+                    .sort((a, b) => (Date.parse(b.createdAt || b.date || '') || 0) - (Date.parse(a.createdAt || a.date || '') || 0));
+            }, [orders, currentUser?.id, currentUser?.role]);
+            const filteredCustomerOrders = useMemo(() => {
+                const query = customerOrderSearch.trim().toLowerCase();
+                return customerOrders.filter(order => {
+                    const status = String(order.status || 'Pending').toLowerCase();
+                    const isClosed = ['delivered', 'cancelled', 'returned'].includes(status);
+                    const matchesFilter = customerOrderFilter === 'All' ||
+                        (customerOrderFilter === 'Active' && !isClosed) ||
+                        (customerOrderFilter === 'Delivered' && status === 'delivered') ||
+                        (customerOrderFilter === 'Returns' && (['cancelled', 'returned'].includes(status) || String(order.paymentStatus || '').toLowerCase() === 'refunded'));
+                    const searchable = [
+                        order.orderNumber, order.id, order.invoiceNumber, order.status, order.courier, order.trackingNumber,
+                        ...(Array.isArray(order.items) ? order.items.map(item => item.title) : [])
+                    ].join(' ').toLowerCase();
+                    return matchesFilter && (!query || searchable.includes(query));
+                });
+            }, [customerOrders, customerOrderFilter, customerOrderSearch]);
             const [toast, setToast] = useState(null);
 
             // Import/Export State Variables
@@ -2137,24 +2164,52 @@
                 if (!newAddressText.trim() || !/^\d{6}$/.test(newAddressPincode.trim())) {
                     triggerToast("Enter a full address and valid 6-digit PIN code.", "error"); return;
                 }
-                if (savedDeliveryAddresses.length >= 10) { triggerToast("You can save up to 10 addresses.", "error"); return; }
+                if (!editingAddressId && savedDeliveryAddresses.length >= 10) { triggerToast("You can save up to 10 addresses.", "error"); return; }
                 if (newAddressLabel === 'Office' && officeStartTime >= officeEndTime) { triggerToast("Office end time must be later than start time.", "error"); return; }
                 const label = newAddressLabel === 'Office' ? 'Office' : 'Home';
+                const addressData = {
+                    label, address: newAddressText.trim(), pincode: newAddressPincode.trim(),
+                    landmark: newAddressLandmark.trim(), startTime: label === 'Office' ? officeStartTime : '',
+                    endTime: label === 'Office' ? officeEndTime : ''
+                };
                 try {
-                    const saved = await window.ShopifySupabase.saveCustomerAddress(currentUser.id, {
-                        label, address: newAddressText.trim(), pincode: newAddressPincode.trim(),
-                        landmark: newAddressLandmark.trim(), startTime: label === 'Office' ? officeStartTime : '',
-                        endTime: label === 'Office' ? officeEndTime : ''
-                    });
+                    const saved = editingAddressId
+                        ? await window.ShopifySupabase.updateCustomerAddress(currentUser.id, editingAddressId, addressData)
+                        : await window.ShopifySupabase.saveCustomerAddress(currentUser.id, addressData);
                     const address = { id: saved.id, label: saved.label, address: saved.address, pincode: saved.pincode,
                         landmark: saved.landmark || '', days: saved.label === 'Office' ? 'Monday to Friday' : 'Monday to Sunday',
                         startTime: saved.start_time || '', endTime: saved.end_time || '' };
-                    setSavedDeliveryAddresses(prev => [...prev, address]);
+                    setSavedDeliveryAddresses(prev => editingAddressId
+                        ? prev.map(item => item.id === address.id ? address : item)
+                        : [...prev, address]);
                     setSelectedDeliveryAddressId(address.id);
                     setCheckoutAddress(address.address); setCheckoutPincode(address.pincode); setCheckoutLandmark(address.landmark);
                     setNewAddressText(''); setNewAddressPincode(''); setNewAddressLandmark('');
-                    triggerToast(label + " address saved securely to your account.");
+                    setEditingAddressId('');
+                    triggerToast(editingAddressId ? label + " address updated." : label + " address saved securely to your account.");
                 } catch (error) { triggerToast(error.message || 'Could not save this address.', 'error'); }
+            };
+
+            const handleEditDeliveryAddress = (address) => {
+                if (!address) return;
+                setEditingAddressId(address.id);
+                setNewAddressLabel(address.label === 'Office' ? 'Office' : 'Home');
+                setNewAddressText(address.address || '');
+                setNewAddressPincode(address.pincode || '');
+                setNewAddressLandmark(address.landmark || '');
+                setOfficeStartTime(address.startTime || '09:00');
+                setOfficeEndTime(address.endTime || '18:00');
+                document.getElementById('sl-customer-address-form')?.scrollIntoView({behavior:'smooth', block:'center'});
+            };
+
+            const handleCancelAddressEdit = () => {
+                setEditingAddressId('');
+                setNewAddressLabel('Home');
+                setNewAddressText('');
+                setNewAddressPincode('');
+                setNewAddressLandmark('');
+                setOfficeStartTime('09:00');
+                setOfficeEndTime('18:00');
             };
 
             const handleSelectDeliveryAddress = (address) => {
@@ -3425,6 +3480,12 @@
                                     </div>
                                 </div>
 
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-semibold text-slate-500">Total orders</p><p className="mt-1 text-2xl font-black text-slate-900">{customerOrders.length}</p></div>
+                                    <div className="rounded-2xl border border-amber-100 bg-amber-50/50 p-4 shadow-sm"><p className="text-xs font-semibold text-amber-800">In progress</p><p className="mt-1 text-2xl font-black text-slate-900">{customerOrders.filter(order => !['delivered','cancelled','returned'].includes(String(order.status || 'Pending').toLowerCase())).length}</p></div>
+                                    <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4 shadow-sm"><p className="text-xs font-semibold text-emerald-800">Delivered</p><p className="mt-1 text-2xl font-black text-slate-900">{customerOrders.filter(order => String(order.status || '').toLowerCase() === 'delivered').length}</p></div>
+                                </div>
+
                                 <nav className="sl-customer-shortcuts" aria-label="Customer account shortcuts">
                                     <button type="button" className="sl-customer-shortcut" onClick={() => document.getElementById('sl-customer-orders')?.scrollIntoView({behavior:'smooth',block:'start'})}>
                                         <span className="sl-customer-shortcut-icon"><Icon name="PackageCheck" className="h-5 w-5"/></span>
@@ -3439,6 +3500,16 @@
                                     <button type="button" className="sl-customer-shortcut" onClick={() => document.getElementById('sl-customer-profile')?.scrollIntoView({behavior:'smooth',block:'start'})}>
                                         <span className="sl-customer-shortcut-icon"><Icon name="UserRound" className="h-5 w-5"/></span>
                                         <span className="min-w-0"><strong>My profile</strong><small>Contact and saved details</small></span>
+                                        <span className="sl-customer-shortcut-arrow">→</span>
+                                    </button>
+                                    <button type="button" className="sl-customer-shortcut" onClick={() => document.getElementById('sl-customer-wishlist')?.scrollIntoView({behavior:'smooth',block:'start'})}>
+                                        <span className="sl-customer-shortcut-icon"><Icon name="Heart" className="h-5 w-5"/></span>
+                                        <span className="min-w-0"><strong>My wishlist</strong><small>{wishlistIds.length} saved products</small></span>
+                                        <span className="sl-customer-shortcut-arrow">→</span>
+                                    </button>
+                                    <button type="button" className="sl-customer-shortcut" onClick={() => document.getElementById('sl-customer-returns')?.scrollIntoView({behavior:'smooth',block:'start'})}>
+                                        <span className="sl-customer-shortcut-icon"><Icon name="RefreshCw" className="h-5 w-5"/></span>
+                                        <span className="min-w-0"><strong>Returns & refunds</strong><small>Check returned orders and refunds</small></span>
                                         <span className="sl-customer-shortcut-arrow">→</span>
                                     </button>
                                     <button type="button" className="sl-customer-shortcut" onClick={() => setCurrentView('home')}>
@@ -3456,14 +3527,14 @@
                                     </div>
                                     {savedDeliveryAddresses.length > 0 && <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         {savedDeliveryAddresses.map(address => <div key={address.id} className={`rounded-2xl border p-4 ${selectedDeliveryAddressId === address.id ? 'border-teal-500 bg-teal-50/50 ring-1 ring-teal-200' : 'border-slate-200 bg-slate-50/60'}`}>
-                                            <div className="flex items-start justify-between gap-3"><div className="flex items-center gap-2"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-teal-800 border border-slate-100"><Icon name={address.label === 'Office' ? 'BriefcaseBusiness' : 'House'} className="h-4 w-4" /></span><div><p className="font-extrabold text-slate-900">{address.label}</p><p className="text-[11px] text-slate-500">{address.days}</p></div></div><button type="button" onClick={() => handleDeleteDeliveryAddress(address.id)} className="text-xs font-bold text-rose-600">Remove</button></div>
+                                            <div className="flex items-start justify-between gap-3"><div className="flex items-center gap-2"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-teal-800 border border-slate-100"><Icon name={address.label === 'Office' ? 'BriefcaseBusiness' : 'House'} className="h-4 w-4" /></span><div><p className="font-extrabold text-slate-900">{address.label}</p><p className="text-[11px] text-slate-500">{address.days}</p></div></div><div className="flex items-center gap-3"><button type="button" onClick={() => handleEditDeliveryAddress(address)} className="text-xs font-bold text-teal-700 hover:text-teal-900">Edit</button><button type="button" onClick={() => handleDeleteDeliveryAddress(address.id)} className="text-xs font-bold text-rose-600">Remove</button></div></div>
                                             <p className="mt-3 text-sm text-slate-700 break-words">{address.address}</p><p className="mt-1 text-xs text-slate-500">PIN: {address.pincode}{address.landmark ? ' · ' + address.landmark : ''}</p>
                                             {address.label === 'Office' && <p className="mt-2 text-xs font-semibold text-teal-800">Office delivery: {address.startTime}–{address.endTime}, Monday–Friday</p>}
                                             <button type="button" onClick={() => handleSelectDeliveryAddress(address)} className={`mt-3 rounded-xl px-3 py-2 text-xs font-bold ${selectedDeliveryAddressId === address.id ? 'bg-teal-700 text-white' : 'border border-teal-200 text-teal-800 hover:bg-teal-50'}`}>{selectedDeliveryAddressId === address.id ? 'Selected for checkout' : 'Use this address'}</button>
                                         </div>)}
                                     </div>}
-                                    <form onSubmit={handleAddDeliveryAddress} className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 p-4 sm:p-5 space-y-4">
-                                        <div className="flex items-center justify-between gap-3"><h4 className="font-extrabold text-slate-900">Add a delivery address</h4><span className="text-xs text-slate-500">{savedDeliveryAddresses.length}/10 saved</span></div>
+                                    <form id="sl-customer-address-form" onSubmit={handleAddDeliveryAddress} className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 p-4 sm:p-5 space-y-4">
+                                        <div className="flex items-center justify-between gap-3"><h4 className="font-extrabold text-slate-900">{editingAddressId ? "Edit delivery address" : "Add a delivery address"}</h4><span className="text-xs text-slate-500">{savedDeliveryAddresses.length}/10 saved</span></div>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                             <div><label className="mb-1 block text-xs font-bold text-slate-600">Address type</label><select value={newAddressLabel} onChange={e => setNewAddressLabel(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm"><option value="Home">Home · Monday–Sunday</option><option value="Office">Office · Monday–Friday</option></select></div>
                                             {newAddressLabel === 'Office' && <><div><label className="mb-1 block text-xs font-bold text-slate-600">Office delivery starts</label><input type="time" value={officeStartTime} onChange={e => setOfficeStartTime(e.target.value)} required className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm" /></div><div><label className="mb-1 block text-xs font-bold text-slate-600">Office delivery ends</label><input type="time" value={officeEndTime} onChange={e => setOfficeEndTime(e.target.value)} required className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm" /></div></>}
@@ -3471,7 +3542,7 @@
                                             <div><label className="mb-1 block text-xs font-bold text-slate-600">6-digit PIN code *</label><input value={newAddressPincode} onChange={e => setNewAddressPincode(e.target.value.replace(/\D/g, '').slice(0,6))} required inputMode="numeric" maxLength="6" pattern="[0-9]{6}" placeholder="110001" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm" /></div>
                                             <div><label className="mb-1 block text-xs font-bold text-slate-600">Landmark (optional)</label><input value={newAddressLandmark} onChange={e => setNewAddressLandmark(e.target.value)} placeholder="Nearby landmark" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm" /></div>
                                         </div>
-                                        <button type="submit" disabled={savedDeliveryAddresses.length >= 10} className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-teal-800 disabled:opacity-50"><Icon name="Plus" className="h-4 w-4" /> Save {newAddressLabel} address</button>
+                                        <div className="flex flex-wrap items-center gap-2"><button type="submit" disabled={!editingAddressId && savedDeliveryAddresses.length >= 10} className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-teal-800 disabled:opacity-50"><Icon name={editingAddressId ? "Check" : "Plus"} className="h-4 w-4" /> {editingAddressId ? "Update" : "Save"} {newAddressLabel} address</button>{editingAddressId && <button type="button" onClick={handleCancelAddressEdit} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600">Cancel edit</button>}</div>
                                     </form>
                                 </div>
 
@@ -3568,18 +3639,40 @@
                                     </form>
                                 </section>
 
-                                <h2 id="sl-customer-orders" className="sl-customer-orders-heading text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                <section id="sl-customer-wishlist" className="sl-customer-card rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-4">
+                                    <div className="flex items-center justify-between gap-3"><div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-2xl bg-rose-50 text-rose-700"><Icon name="Heart" className="h-5 w-5"/></span><div><h3 className="text-lg font-extrabold text-slate-900">My wishlist</h3><p className="mt-1 text-sm text-slate-500">Products you have saved to revisit later.</p></div></div><span className="rounded-full bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700">{products.filter(product => wishlistIds.includes(product.id)).length} saved</span></div>
+                                    {products.filter(product => wishlistIds.includes(product.id)).length === 0 ? (
+                                        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center"><p className="text-sm font-semibold text-slate-700">Your wishlist is empty.</p><p className="mt-1 text-xs text-slate-500">Save products from the catalogue and they will appear here.</p><button type="button" onClick={() => setCurrentView('home')} className="mt-3 rounded-xl bg-teal-700 px-4 py-2.5 text-xs font-bold text-white">Explore products</button></div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                            {products.filter(product => wishlistIds.includes(product.id)).map(product => <div key={product.id} className="flex gap-3 rounded-2xl border border-slate-200 p-3"><img src={product.image || product.image_url || ''} alt="" className="h-20 w-20 rounded-xl bg-slate-100 object-cover"/><div className="min-w-0 flex-1"><p className="text-sm font-bold text-slate-900 line-clamp-2">{product.title}</p><p className="mt-1 text-sm font-black text-teal-800">₹{Number(product.salePrice != null ? product.salePrice : product.price || 0).toLocaleString('en-IN')}</p><div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => { setSelectedProduct(product); setCurrentView('detail'); window.scrollTo({top:0,behavior:'smooth'}); }} className="rounded-lg bg-teal-700 px-2.5 py-1.5 text-[11px] font-bold text-white">View product</button><button type="button" onClick={() => toggleWishlist(product)} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-[11px] font-bold text-slate-600">Remove</button></div></div></div>)}
+                                        </div>
+                                    )}
+                                </section>
+
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                    <h2 id="sl-customer-orders" className="sl-customer-orders-heading text-lg font-bold text-gray-900 flex items-center gap-2"><Icon name="Truck" className="h-5 w-5 text-indigo-600"/> Your Order History & Invoice Archives <span className="rounded-full bg-teal-50 px-2.5 py-1 text-xs font-bold text-teal-800">{customerOrders.length}</span></h2>
+                                </div>
+                                <div className="mb-4 grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_190px] gap-3">
+                                    <input type="search" value={customerOrderSearch} onChange={e=>setCustomerOrderSearch(e.target.value)} placeholder="Search order number, product or AWB…" className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm"/>
+                                    <select value={customerOrderFilter} onChange={e=>setCustomerOrderFilter(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm"><option>All</option><option>Active</option><option>Delivered</option><option>Returns</option></select>
+                                </div>
                                     <Icon name="Truck" className="h-5 w-5 text-indigo-600" />
                                     Your Order History & Invoice Archives
                                 </h2>
 
-                                {orders.filter(o => (o.customerEmail && o.customerEmail.toLowerCase() === (currentUser?.email || '').toLowerCase()) || (o.customerPhone && o.customerPhone === currentUser?.phone)).length === 0 ? (
+                                {customerOrders.length === 0 ? (
                                     <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center text-gray-500">
-                                        You have not placed any orders yet. Check out item listings and place your first order.
+                                        <Icon name="PackageOpen" className="mx-auto mb-3 h-9 w-9 text-slate-300"/>
+                                        <p className="font-bold text-slate-700">No orders found in this account yet.</p>
+                                        <p className="mt-1 text-sm">Orders placed with this signed-in account will appear here automatically.</p>
+                                        <button type="button" onClick={() => setCurrentView('home')} className="mt-4 rounded-xl bg-teal-700 px-4 py-2.5 text-xs font-bold text-white">Browse catalogue</button>
                                     </div>
+                                ) : filteredCustomerOrders.length === 0 ? (
+                                    <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-7 text-center text-sm text-slate-500">No orders match this search or filter. Try another order status or search term.</div>
                                 ) : (
                                     <div className="space-y-6">
-                                        {orders.filter(o => (o.customerEmail && o.customerEmail.toLowerCase() === (currentUser?.email || '').toLowerCase()) || (o.customerPhone && o.customerPhone === currentUser?.phone)).map((order) => (
+                                        {filteredCustomerOrders.map((order) => (
                                             <div 
                                                 key={order.id} 
                                                 className="sl-customer-order-card bg-white rounded-2xl border border-gray-200 p-6 shadow-xs flex flex-col gap-4"
@@ -3599,14 +3692,9 @@
                                                             ₹{order.total.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                                                         </p>
                                                     </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <button
-                                                            onClick={() => setViewingInvoiceOrder(order)}
-                                                            className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold px-3 py-1.5 rounded-lg border border-indigo-150 flex items-center gap-1"
-                                                        >
-                                                            <Icon name="Receipt" className="h-3.5 w-3.5" />
-                                                            View Customer Invoice
-                                                        </button>
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <button type="button" onClick={() => setSelectedCustomerOrder(order)} className="rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-[10px] font-bold text-teal-800 flex items-center gap-1"><Icon name="Eye" className="h-3.5 w-3.5"/> View details</button>
+                                                        <button type="button" onClick={() => setViewingInvoiceOrder(order)} className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold px-3 py-1.5 rounded-lg border border-indigo-150 flex items-center gap-1"><Icon name="Receipt" className="h-3.5 w-3.5"/> Invoice</button>
                                                     </div>
                                                 </div>
 
@@ -3701,6 +3789,18 @@
                                         ))}
                                     </div>
                                 )}
+
+                                <section id="sl-customer-returns" className="sl-customer-card rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-4">
+                                    <div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-2xl bg-amber-50 text-amber-800"><Icon name="RefreshCw" className="h-5 w-5"/></span><div><h3 className="text-lg font-extrabold text-slate-900">Returns & refunds</h3><p className="mt-1 text-sm text-slate-500">Review orders marked as returned or cancelled and check any recorded refund status.</p></div></div>
+                                    {customerOrders.filter(order => ['returned','cancelled'].includes(String(order.status || '').toLowerCase()) || String(order.paymentStatus || '').toLowerCase() === 'refunded').length === 0 ? (
+                                        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-sm text-slate-500">There are no returned, cancelled or refunded orders on this account.</div>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            {customerOrders.filter(order => ['returned','cancelled'].includes(String(order.status || '').toLowerCase()) || String(order.paymentStatus || '').toLowerCase() === 'refunded').map(order => <div key={order.databaseId || order.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 p-4"><div><p className="text-sm font-bold text-slate-900">{order.orderNumber || order.id}</p><p className="mt-1 text-xs text-slate-500">{order.date} · ₹{Number(order.total || 0).toLocaleString('en-IN')}</p></div><div className="text-right"><p className="text-xs font-bold text-slate-800">{order.status || 'Status unavailable'}</p><p className="mt-1 text-[11px] text-slate-500">Payment: {String(order.paymentStatus || 'pending').toUpperCase()}</p></div><button type="button" onClick={() => setSelectedCustomerOrder(order)} className="rounded-lg border border-teal-200 px-3 py-2 text-xs font-bold text-teal-800">View order</button></div>)}
+                                        </div>
+                                    )}
+                                    <p className="text-xs leading-5 text-slate-500">A status shown here reflects the store's order record. Contact the store through its published support channel to request a new return or replacement.</p>
+                                </section>
                             </div>
                         )}
 
@@ -4884,6 +4984,30 @@
                                         <Icon name="Download" className="h-4 w-4" /> Print / Save Customer Invoice
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Customer order details overlay */}
+                    {selectedCustomerOrder && (
+                        <div className="fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto bg-slate-950/65 p-3 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Customer order details">
+                            <div className="my-4 w-full max-w-2xl rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-7">
+                                <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+                                    <div><span className="rounded-full bg-teal-50 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-teal-800">Order details</span><h2 className="mt-2 text-xl font-black text-slate-900">{selectedCustomerOrder.orderNumber || selectedCustomerOrder.id}</h2><p className="mt-1 text-xs text-slate-500">Placed on {selectedCustomerOrder.date || 'Date unavailable'}</p></div>
+                                    <button type="button" onClick={() => setSelectedCustomerOrder(null)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100" aria-label="Close order details"><Icon name="X" className="h-5 w-5"/></button>
+                                </div>
+                                <div className="mt-4 grid grid-cols-2 gap-3">
+                                    <div className="rounded-xl bg-slate-50 p-3"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Order status</p><p className="mt-1 text-sm font-extrabold text-slate-900">{selectedCustomerOrder.status || 'Pending'}</p></div>
+                                    <div className="rounded-xl bg-slate-50 p-3"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Payment status</p><p className="mt-1 text-sm font-extrabold text-slate-900">{String(selectedCustomerOrder.paymentStatus || 'pending').toUpperCase()}</p></div>
+                                    <div className="rounded-xl bg-slate-50 p-3"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Payment method</p><p className="mt-1 text-sm font-extrabold text-slate-900">{selectedCustomerOrder.paymentMethod || 'Not available'}</p></div>
+                                    <div className="rounded-xl bg-slate-50 p-3"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Order total</p><p className="mt-1 text-sm font-black text-teal-800">₹{Number(selectedCustomerOrder.total || 0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</p></div>
+                                </div>
+                                <div className="mt-5"><h3 className="text-xs font-black uppercase tracking-wider text-slate-500">Items ordered</h3><div className="mt-2 divide-y divide-slate-100 rounded-xl border border-slate-200 px-3">{(selectedCustomerOrder.items || []).map((item,index)=><div key={index} className="flex items-center justify-between gap-3 py-3 text-sm"><span className="min-w-0"><strong className="block text-slate-800">{item.title}</strong><small className="text-slate-500">Qty: {item.quantity}</small></span><strong className="shrink-0 text-slate-900">₹{(Number(item.price || 0)*Number(item.quantity || 0)).toLocaleString('en-IN',{maximumFractionDigits:2})}</strong></div>)}</div></div>
+                                <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                    <div className="rounded-xl border border-slate-200 p-4"><h3 className="text-xs font-black uppercase tracking-wider text-slate-500">Delivery address</h3><p className="mt-2 break-words text-sm leading-6 text-slate-800">{selectedCustomerOrder.shippingAddress || 'Not available'}</p></div>
+                                    <div className="rounded-xl border border-slate-200 p-4"><h3 className="text-xs font-black uppercase tracking-wider text-slate-500">Shipment details</h3><p className="mt-2 text-sm text-slate-800">Courier: <strong>{selectedCustomerOrder.courier || 'Not assigned'}</strong></p><p className="mt-1 break-all text-sm text-slate-800">AWB: <strong>{selectedCustomerOrder.trackingNumber || 'Not generated yet'}</strong></p><p className="mt-1 text-sm text-slate-800">Warehouse: <strong>{selectedCustomerOrder.warehouse || 'Not updated'}</strong></p>{selectedCustomerOrder.trackingUrl && /^https?:\/\//i.test(selectedCustomerOrder.trackingUrl) && <a href={selectedCustomerOrder.trackingUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-2 rounded-lg bg-teal-700 px-3 py-2 text-xs font-bold text-white">Track shipment <Icon name="ArrowUpRight" className="h-4 w-4"/></a>}</div>
+                                </div>
+                                <div className="mt-5 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-4"><button type="button" onClick={() => { setViewingInvoiceOrder(selectedCustomerOrder); setSelectedCustomerOrder(null); }} className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-700">View invoice</button><button type="button" onClick={() => setSelectedCustomerOrder(null)} className="rounded-xl bg-teal-700 px-4 py-2.5 text-xs font-bold text-white">Close details</button></div>
                             </div>
                         </div>
                     )}
