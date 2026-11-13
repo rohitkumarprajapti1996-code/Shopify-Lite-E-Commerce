@@ -22,7 +22,7 @@
     
     <!-- Babel standalone compiler for client-side JSX resolution -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./supabase-client.js?v=20261113-black-table-head-v13"></script>
+    <script src="./supabase-client.js?v=20261113-one-page-print-v14"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -1226,6 +1226,84 @@
             font-weight:950!important;
             -webkit-print-color-adjust:exact!important;
             print-color-adjust:exact!important;
+          }
+        }
+
+
+        /* Print only a standalone invoice clone. Hidden app panels must not create blank PDF pages. */
+        @media print {
+          @page { size:A3 portrait; margin:5mm; }
+          html,body {
+            display:block!important;
+            width:287mm!important;
+            height:410mm!important;
+            min-height:410mm!important;
+            max-height:410mm!important;
+            margin:0!important;
+            padding:0!important;
+            overflow:hidden!important;
+            background:#fff!important;
+          }
+          body > *:not(#sl-invoice-print-root) {
+            display:none!important;
+          }
+          #sl-invoice-print-root {
+            display:block!important;
+            position:relative!important;
+            box-sizing:border-box!important;
+            width:287mm!important;
+            height:410mm!important;
+            max-height:410mm!important;
+            margin:0!important;
+            padding:0!important;
+            overflow:hidden!important;
+            visibility:visible!important;
+            background:#fff!important;
+          }
+          #sl-invoice-print-root,
+          #sl-invoice-print-root * {
+            visibility:visible!important;
+          }
+          #sl-invoice-print-root #tax-invoice-printable {
+            display:flex!important;
+            flex-direction:column!important;
+            position:absolute!important;
+            left:0!important;
+            top:0!important;
+            box-sizing:border-box!important;
+            width:287mm!important;
+            max-width:287mm!important;
+            height:auto!important;
+            min-height:0!important;
+            max-height:none!important;
+            margin:0!important;
+            padding:10mm 9mm 8mm!important;
+            overflow:visible!important;
+            border:0.8mm solid #111!important;
+            outline:0.25mm solid #111!important;
+            outline-offset:-2mm!important;
+            border-radius:0!important;
+            background:#fff!important;
+            color:#111!important;
+            transform:scale(var(--sl-print-scale,1))!important;
+            transform-origin:top left!important;
+            -webkit-print-color-adjust:exact!important;
+            print-color-adjust:exact!important;
+            break-inside:avoid!important;
+            page-break-inside:avoid!important;
+          }
+          #sl-invoice-print-root #tax-invoice-printable > * {
+            position:relative!important;
+            z-index:1!important;
+          }
+          #sl-invoice-print-root #tax-invoice-printable .sl-exact-bottom-group {
+            margin-top:3mm!important;
+          }
+          #sl-invoice-print-root #tax-invoice-printable .sl-exact-footer {
+            margin-top:0!important;
+          }
+          #sl-invoice-print-root .no-print {
+            display:none!important;
           }
         }
 
@@ -5443,7 +5521,33 @@
                                     <div className="flex items-center gap-2 text-xs font-bold text-slate-600"><Icon name="Receipt" className="h-4 w-4 text-teal-700"/> Shopify-Lite invoice preview</div>
                                     <div className="flex items-center gap-2">
                                         <span className="hidden sm:inline text-[10px] font-medium text-slate-500">A3 Portrait · Copies 1 · High quality</span>
-                                        <button type="button" onClick={() => window.print()} title="Print one invoice; set Copies to 1 in the print dialog" className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-xs font-extrabold text-white shadow-sm hover:bg-teal-800"><Icon name="Download" className="h-4 w-4"/> Print / Save PDF</button>
+                                        <button type="button" onClick={() => {
+                                            const sourceInvoice = document.getElementById('tax-invoice-printable');
+                                            if (!sourceInvoice) return;
+                                            const previousPrintRoot = document.getElementById('sl-invoice-print-root');
+                                            if (previousPrintRoot) previousPrintRoot.remove();
+                                            const printRoot = document.createElement('div');
+                                            printRoot.id = 'sl-invoice-print-root';
+                                            const printCopy = sourceInvoice.cloneNode(true);
+                                            printCopy.style.setProperty('width', '287mm');
+                                            printCopy.style.setProperty('height', 'auto', 'important');
+                                            printCopy.style.setProperty('min-height', '0', 'important');
+                                            printCopy.style.setProperty('max-height', 'none', 'important');
+                                            printCopy.style.setProperty('overflow', 'visible', 'important');
+                                            printCopy.style.setProperty('margin', '0');
+                                            printRoot.appendChild(printCopy);
+                                            document.body.appendChild(printRoot);
+                                            const availableHeightPx = (410 - 12) * 96 / 25.4;
+                                            const naturalHeightPx = Math.max(printCopy.scrollHeight, printCopy.getBoundingClientRect().height, 1);
+                                            const printScale = Math.min(1, availableHeightPx / naturalHeightPx);
+                                            printCopy.style.setProperty('--sl-print-scale', String(printScale));
+                                            const cleanupPrintRoot = () => {
+                                                printRoot.remove();
+                                                window.removeEventListener('afterprint', cleanupPrintRoot);
+                                            };
+                                            window.addEventListener('afterprint', cleanupPrintRoot, { once: true });
+                                            window.print();
+                                        }} title="Print one A3 invoice; set Copies to 1" className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-xs font-extrabold text-white shadow-sm hover:bg-teal-800"><Icon name="Download" className="h-4 w-4"/> Print / Save PDF</button>
                                         <button type="button" onClick={() => setViewingInvoiceOrder(null)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-200 hover:text-slate-800" aria-label="Close invoice"><Icon name="X" className="h-5 w-5"/></button>
                                     </div>
                                 </div>
