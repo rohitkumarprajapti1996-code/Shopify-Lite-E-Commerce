@@ -1376,6 +1376,7 @@
             const [sellerProfile, setSellerProfile] = useState({ business_name:'', contact_name:'', email:'', phone:'', address:'', city:'', state:'', pincode:'', gstin:'' });
             const [sellerProfileBusy, setSellerProfileBusy] = useState(false);
             const [sellerProfileMessage, setSellerProfileMessage] = useState('');
+            const [sellerProfileSaved, setSellerProfileSaved] = useState(false);
 
             const [selectedProduct, setSelectedProduct] = useState(null);
             const [searchTerm, setSearchTerm] = useState('');
@@ -1609,6 +1610,7 @@
                 (async () => {
                     const data = await window.ShopifySupabase.loadSellerBusinessProfile();
                     if (alive && data) {
+                        setSellerProfileSaved(Boolean(data.business_name));
                         setSellerProfile({
                             business_name:data.business_name||'', contact_name:data.contact_name||'',
                             email:data.email||'', phone:data.phone||'', address:data.address||'',
@@ -1630,12 +1632,12 @@
                     setSellerProfileMessage('Please complete all required business fields, including the full address and PIN code.');
                     return;
                 }
-                if (!/^\\d{6}$/.test(String(sellerProfile.pincode || '').trim())) {
+                if (! /^\d{6}$/.test(String(sellerProfile.pincode || '').trim())) {
                     setSellerProfileMessage('Enter a valid 6-digit PIN code.');
                     return;
                 }
                 const gstin = String(sellerProfile.gstin || '').trim();
-                if (gstin && !/^\\d{2}[A-Z]{5}\\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/i.test(gstin)) {
+                if (gstin && ! /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/i.test(gstin)) {
                     setSellerProfileMessage('GSTIN format does not look valid. Check the 15-character GSTIN.');
                     return;
                 }
@@ -1643,6 +1645,7 @@
                 setSellerProfileMessage('');
                 try {
                     const saved = await window.ShopifySupabase.saveSellerBusinessProfile(sellerProfile);
+                    setSellerProfileSaved(true);
                     setSellerProfile({
                         business_name:saved.business_name||'', contact_name:saved.contact_name||'',
                         email:saved.email||'', phone:saved.phone||'', address:saved.address||'',
@@ -1650,6 +1653,7 @@
                     });
                     setSellerProfileMessage('Business details saved and confirmed by Supabase. Reopen the invoice to see the updated seller details.');
                 } catch(err) {
+                    setSellerProfileSaved(false);
                     setSellerProfileMessage(err.message || 'Could not save business details. Check admin permissions.');
                 } finally {
                     setSellerProfileBusy(false);
@@ -4487,9 +4491,9 @@
                                                     <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">Enter your store's business information. These details appear in the <strong>Sold By (Merchant)</strong> section of customer invoices.</p>
                                                 </div>
                                             </div>
-                                            <span className={sellerProfile.business_name ? "rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700" : "rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700"}>{sellerProfile.business_name ? "Business profile saved" : "Setup required"}</span>
+                                            <span className={sellerProfileSaved ? "rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700" : "rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700"}>{sellerProfileSaved ? "Business profile saved" : "Not saved yet"}</span>
                                         </div>
-                                        <form onSubmit={saveSellerProfile} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                        <form onSubmit={saveSellerProfile} onChange={()=>setSellerProfileSaved(false)} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                             <label className="block text-xs font-bold text-slate-700">Business / Firm Name *
                                                 <input type="text" required value={sellerProfile.business_name} onChange={e=>setSellerProfile(prev=>({...prev,business_name:e.target.value}))} placeholder="Your registered business or store name" className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm font-medium text-slate-900"/>
                                             </label>
