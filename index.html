@@ -22,7 +22,7 @@
     
     <!-- Babel standalone compiler for client-side JSX resolution -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./supabase-client.js?v=20261113-shared-invoice-v4"></script>
+    <script src="./supabase-client.js?v=20261113-reference-invoice-v5"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -822,107 +822,113 @@
         }
 
         
-        /* Shared Shopify-Lite invoice: Canva-approved visual language */
-        .sl-invoice-sheet { width:100%; max-width:190mm; margin:0 auto; padding:8mm; background:#fff; color:#17383f; font-family:'DM Sans',Arial,sans-serif; font-size:10.5px; line-height:1.45; }
-        .sl-invoice-header { border-bottom:2px solid #dcebea; padding-bottom:15px; }
-        .sl-invoice-brand-row { display:flex; align-items:center; justify-content:space-between; gap:18px; }
-        .sl-invoice-brand { display:flex; align-items:center; gap:12px; min-width:0; }
-        .sl-invoice-logo { position:relative; display:flex; width:54px; height:54px; flex:0 0 54px; align-items:center; justify-content:center; border-radius:15px; background:#087f75; color:#fff; }
-        .sl-invoice-logo svg { position:absolute; width:31px; height:31px; opacity:.96; }
-        .sl-invoice-logo b { position:relative; z-index:1; display:flex; width:19px; height:19px; align-items:center; justify-content:center; border-radius:50%; background:#fff; color:#087f75; font-size:12px; line-height:1; }
-        .sl-invoice-brand-copy { display:flex; min-width:0; flex-direction:column; }
-        .sl-invoice-brand-copy strong { color:#123b40; font-size:23px; font-weight:900; letter-spacing:-.04em; line-height:1.05; }
-        .sl-invoice-brand-copy small { margin-top:4px; color:#71858a; font-size:9px; font-weight:700; letter-spacing:.04em; }
-        .sl-invoice-title-block { text-align:right; }
-        .sl-invoice-kicker { color:#087f75; font-size:8px; font-weight:900; letter-spacing:.18em; }
-        .sl-invoice-title-block h1 { margin-top:4px; color:#143a40; font-size:18px; font-weight:900; letter-spacing:.015em; }
-        .sl-invoice-number { display:inline-flex; flex-wrap:wrap; gap:5px; margin-top:7px; border:1px solid #b9d9d5; border-radius:999px; background:#eff8f6; padding:5px 11px; color:#587077; font-size:9px; }
-        .sl-invoice-number strong { color:#087f75; font-weight:900; }
-        .sl-invoice-seller { display:grid; grid-template-columns:170px minmax(0,1fr); gap:12px; align-items:start; margin-top:15px; }
-        .sl-invoice-seller-label { display:flex; align-items:center; gap:8px; }
-        .sl-invoice-mini-icon,.sl-invoice-party-icon,.sl-invoice-thank-icon { display:flex; align-items:center; justify-content:center; border-radius:10px; background:#e5f3f1; color:#087f75; }
-        .sl-invoice-mini-icon { width:32px; height:32px; flex:0 0 32px; }
-        .sl-invoice-seller-label > div { display:flex; min-width:0; flex-direction:column; gap:2px; }
-        .sl-invoice-seller-label small { color:#75888d; font-size:8px; font-weight:900; letter-spacing:.14em; }
-        .sl-invoice-seller-label strong { color:#17383f; font-size:11px; font-weight:900; }
-        .sl-invoice-seller-body { color:#536c73; font-size:9px; line-height:1.5; overflow-wrap:anywhere; }
-        .sl-invoice-seller-body p+p { margin-top:2px; }
-        .sl-invoice-gstin { color:#087f75; font-weight:800; }
-        .sl-invoice-order-meta { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:15px; }
-        .sl-invoice-order-meta > div { display:flex; min-width:0; flex-direction:column; gap:4px; border:1px solid #dfeae9; border-radius:9px; background:#f7fbfa; padding:9px 10px; }
-        .sl-invoice-order-meta small { color:#788a8e; font-size:7.5px; font-weight:900; letter-spacing:.1em; }
-        .sl-invoice-order-meta strong { color:#1e4248; font-size:9px; font-weight:900; overflow-wrap:anywhere; }
-        .sl-invoice-order-meta .sl-invoice-paid { color:#087f75; }
-        .sl-invoice-order-meta .sl-invoice-pending { color:#a16207; }
-        .sl-invoice-parties { display:grid; grid-template-columns:1fr 1fr 1fr; gap:9px; margin-top:15px; }
-        .sl-invoice-party { min-width:0; border:1px solid #dce8e8; border-radius:11px; background:#fff; padding:11px; color:#526970; font-size:9px; line-height:1.5; overflow-wrap:anywhere; }
-        .sl-invoice-party-title { display:flex; align-items:center; gap:7px; margin-bottom:9px; color:#17444a; font-size:8px; font-weight:900; letter-spacing:.1em; }
-        .sl-invoice-party-icon { width:27px; height:27px; flex:0 0 27px; }
-        .sl-invoice-party p { margin-top:4px; }
-        .sl-invoice-party p small { display:block; color:#8a999d; font-size:7px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
-        .sl-invoice-party p strong { display:block; color:#294950; font-weight:800; }
-        .sl-invoice-party-name { display:block; color:#1b3e45; font-size:11px; font-weight:900; }
-        .sl-invoice-subtle { color:#829196; font-size:8px; }
-        .sl-invoice-items-section { margin-top:17px; }
-        .sl-invoice-items-caption { display:flex; align-items:end; justify-content:space-between; gap:12px; margin-bottom:8px; }
-        .sl-invoice-items-caption small { color:#087f75; font-size:8px; font-weight:900; letter-spacing:.14em; }
-        .sl-invoice-items-caption h2 { margin-top:2px; color:#17383f; font-size:14px; font-weight:900; }
-        .sl-invoice-items-caption > span { border-radius:999px; background:#e8f4f2; padding:4px 9px; color:#087f75; font-size:8px; font-weight:900; }
-        .sl-invoice-table-wrap { overflow:hidden; border:1px solid #cfe0df; border-radius:10px; }
-        .sl-invoice-table { width:100%; border-collapse:collapse; text-align:left; font-size:9px; }
-        .sl-invoice-table thead { background:#087f75; color:#fff; }
-        .sl-invoice-table th { padding:10px 9px; font-size:8px; font-weight:900; letter-spacing:.06em; }
-        .sl-invoice-table td { border-top:1px solid #e3eceb; padding:11px 9px; color:#49636a; vertical-align:top; }
-        .sl-invoice-table tbody tr:nth-child(even) { background:#f7fbfa; }
-        .sl-invoice-table td strong { display:block; color:#1d4148; font-weight:900; }
-        .sl-invoice-table td small { display:block; margin-top:3px; color:#829196; font-size:7.5px; }
-        .sl-invoice-col-no { width:34px; }
-        .sl-invoice-col-qty { width:48px; text-align:center; }
-        .sl-invoice-col-money { width:104px; text-align:right; }
-        .sl-invoice-align-center { text-align:center; }
-        .sl-invoice-align-right { text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
-        .sl-invoice-strong { color:#17383f!important; font-weight:900; }
-        .sl-invoice-summary { display:grid; grid-template-columns:minmax(0,1fr) minmax(250px,.8fr); gap:12px; align-items:start; margin-top:14px; }
-        .sl-invoice-payment { border:1px solid #dce8e8; border-radius:11px; background:#f8fbfa; padding:13px; }
-        .sl-invoice-payment > p,.sl-invoice-totals > p { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-top:8px; color:#708389; font-size:9px; }
-        .sl-invoice-payment > p strong,.sl-invoice-totals > p strong { max-width:62%; color:#25464d; font-weight:900; text-align:right; overflow-wrap:anywhere; }
-        .sl-invoice-totals { border:1px solid #dce8e8; border-radius:11px; padding:13px; background:#fff; }
-        .sl-invoice-grand-total { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:11px; border:1px solid #a9d3cd; border-radius:10px; background:#e8f5f2; padding:12px; color:#12565a; font-size:11px; font-weight:900; }
-        .sl-invoice-grand-total strong { color:#087f75; font-size:21px; font-weight:900; letter-spacing:-.03em; white-space:nowrap; }
-        .sl-invoice-totals .sl-invoice-amount-state { margin-top:8px; color:#087f75; font-size:8px; font-weight:800; }
-        .sl-invoice-footer { margin-top:16px; border-top:1px solid #dce8e8; padding-top:13px; }
-        .sl-invoice-thankyou { display:flex; align-items:center; gap:11px; border:1px solid #cce3df; border-radius:11px; background:#eff8f6; padding:12px; }
-        .sl-invoice-thank-icon { width:38px; height:38px; flex:0 0 38px; }
-        .sl-invoice-thankyou strong { color:#164b4d; font-size:13px; font-weight:900; }
-        .sl-invoice-thankyou p { margin-top:3px; color:#607a7e; font-size:9px; }
-        .sl-invoice-footnote { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:7px 14px; margin-top:10px; color:#788b90; font-size:8px; line-height:1.5; }
-        .sl-invoice-footnote small { width:100%; text-align:right; color:#9aa8ab; font-size:7px; }
-        @media(max-width:700px) {
+        /* Reference-matched Shopify-Lite A4 invoice */
+        .sl-invoice-sheet { position:relative; isolation:isolate; width:100%; max-width:194mm; margin:0 auto; padding:7mm 6mm 5mm; overflow:hidden; background:#fff; color:#172f38; font-family:'DM Sans',Arial,sans-serif; font-size:9px; line-height:1.35; }
+        .sl-ref-header { position:relative; display:grid; grid-template-columns:minmax(0,1fr) minmax(230px,.95fr); gap:18px; align-items:center; border-bottom:2px solid #087f75; padding:4mm 3mm 5mm; }
+        .sl-ref-header:after { position:absolute; content:""; right:-8mm; top:-8mm; z-index:-1; width:42mm; height:27mm; background:linear-gradient(135deg,#e6f5f2,#087f75); clip-path:polygon(38% 0,100% 0,100% 100%,0 100%); opacity:.95; }
+        .sl-ref-brand { display:flex; align-items:center; gap:12px; min-width:0; }
+        .sl-ref-logo { position:relative; display:flex; width:19mm; height:19mm; flex:0 0 19mm; align-items:center; justify-content:center; border-radius:5mm; background:#087f75; color:#fff; }
+        .sl-ref-logo svg { position:absolute; width:12mm; height:12mm; opacity:.95; }
+        .sl-ref-logo b { position:relative; z-index:1; display:flex; width:6mm; height:6mm; align-items:center; justify-content:center; border-radius:50%; background:#fff; color:#087f75; font-size:11px; font-weight:900; }
+        .sl-ref-brand > div { display:flex; flex-direction:column; gap:4px; min-width:0; }
+        .sl-ref-brand strong { color:#103e43; font-size:24px; font-weight:950; line-height:1; letter-spacing:-.05em; }
+        .sl-ref-brand small { color:#688187; font-size:9px; font-weight:700; letter-spacing:.04em; }
+        .sl-ref-title { position:relative; z-index:1; text-align:right; }
+        .sl-ref-title h1 { color:#153a40; font-size:17px; font-weight:950; letter-spacing:.015em; }
+        .sl-ref-title > p { margin-top:3px; color:#087f75; font-size:12px; font-weight:800; }
+        .sl-ref-invoice-number { display:inline-flex; align-items:center; gap:10px; margin-top:12px; border:1px solid #b8d9d4; border-radius:11px; background:#eff8f6; padding:9px 12px; text-align:left; box-shadow:0 5px 15px rgba(14,70,69,.07); }
+        .sl-ref-invoice-number > span { display:flex; color:#087f75; }
+        .sl-ref-invoice-number > div { display:flex; flex-direction:column; gap:3px; }
+        .sl-ref-invoice-number small { color:#60777d; font-size:8px; font-weight:800; }
+        .sl-ref-invoice-number strong { color:#123b40; font-size:15px; font-weight:950; letter-spacing:.01em; }
+        .sl-ref-seller { border-bottom:1px solid #b9d7d3; padding:4mm 3mm; color:#536d73; font-size:8.5px; line-height:1.5; overflow-wrap:anywhere; }
+        .sl-ref-seller strong { display:block; margin-bottom:2px; color:#143f45; font-size:10px; font-weight:900; }
+        .sl-ref-seller p+p { margin-top:2px; }
+        .sl-ref-party-grid { display:grid; grid-template-columns:1.05fr 1fr 1fr .58fr; gap:8px; align-items:stretch; padding:4mm 0; border-bottom:1px solid #b9d7d3; }
+        .sl-ref-order-card,.sl-ref-address-card { min-width:0; border:1px solid #d6e8e5; border-radius:10px; background:#fff; padding:10px; color:#4d6870; font-size:8px; line-height:1.45; overflow-wrap:anywhere; }
+        .sl-ref-order-card h2,.sl-ref-address-card h2 { display:flex; align-items:center; gap:6px; margin-bottom:8px; color:#16464c; font-size:10px; font-weight:900; }
+        .sl-ref-order-card h2 svg,.sl-ref-address-card h2 svg { color:#087f75; flex:0 0 auto; }
+        .sl-ref-order-card dl { display:grid; gap:4px; }
+        .sl-ref-order-card dl div { display:grid; grid-template-columns:75px minmax(0,1fr); gap:5px; }
+        .sl-ref-order-card dt { color:#89999d; font-size:7px; font-weight:800; }
+        .sl-ref-order-card dd { color:#24484f; font-size:8px; font-weight:800; }
+        .sl-ref-paid { color:#087f75!important; }
+        .sl-ref-pending { color:#b45309!important; }
+        .sl-ref-address-card > strong { display:block; margin:3px 0; color:#193f46; font-size:10px; font-weight:900; }
+        .sl-ref-address-card p { margin-top:3px; }
+        .sl-ref-address { color:#5c747a; white-space:pre-line; }
+        .sl-ref-shipping-meta { color:#087f75; font-size:7px; font-weight:800; }
+        .sl-ref-keep-card { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; border:1px solid #d1e5e1; border-radius:10px; background:linear-gradient(145deg,#f8fcfb,#e5f4f1); padding:10px 8px; text-align:center; color:#3d6066; }
+        .sl-ref-keep-card span { color:#087f75; }
+        .sl-ref-keep-card p { font-size:8px; font-style:italic; line-height:1.5; }
+        .sl-ref-item-count { margin:3mm 2mm 2mm; padding-bottom:6px; border-bottom:1px solid #a9cbc6; color:#087f75; font-size:9px; font-weight:900; }
+        .sl-ref-table-wrap { overflow:hidden; border:1px solid #99c9c2; border-radius:9px; }
+        .sl-ref-table { width:100%; border-collapse:collapse; table-layout:fixed; font-size:8px; }
+        .sl-ref-table thead { background:#087f75; color:#fff; }
+        .sl-ref-table th { padding:9px 5px; color:#fff; font-size:7.5px; font-weight:900; line-height:1.25; text-align:left; vertical-align:middle; }
+        .sl-ref-table th:nth-child(1) { width:7%; }
+        .sl-ref-table th:nth-child(2) { width:28%; }
+        .sl-ref-table th:nth-child(3) { width:7%; text-align:center; }
+        .sl-ref-table th:nth-child(n+4) { width:14.5%; text-align:right; }
+        .sl-ref-table td { min-width:0; border:1px solid #d6e6e3; padding:9px 5px; color:#456168; vertical-align:middle; overflow-wrap:anywhere; }
+        .sl-ref-table td strong { display:block; color:#173f46; font-size:8px; font-weight:900; }
+        .sl-ref-table td small { display:block; margin-top:2px; color:#829398; font-size:6.7px; }
+        .sl-ref-table tbody tr:nth-child(even) { background:#f8fbfa; }
+        .sl-ref-table tfoot { background:#dff1ed; color:#123f44; font-weight:900; }
+        .sl-ref-table tfoot td { border-color:#9ccac3; padding:9px 5px; color:#153f43; font-size:8.5px; font-weight:900; }
+        .sl-ref-total-label { text-align:right; }
+        .sl-ref-center { text-align:center!important; }
+        .sl-ref-money { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+        .sl-ref-bold { color:#123c41!important; font-weight:950!important; }
+        .sl-ref-bottom-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(245px,.7fr); gap:14px; align-items:start; margin-top:4mm; }
+        .sl-ref-terms { min-width:0; }
+        .sl-ref-terms h2 { display:inline-flex; border:1px solid #b8d8d3; border-radius:8px; background:#eaf6f3; padding:7px 12px; color:#14545a; font-size:10px; font-weight:900; }
+        .sl-ref-terms ul { display:grid; gap:5px; margin-top:9px; padding:0; list-style:none; }
+        .sl-ref-terms li { position:relative; padding-left:14px; color:#597177; font-size:7.5px; line-height:1.4; }
+        .sl-ref-terms li:before { position:absolute; left:0; top:0; content:"●"; color:#087f75; font-size:8px; }
+        .sl-ref-total-sign { min-width:0; display:flex; flex-direction:column; align-items:stretch; }
+        .sl-ref-grand-total { display:flex; align-items:center; justify-content:space-between; gap:12px; border:1px solid #acd4ce; border-radius:10px; background:#e8f5f2; padding:7px; color:#15545a; font-size:15px; font-weight:950; }
+        .sl-ref-grand-total strong { display:block; border-radius:8px; background:#087f75; padding:10px 13px; color:#fff; font-size:19px; font-weight:950; white-space:nowrap; }
+        .sl-ref-total-sign > p:not(.sl-ref-amount-state) { margin-top:11px; color:#405d63; font-size:8px; font-weight:800; text-align:right; }
+        .sl-ref-sign-line { width:58%; margin:22px 0 4px auto; border-bottom:1px solid #80979b; }
+        .sl-ref-total-sign > small { color:#587177; font-size:7.5px; text-align:right; }
+        .sl-ref-amount-state { margin-top:10px; color:#087f75; font-size:8px; font-weight:900; text-align:right; }
+        .sl-ref-footer { margin-top:5mm; border-top:1px solid #9bc8c2; padding-top:3mm; }
+        .sl-ref-support { display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; border:1px solid #b6d8d2; border-radius:10px; background:linear-gradient(105deg,#eff8f6 0%,#e0f2ee 75%,#087f75 75%,#087f75 100%); padding:10px 12px; color:#17464b; font-size:8.5px; }
+        .sl-ref-headset { display:flex; align-items:center; color:#087f75; }
+        .sl-ref-support > strong { color:#173f44; font-size:9px; font-weight:950; }
+        .sl-ref-support > b { color:#1d474c; font-size:9px; font-weight:900; }
+        .sl-ref-support > svg { color:#087f75; flex:0 0 auto; }
+        .sl-ref-separator { color:#8aa3a5; }
+        .sl-ref-email { overflow-wrap:anywhere; }
+        .sl-ref-footer-right { margin-left:auto; color:#fff; font-size:8px; font-weight:900; white-space:nowrap; }
+        @media(max-width:760px) {
           .sl-invoice-sheet { padding:16px!important; }
-          .sl-invoice-brand-row { align-items:flex-start; flex-direction:column; }
-          .sl-invoice-title-block { text-align:left; }
-          .sl-invoice-seller { grid-template-columns:minmax(0,1fr); gap:6px; }
-          .sl-invoice-order-meta { grid-template-columns:repeat(2,minmax(0,1fr)); }
-          .sl-invoice-parties { grid-template-columns:minmax(0,1fr); }
-          .sl-invoice-summary { grid-template-columns:minmax(0,1fr); }
-          .sl-invoice-table-wrap { overflow-x:auto; }
-          .sl-invoice-table { min-width:560px; }
-          .sl-invoice-footnote small { text-align:left; }
+          .sl-ref-header { grid-template-columns:minmax(0,1fr); gap:14px; }
+          .sl-ref-title { text-align:left; }
+          .sl-ref-party-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+          .sl-ref-bottom-row { grid-template-columns:minmax(0,1fr); }
+          .sl-ref-table-wrap { overflow-x:auto; }
+          .sl-ref-table { min-width:720px; }
+        }
+        @media(max-width:430px) {
+          .sl-ref-party-grid { grid-template-columns:minmax(0,1fr); }
+          .sl-ref-support { background:#eff8f6; }
+          .sl-ref-footer-right { margin-left:0; color:#087f75; }
         }
         @media print {
-          @page { size:A4; margin:10mm; }
+          @page { size:A4; margin:7mm; }
           html,body,#root { background:#fff!important; margin:0!important; padding:0!important; width:auto!important; height:auto!important; overflow:visible!important; }
           body * { visibility:hidden!important; }
           #tax-invoice-printable,#tax-invoice-printable * { visibility:visible!important; }
-          #tax-invoice-printable { display:block!important; position:absolute!important; left:0!important; top:0!important; width:190mm!important; max-width:190mm!important; min-height:0!important; height:auto!important; overflow:visible!important; margin:0!important; padding:0!important; background:#fff!important; box-shadow:none!important; font-size:9pt!important; }
-          #tax-invoice-printable .sl-invoice-brand-row { display:flex!important; flex-direction:row!important; align-items:center!important; justify-content:space-between!important; }
-          #tax-invoice-printable .sl-invoice-seller { grid-template-columns:42mm minmax(0,1fr)!important; }
-          #tax-invoice-printable .sl-invoice-order-meta { grid-template-columns:repeat(4,minmax(0,1fr))!important; }
-          #tax-invoice-printable .sl-invoice-parties { grid-template-columns:repeat(3,minmax(0,1fr))!important; }
-          #tax-invoice-printable .sl-invoice-summary { grid-template-columns:minmax(0,1fr) minmax(65mm,.8fr)!important; }
-          #tax-invoice-printable .sl-invoice-table { min-width:0!important; width:100%!important; }
-          #tax-invoice-printable .sl-invoice-table th,#tax-invoice-printable .sl-invoice-table td { padding:8px 6px!important; }
-          #tax-invoice-printable tr,#tax-invoice-printable .sl-invoice-party,#tax-invoice-printable .sl-invoice-payment,#tax-invoice-printable .sl-invoice-totals { break-inside:avoid!important; page-break-inside:avoid!important; }
+          #tax-invoice-printable { display:block!important; position:absolute!important; left:0!important; top:0!important; width:196mm!important; max-width:196mm!important; margin:0!important; padding:0!important; overflow:visible!important; background:#fff!important; color:#172f38!important; font-size:8pt!important; box-shadow:none!important; }
+          #tax-invoice-printable .sl-ref-header { grid-template-columns:minmax(0,1fr) minmax(80mm,.95fr)!important; }
+          #tax-invoice-printable .sl-ref-party-grid { grid-template-columns:1.05fr 1fr 1fr .58fr!important; }
+          #tax-invoice-printable .sl-ref-bottom-row { grid-template-columns:minmax(0,1fr) minmax(70mm,.7fr)!important; }
+          #tax-invoice-printable .sl-ref-table { width:100%!important; min-width:0!important; table-layout:fixed!important; }
+          #tax-invoice-printable .sl-ref-table th,#tax-invoice-printable .sl-ref-table td { padding:6px 4px!important; }
+          #tax-invoice-printable tr,#tax-invoice-printable .sl-ref-party-grid > div,#tax-invoice-printable .sl-ref-keep-card { break-inside:avoid!important; page-break-inside:avoid!important; }
+          #tax-invoice-printable .sl-ref-footer { break-inside:avoid!important; page-break-inside:avoid!important; }
           .no-print { display:none!important; }
         }
 
@@ -5132,7 +5138,7 @@
                         </div>
                     )}
 
-                    {/* Shared Shopify-Lite Invoice — used by Admin and Customer panels */}
+                    {/* Shared Shopify-Lite Invoice — reference-matched A4 format for Admin and Customer */}
                     {viewingInvoiceOrder && (
                         <div className="sl-invoice-modal fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-slate-950/65 p-2 sm:p-5 backdrop-blur-sm">
                             <div className="my-auto w-full max-w-5xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
@@ -5144,103 +5150,128 @@
                                     </div>
                                 </div>
 
-                                <div id="tax-invoice-printable" className="sl-invoice-sheet">
-                                    <header className="sl-invoice-header">
-                                        <div className="sl-invoice-brand-row">
-                                            <div className="sl-invoice-brand">
-                                                <span className="sl-invoice-logo" aria-hidden="true"><Icon name="ShoppingBag" className="h-7 w-7"/><b>S</b></span>
-                                                <span className="sl-invoice-brand-copy"><strong>Shopify-Lite</strong><small>E-Commerce Pvt. Ltd. · Online Store</small></span>
-                                            </div>
-                                            <div className="sl-invoice-title-block">
-                                                <span className="sl-invoice-kicker">CUSTOMER DOCUMENT</span>
-                                                <h1>ORDER INVOICE / RECEIPT</h1>
-                                                <span className="sl-invoice-number">Invoice No. <strong>{viewingInvoiceOrder.invoiceNumber || viewingInvoiceOrder.orderNumber || viewingInvoiceOrder.id || 'Pending'}</strong></span>
-                                            </div>
+                                <article id="tax-invoice-printable" className="sl-invoice-sheet">
+                                    <header className="sl-ref-header">
+                                        <div className="sl-ref-brand">
+                                            <span className="sl-ref-logo"><Icon name="ShoppingBag" className="h-8 w-8"/><b>S</b></span>
+                                            <div><strong>Shopify-Lite</strong><small>{sellerProfile.business_name || 'E-Commerce Pvt. Ltd.'}</small></div>
                                         </div>
-
-                                        <div className="sl-invoice-seller">
-                                            <div className="sl-invoice-seller-label"><span className="sl-invoice-mini-icon"><Icon name="Building" className="h-4 w-4"/></span><div><small>SOLD BY</small><strong>{sellerProfile.business_name || 'Seller details not configured'}</strong></div></div>
-                                            <div className="sl-invoice-seller-body">
-                                                <p>{[sellerProfile.address,sellerProfile.city,sellerProfile.state,sellerProfile.pincode ? 'PIN '+sellerProfile.pincode : ''].filter(Boolean).join(', ') || 'Registered business address not provided'}</p>
-                                                <p>{sellerProfile.contact_name ? sellerProfile.contact_name+' · ' : ''}{sellerProfile.phone || ''}{sellerProfile.email ? ' · '+sellerProfile.email : ''}</p>
-                                                {sellerProfile.gstin && <p className="sl-invoice-gstin">GSTIN: {sellerProfile.gstin}</p>}
-                                            </div>
+                                        <div className="sl-ref-title">
+                                            <h1>ORDER INVOICE / RECEIPT</h1>
+                                            <p>{sellerProfile.gstin ? 'Tax Invoice' : 'Customer Order Receipt'}</p>
+                                            <div className="sl-ref-invoice-number"><span><Icon name="Receipt" className="h-6 w-6"/></span><div><small>Invoice Number</small><strong>{viewingInvoiceOrder.invoiceNumber || viewingInvoiceOrder.orderNumber || viewingInvoiceOrder.id || 'Pending'}</strong></div></div>
                                         </div>
                                     </header>
 
-                                    <section className="sl-invoice-order-meta">
-                                        <div><small>ORDER NUMBER</small><strong>{viewingInvoiceOrder.orderNumber || viewingInvoiceOrder.id || '—'}</strong></div>
-                                        <div><small>ORDER DATE</small><strong>{viewingInvoiceOrder.date || '—'}</strong></div>
-                                        <div><small>INVOICE DATE</small><strong>{viewingInvoiceOrder.invoiceDate || viewingInvoiceOrder.date || '—'}</strong></div>
-                                        <div><small>PAYMENT STATUS</small><strong className={String(viewingInvoiceOrder.paymentStatus || viewingInvoiceOrder.payment_status || 'pending').toLowerCase()==='paid' ? 'sl-invoice-paid' : 'sl-invoice-pending'}>{String(viewingInvoiceOrder.paymentStatus || viewingInvoiceOrder.payment_status || 'pending').toUpperCase()}</strong></div>
+                                    <section className="sl-ref-seller">
+                                        <strong>Sold By: {sellerProfile.business_name || 'Seller details not configured'}</strong>
+                                        <p>Registered Office: {[sellerProfile.address,sellerProfile.city,sellerProfile.state,sellerProfile.pincode].filter(Boolean).join(', ') || 'Business address not provided'}</p>
+                                        <p>{sellerProfile.contact_name ? 'Contact: '+sellerProfile.contact_name+'  |  ' : ''}{sellerProfile.phone ? 'Phone: '+sellerProfile.phone : ''}{sellerProfile.email ? '  |  '+sellerProfile.email : ''}</p>
+                                        <p>GSTIN: {sellerProfile.gstin || 'Not provided'} {sellerProfile.gstin ? '' : '  |  Tax details shown only as recorded for this order'}</p>
                                     </section>
 
-                                    <section className="sl-invoice-parties">
-                                        <div className="sl-invoice-party">
-                                            <div className="sl-invoice-party-title"><span className="sl-invoice-party-icon"><Icon name="Receipt" className="h-4 w-4"/></span><strong>ORDER DETAILS</strong></div>
-                                            <p><small>Reference</small><strong>{viewingInvoiceOrder.invoiceNumber || viewingInvoiceOrder.orderNumber || viewingInvoiceOrder.id || '—'}</strong></p>
-                                            <p><small>Payment mode</small><strong>{viewingInvoiceOrder.paymentMethod || 'Not recorded'}</strong></p>
-                                            {viewingInvoiceOrder.transactionId && <p><small>Transaction reference</small><strong className="break-all">{viewingInvoiceOrder.transactionId}</strong></p>}
+                                    <section className="sl-ref-party-grid">
+                                        <div className="sl-ref-order-card">
+                                            <h2><Icon name="ShoppingCart" className="h-4 w-4"/> Order Details</h2>
+                                            <dl>
+                                                <div><dt>Order ID</dt><dd>{viewingInvoiceOrder.orderNumber || viewingInvoiceOrder.id || '—'}</dd></div>
+                                                <div><dt>Order Date</dt><dd>{viewingInvoiceOrder.date || '—'}</dd></div>
+                                                <div><dt>Invoice Date</dt><dd>{viewingInvoiceOrder.invoiceDate || viewingInvoiceOrder.date || '—'}</dd></div>
+                                                <div><dt>Payment Mode</dt><dd>{viewingInvoiceOrder.paymentMethod || 'Not recorded'}</dd></div>
+                                                {viewingInvoiceOrder.transactionId && <div><dt>Transaction Ref.</dt><dd className="break-all">{viewingInvoiceOrder.transactionId}</dd></div>}
+                                                <div><dt>Payment Status</dt><dd className={String(viewingInvoiceOrder.paymentStatus || viewingInvoiceOrder.payment_status || 'pending').toLowerCase()==='paid' ? 'sl-ref-paid' : 'sl-ref-pending'}>{String(viewingInvoiceOrder.paymentStatus || viewingInvoiceOrder.payment_status || 'pending').toUpperCase()}</dd></div>
+                                            </dl>
                                         </div>
-                                        <div className="sl-invoice-party">
-                                            <div className="sl-invoice-party-title"><span className="sl-invoice-party-icon"><Icon name="User" className="h-4 w-4"/></span><strong>BILL TO</strong></div>
-                                            <strong className="sl-invoice-party-name">{viewingInvoiceOrder.customerName || 'Customer'}</strong>
+
+                                        <div className="sl-ref-address-card">
+                                            <h2><Icon name="User" className="h-4 w-4"/> Bill To</h2>
+                                            <strong>{viewingInvoiceOrder.customerName || 'Customer'}</strong>
                                             {viewingInvoiceOrder.customerPhone && <p>{viewingInvoiceOrder.customerPhone}</p>}
                                             {viewingInvoiceOrder.customerEmail && <p className="break-all">{viewingInvoiceOrder.customerEmail}</p>}
-                                            <p className="sl-invoice-subtle">{viewingInvoiceOrder.billingAddress || viewingInvoiceOrder.billing_address || 'Billing address same as delivery address'}</p>
+                                            <p className="sl-ref-address">{viewingInvoiceOrder.billingAddress || viewingInvoiceOrder.billing_address || viewingInvoiceOrder.shippingAddress || 'Billing address not recorded'}</p>
                                         </div>
-                                        <div className="sl-invoice-party">
-                                            <div className="sl-invoice-party-title"><span className="sl-invoice-party-icon"><Icon name="Truck" className="h-4 w-4"/></span><strong>SHIP TO</strong></div>
-                                            <strong className="sl-invoice-party-name">{viewingInvoiceOrder.shippingName || viewingInvoiceOrder.customerName || 'Recipient'}</strong>
-                                            <p>{viewingInvoiceOrder.shippingAddress || 'Delivery address not recorded'}</p>
-                                            {viewingInvoiceOrder.courier && <p className="sl-invoice-subtle">Courier: {viewingInvoiceOrder.courier}{viewingInvoiceOrder.trackingNumber ? ' · AWB '+viewingInvoiceOrder.trackingNumber : ''}</p>}
+
+                                        <div className="sl-ref-address-card">
+                                            <h2><Icon name="MapPin" className="h-4 w-4"/> Ship To</h2>
+                                            <strong>{viewingInvoiceOrder.shippingName || viewingInvoiceOrder.customerName || 'Recipient'}</strong>
+                                            <p className="sl-ref-address">{viewingInvoiceOrder.shippingAddress || 'Delivery address not recorded'}</p>
+                                            {viewingInvoiceOrder.courier && <p className="sl-ref-shipping-meta">Courier: {viewingInvoiceOrder.courier}{viewingInvoiceOrder.trackingNumber ? ' · AWB '+viewingInvoiceOrder.trackingNumber : ''}</p>}
+                                        </div>
+
+                                        <aside className="sl-ref-keep-card">
+                                            <span><Icon name="Package" className="h-7 w-7"/></span>
+                                            <p>Keep this invoice for your records and Shopify-Lite support requests.</p>
+                                        </aside>
+                                    </section>
+
+                                    <div className="sl-ref-item-count">Total items: {(Array.isArray(viewingInvoiceOrder.items) ? viewingInvoiceOrder.items : []).reduce((sum,item)=>sum+Number(item.quantity||0),0)}</div>
+                                    <section className="sl-ref-table-wrap">
+                                        <table className="sl-ref-table">
+                                            <thead>
+                                                <tr><th>Item</th><th>Description</th><th>Qty</th><th>Gross Amount ₹</th><th>Discount ₹</th><th>Taxable Value ₹</th><th>GST Amount ₹</th><th>Total ₹</th></tr>
+                                            </thead>
+                                            <tbody>
+                                                {(Array.isArray(viewingInvoiceOrder.items) ? viewingInvoiceOrder.items : []).map((item,index) => {
+                                                    const qty=Number(item.quantity||0);
+                                                    const gross=Number(item.price||0)*qty;
+                                                    const lineTotal=Number(item.lineTotal != null ? item.lineTotal : gross);
+                                                    return <tr key={item.id || index}>
+                                                        <td>{index+1}</td>
+                                                        <td><strong>{item.title || 'Product'}</strong>{item.sku && <small>SKU: {item.sku}</small>}{(item.hsnSac || item.hsn_sac) && <small>HSN/SAC: {item.hsnSac || item.hsn_sac}</small>}</td>
+                                                        <td className="sl-ref-center">{qty}</td>
+                                                        <td className="sl-ref-money">₹{gross.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                                                        <td className="sl-ref-money">{item.discountAmount != null ? '₹'+Number(item.discountAmount).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
+                                                        <td className="sl-ref-money">{item.taxableValue != null ? '₹'+Number(item.taxableValue).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
+                                                        <td className="sl-ref-money">{item.taxAmount != null ? '₹'+Number(item.taxAmount).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
+                                                        <td className="sl-ref-money sl-ref-bold">₹{lineTotal.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                                                    </tr>;
+                                                })}
+                                            </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <td colSpan="2" className="sl-ref-total-label">Total</td>
+                                                    <td className="sl-ref-center">{(Array.isArray(viewingInvoiceOrder.items) ? viewingInvoiceOrder.items : []).reduce((sum,item)=>sum+Number(item.quantity||0),0)}</td>
+                                                    <td className="sl-ref-money">₹{(Array.isArray(viewingInvoiceOrder.items) ? viewingInvoiceOrder.items : []).reduce((sum,item)=>sum+Number(item.price||0)*Number(item.quantity||0),0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                                                    <td className="sl-ref-money">—</td>
+                                                    <td className="sl-ref-money">₹{Number(viewingInvoiceOrder.subtotal || 0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                                                    <td className="sl-ref-money">₹{Number(viewingInvoiceOrder.gstAmount || 0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                                                    <td className="sl-ref-money sl-ref-bold">₹{Number(viewingInvoiceOrder.total || 0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </section>
+
+                                    <section className="sl-ref-bottom-row">
+                                        <div className="sl-ref-terms">
+                                            <h2>Terms &amp; Notes</h2>
+                                            <ul>
+                                                <li>This is a computer-generated order document.</li>
+                                                <li>Please retain this invoice for your records and support requests.</li>
+                                                <li>Tax values are shown only as recorded for this order; no tax split is inferred.</li>
+                                                <li>{sellerProfile.gstin ? 'Seller GSTIN is displayed above.' : 'No GSTIN is saved in the seller profile; this is an order receipt, not a GST tax invoice.'}</li>
+                                            </ul>
+                                        </div>
+                                        <div className="sl-ref-total-sign">
+                                            <div className="sl-ref-grand-total"><span>Grand Total</span><strong>₹{Number(viewingInvoiceOrder.total || 0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></div>
+                                            <p>For {sellerProfile.business_name || 'Shopify-Lite'}</p>
+                                            <div className="sl-ref-sign-line"></div>
+                                            <small>Authorised Signatory</small>
+                                            <p className="sl-ref-amount-state">{String(viewingInvoiceOrder.paymentStatus || viewingInvoiceOrder.payment_status || '').toLowerCase()==='paid' ? 'PAID' : 'AMOUNT DUE'} · ₹{Number(viewingInvoiceOrder.total || 0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</p>
                                         </div>
                                     </section>
 
-                                    <section className="sl-invoice-items-section">
-                                        <div className="sl-invoice-items-caption"><div><small>ORDER SUMMARY</small><h2>Items purchased</h2></div><span>Total items: {(Array.isArray(viewingInvoiceOrder.items) ? viewingInvoiceOrder.items : []).reduce((sum,item)=>sum+Number(item.quantity||0),0)}</span></div>
-                                        <div className="sl-invoice-table-wrap">
-                                            <table className="sl-invoice-table">
-                                                <thead><tr><th className="sl-invoice-col-no">#</th><th>ITEM / DESCRIPTION</th><th className="sl-invoice-col-qty">QTY</th><th className="sl-invoice-col-money">UNIT PRICE</th><th className="sl-invoice-col-money">LINE TOTAL</th></tr></thead>
-                                                <tbody>
-                                                    {(Array.isArray(viewingInvoiceOrder.items) ? viewingInvoiceOrder.items : []).map((item,index) => (
-                                                        <tr key={item.id || index}>
-                                                            <td>{index+1}</td>
-                                                            <td><strong>{item.title || 'Product'}</strong>{item.sku && <small>SKU: {item.sku}</small>}</td>
-                                                            <td className="sl-invoice-align-center">{Number(item.quantity || 0)}</td>
-                                                            <td className="sl-invoice-align-right">₹{Number(item.price || 0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                                                            <td className="sl-invoice-align-right sl-invoice-strong">₹{Number(item.lineTotal != null ? item.lineTotal : Number(item.price || 0)*Number(item.quantity || 0)).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </section>
-
-                                    <section className="sl-invoice-summary">
-                                        <div className="sl-invoice-payment">
-                                            <div className="sl-invoice-party-title"><span className="sl-invoice-party-icon"><Icon name="CreditCard" className="h-4 w-4"/></span><strong>PAYMENT SUMMARY</strong></div>
-                                            <p><span>Payment method</span><strong>{viewingInvoiceOrder.paymentMethod || 'Not recorded'}</strong></p>
-                                            <p><span>Payment status</span><strong>{String(viewingInvoiceOrder.paymentStatus || viewingInvoiceOrder.payment_status || 'pending').toUpperCase()}</strong></p>
-                                            {viewingInvoiceOrder.transactionId && <p><span>Transaction reference</span><strong className="break-all">{viewingInvoiceOrder.transactionId}</strong></p>}
-                                        </div>
-                                        <div className="sl-invoice-totals">
-                                            <p><span>Subtotal</span><strong>₹{Number(viewingInvoiceOrder.subtotal != null ? viewingInvoiceOrder.subtotal : Math.max(0,Number(viewingInvoiceOrder.total || 0)-Number(viewingInvoiceOrder.gstAmount || 0))).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></p>
-                                            <p><span>Tax amount (as recorded)</span><strong>{Number(viewingInvoiceOrder.gstAmount || 0)>0 ? '₹'+Number(viewingInvoiceOrder.gstAmount).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}) : 'Not separately recorded'}</strong></p>
-                                            <div className="sl-invoice-grand-total"><span>GRAND TOTAL</span><strong>₹{Number(viewingInvoiceOrder.total || 0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></div>
-                                            <p className="sl-invoice-amount-state"><span>{String(viewingInvoiceOrder.paymentStatus || viewingInvoiceOrder.payment_status || '').toLowerCase()==='paid' ? 'Amount received' : 'Amount due'}</span><strong>₹{Number(viewingInvoiceOrder.total || 0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></p>
-                                        </div>
-                                    </section>
-
-                                    <footer className="sl-invoice-footer">
-                                        <div className="sl-invoice-thankyou"><span className="sl-invoice-thank-icon"><Icon name="ShieldCheck" className="h-6 w-6"/></span><div><strong>Thank you for your order!</strong><p>We appreciate your business. For support or assistance, contact our support team.</p></div></div>
-                                        <div className="sl-invoice-footnote">
-                                            <p>{sellerProfile.gstin ? 'GSTIN is displayed as saved in the seller profile. Tax is shown only as recorded for this order; no additional tax breakup is inferred.' : 'No GSTIN is saved in the seller profile. This document is an order receipt and should not be treated as a GST tax invoice.'}</p>
-                                            <p>{sellerProfile.phone || ''}{sellerProfile.email ? ' · '+sellerProfile.email : ''}</p>
-                                            <small>Computer-generated document · No signature required · Page 1 of 1</small>
+                                    <footer className="sl-ref-footer">
+                                        <div className="sl-ref-support">
+                                            <span className="sl-ref-headset"><Icon name="Phone" className="h-5 w-5"/></span>
+                                            <strong>Shopify-Lite Support</strong>
+                                            <b>{sellerProfile.phone || 'Support phone not provided'}</b>
+                                            <span className="sl-ref-separator">|</span>
+                                            <Icon name="Mail" className="h-5 w-5"/>
+                                            <b className="sl-ref-email">{sellerProfile.email || 'Support email not provided'}</b>
+                                            <span className="sl-ref-footer-right">E. &amp; O.E. &nbsp; | &nbsp; Customer Copy</span>
                                         </div>
                                     </footer>
-                                </div>
+                                </article>
                             </div>
                         </div>
                     )}
