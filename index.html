@@ -1606,29 +1606,54 @@
 
             useEffect(() => {
                 let alive = true;
-                if (!isAuthenticated || !['seller','admin'].includes(String(currentUser?.role || '').toLowerCase())) return () => { alive = false; };
                 (async () => {
-                    const { data, error } = await window.ShopifySupabase.adminClient.from('shopify_lite_seller_profile').select('*').eq('id', true).maybeSingle();
-                    if (error) throw error;
-                    if (alive && data) setSellerProfile({ business_name:data.business_name||'', contact_name:data.contact_name||'', email:data.email||'', phone:data.phone||'', address:data.address||'', city:data.city||'', state:data.state||'', pincode:data.pincode||'', gstin:data.gstin||'' });
-                })().catch(err => console.warn('Could not load seller business profile:', err));
+                    const data = await window.ShopifySupabase.loadSellerBusinessProfile();
+                    if (alive && data) {
+                        setSellerProfile({
+                            business_name:data.business_name||'', contact_name:data.contact_name||'',
+                            email:data.email||'', phone:data.phone||'', address:data.address||'',
+                            city:data.city||'', state:data.state||'', pincode:data.pincode||'', gstin:data.gstin||''
+                        });
+                    }
+                })().catch(err => console.warn('Could not load seller invoice profile:', err));
                 return () => { alive = false; };
             }, [isAuthenticated, currentUser && currentUser.id]);
 
             const saveSellerProfile = async (event) => {
                 event.preventDefault();
-                if (!currentUser || !['seller','admin'].includes(String(currentUser.role||'').toLowerCase())) { setSellerProfileMessage('Admin sign-in required.'); return; }
-                if (!sellerProfile.business_name.trim() || !sellerProfile.email.trim() || !sellerProfile.phone.trim() || !sellerProfile.address.trim() || !sellerProfile.city.trim() || !sellerProfile.state.trim() || !sellerProfile.pincode.trim()) { setSellerProfileMessage('Please complete business name, email, phone and full address including PIN code.'); return; }
-                if (!/^\\d{6}$/.test(sellerProfile.pincode.trim())) { setSellerProfileMessage('Enter a valid 6-digit PIN code.'); return; }
-                if (sellerProfile.gstin.trim() && !/^\\d{2}[A-Z]{5}\\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/i.test(sellerProfile.gstin.trim())) { setSellerProfileMessage('GSTIN format does not look valid. Check the 15-character GSTIN.'); return; }
-                setSellerProfileBusy(true); setSellerProfileMessage('');
+                if (!currentUser || !['seller','admin'].includes(String(currentUser.role||'').toLowerCase())) {
+                    setSellerProfileMessage('Please sign in with an active Admin account to save business details.');
+                    return;
+                }
+                const required = ['business_name','email','phone','address','city','state','pincode'];
+                if (required.some(key => !String(sellerProfile[key] || '').trim())) {
+                    setSellerProfileMessage('Please complete all required business fields, including the full address and PIN code.');
+                    return;
+                }
+                if (!/^\\d{6}$/.test(String(sellerProfile.pincode || '').trim())) {
+                    setSellerProfileMessage('Enter a valid 6-digit PIN code.');
+                    return;
+                }
+                const gstin = String(sellerProfile.gstin || '').trim();
+                if (gstin && !/^\\d{2}[A-Z]{5}\\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/i.test(gstin)) {
+                    setSellerProfileMessage('GSTIN format does not look valid. Check the 15-character GSTIN.');
+                    return;
+                }
+                setSellerProfileBusy(true);
+                setSellerProfileMessage('');
                 try {
-                    const payload = { ...sellerProfile, gstin:sellerProfile.gstin.trim().toUpperCase(), id:true, updated_at:new Date().toISOString() };
-                    const { error } = await window.ShopifySupabase.adminClient.from('shopify_lite_seller_profile').upsert(payload, { onConflict:'id' });
-                    if (error) throw error;
-                    setSellerProfileMessage('Business details saved. They will appear on newly printed invoices.');
-                } catch(err) { setSellerProfileMessage(err.message || 'Could not save business details. Check admin permissions.'); }
-                finally { setSellerProfileBusy(false); }
+                    const saved = await window.ShopifySupabase.saveSellerBusinessProfile(sellerProfile);
+                    setSellerProfile({
+                        business_name:saved.business_name||'', contact_name:saved.contact_name||'',
+                        email:saved.email||'', phone:saved.phone||'', address:saved.address||'',
+                        city:saved.city||'', state:saved.state||'', pincode:saved.pincode||'', gstin:saved.gstin||''
+                    });
+                    setSellerProfileMessage('Business details saved and confirmed by Supabase. Reopen the invoice to see the updated seller details.');
+                } catch(err) {
+                    setSellerProfileMessage(err.message || 'Could not save business details. Check admin permissions.');
+                } finally {
+                    setSellerProfileBusy(false);
+                }
             };
 
             useEffect(() => {
