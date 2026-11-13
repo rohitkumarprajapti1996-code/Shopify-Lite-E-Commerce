@@ -22,7 +22,7 @@
     
     <!-- Babel standalone compiler for client-side JSX resolution -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./supabase-client.js?v=20261113-a3-clear-print-v11"></script>
+    <script src="./supabase-client.js?v=20261113-a3-spacing-bold-v12"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -1044,6 +1044,169 @@
           #tax-invoice-printable .sl-exact-support { border-color:#111!important; background:#f2f7f6!important; color:#111!important; padding:5mm!important; font-size:10.5px!important; }
           #tax-invoice-printable .sl-exact-support > strong,#tax-invoice-printable .sl-exact-support > b { color:#111!important; font-size:10.5px!important; }
           #tax-invoice-printable .sl-exact-footer-meta { color:#111!important; font-size:9.5px!important; }
+        }
+
+
+        /* A3 print refinement: keep Terms & Notes close to the support footer */
+        .sl-exact-bottom-group { display:flex; flex-direction:column; width:100%; margin-top:auto; }
+        .sl-exact-terms { margin-top:0!important; }
+        .sl-exact-footer { margin-top:0!important; padding-top:2.5mm!important; }
+        .sl-exact-footer:before { margin-bottom:1.5mm!important; }
+
+        /* Stronger typography for important invoice fields */
+        .sl-exact-title h1 { font-weight:950!important; }
+        .sl-exact-seller > strong,
+        .sl-exact-order h2,
+        .sl-exact-address h2,
+        .sl-exact-address > strong,
+        .sl-exact-table td strong,
+        .sl-exact-table tfoot td,
+        .sl-exact-grand-total,
+        .sl-exact-grand-total strong,
+        .sl-exact-terms h2,
+        .sl-exact-support > strong,
+        .sl-exact-support > b { font-weight:950!important; }
+
+        @media print {
+          #tax-invoice-printable .sl-exact-bottom-group {
+            display:flex!important;
+            flex-direction:column!important;
+            width:100%!important;
+            margin-top:auto!important;
+          }
+          #tax-invoice-printable .sl-exact-terms {
+            margin-top:0!important;
+            padding:4mm 5mm!important;
+          }
+          #tax-invoice-printable .sl-exact-terms h2 {
+            font-size:15px!important;
+            font-weight:950!important;
+            padding-bottom:2.5mm!important;
+          }
+          #tax-invoice-printable .sl-exact-terms li {
+            color:#111!important;
+            font-size:12pt!important;
+            font-weight:600!important;
+            line-height:1.45!important;
+            margin-top:1mm!important;
+          }
+          #tax-invoice-printable .sl-exact-terms li:before {
+            color:#111!important;
+            font-weight:950!important;
+          }
+          #tax-invoice-printable .sl-exact-footer {
+            margin-top:0!important;
+            padding-top:2.5mm!important;
+          }
+          #tax-invoice-printable .sl-exact-footer:before {
+            margin-bottom:1.5mm!important;
+            border-top:.3mm solid #111!important;
+          }
+
+          /* Larger and darker key text throughout the invoice */
+          #tax-invoice-printable .sl-exact-title h1 {
+            color:#111!important;
+            font-size:29px!important;
+            font-weight:950!important;
+          }
+          #tax-invoice-printable .sl-exact-invoice-number strong {
+            color:#111!important;
+            font-size:19px!important;
+            font-weight:950!important;
+          }
+          #tax-invoice-printable .sl-exact-seller > strong {
+            color:#111!important;
+            font-size:14px!important;
+            font-weight:950!important;
+          }
+          #tax-invoice-printable .sl-exact-seller p {
+            color:#111!important;
+            font-size:11pt!important;
+            font-weight:600!important;
+          }
+          #tax-invoice-printable .sl-exact-order h2,
+          #tax-invoice-printable .sl-exact-address h2 {
+            color:#111!important;
+            font-size:14px!important;
+            font-weight:950!important;
+          }
+          #tax-invoice-printable .sl-exact-order dt {
+            color:#222!important;
+            font-size:10.5pt!important;
+            font-weight:700!important;
+          }
+          #tax-invoice-printable .sl-exact-order dd {
+            color:#111!important;
+            font-size:11pt!important;
+            font-weight:850!important;
+          }
+          #tax-invoice-printable .sl-exact-address > strong {
+            color:#111!important;
+            font-size:14px!important;
+            font-weight:950!important;
+          }
+          #tax-invoice-printable .sl-exact-address p {
+            color:#111!important;
+            font-size:10.5pt!important;
+            font-weight:600!important;
+          }
+          #tax-invoice-printable .sl-exact-item-count {
+            color:#111!important;
+            font-size:14px!important;
+            font-weight:950!important;
+          }
+          #tax-invoice-printable .sl-exact-table th {
+            color:#fff!important;
+            font-size:11pt!important;
+            font-weight:950!important;
+          }
+          #tax-invoice-printable .sl-exact-table td {
+            color:#111!important;
+            font-size:11pt!important;
+            font-weight:700!important;
+          }
+          #tax-invoice-printable .sl-exact-table td strong {
+            color:#111!important;
+            font-size:12pt!important;
+            font-weight:950!important;
+          }
+          #tax-invoice-printable .sl-exact-table td small {
+            color:#222!important;
+            font-size:10pt!important;
+            font-weight:600!important;
+          }
+          #tax-invoice-printable .sl-exact-grand-total {
+            color:#111!important;
+            font-size:22px!important;
+            font-weight:950!important;
+          }
+          #tax-invoice-printable .sl-exact-grand-total strong {
+            color:#fff!important;
+            font-size:29px!important;
+            font-weight:950!important;
+          }
+          #tax-invoice-printable .sl-exact-total-sign > p,
+          #tax-invoice-printable .sl-exact-total-sign > small,
+          #tax-invoice-printable .sl-exact-payment-status {
+            color:#111!important;
+            font-size:11pt!important;
+            font-weight:800!important;
+          }
+          #tax-invoice-printable .sl-exact-support {
+            font-size:11pt!important;
+            font-weight:700!important;
+          }
+          #tax-invoice-printable .sl-exact-support > strong,
+          #tax-invoice-printable .sl-exact-support > b {
+            color:#111!important;
+            font-size:11pt!important;
+            font-weight:950!important;
+          }
+          #tax-invoice-printable .sl-exact-footer-meta {
+            color:#111!important;
+            font-size:10pt!important;
+            font-weight:900!important;
+          }
         }
 
 </style>
@@ -5358,6 +5521,7 @@
                                         <small>Authorised Signatory</small>
                                         <b className="sl-exact-payment-status">{String(viewingInvoiceOrder.paymentStatus || viewingInvoiceOrder.payment_status || '').toLowerCase()==='paid' ? 'PAID' : 'AMOUNT DUE'} · ₹{Number(viewingInvoiceOrder.total || 0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</b>
                                     </section>
+                                    <div className="sl-exact-bottom-group">
                                     <section className="sl-exact-terms">
                                         <h2>Terms &amp; Notes</h2>
                                         <ul>
@@ -5376,6 +5540,7 @@
                                             <span className="sl-exact-footer-meta">E. &amp; O.E. &nbsp; | &nbsp; Page 1 of 1</span>
                                         </div>
                                     </footer>
+                                    </div>
                                 </article>
                             </div>
                         </div>
