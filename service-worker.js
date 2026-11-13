@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shopify-lite-shell-v9';
+const CACHE_NAME = 'shopify-lite-shell-v10';
 const APP_SHELL = ['./', './index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', (event) => {
