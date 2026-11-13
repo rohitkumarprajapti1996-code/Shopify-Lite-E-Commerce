@@ -35,6 +35,37 @@
       if (error) throw error;
       return data === true;
     },
+    async loadSellerBusinessProfile() {
+      const { data, error } = await client.from("shopify_lite_seller_profile")
+        .select("business_name,contact_name,email,phone,address,city,state,pincode,gstin,updated_at")
+        .eq("id", true).maybeSingle();
+      if (error) throw error;
+      return data || null;
+    },
+    async saveSellerBusinessProfile(profile) {
+      const allowed = await this.isAdmin();
+      if (!allowed) throw new Error("Only an active administrator can save business invoice details.");
+      const payload = {
+        id: true,
+        business_name: String(profile.business_name || "").trim(),
+        contact_name: String(profile.contact_name || "").trim(),
+        email: String(profile.email || "").trim(),
+        phone: String(profile.phone || "").trim(),
+        address: String(profile.address || "").trim(),
+        city: String(profile.city || "").trim(),
+        state: String(profile.state || "").trim(),
+        pincode: String(profile.pincode || "").trim(),
+        gstin: String(profile.gstin || "").trim().toUpperCase(),
+        updated_at: new Date().toISOString()
+      };
+      const { data, error } = await adminClient.from("shopify_lite_seller_profile")
+        .upsert(payload, { onConflict: "id" })
+        .select("business_name,contact_name,email,phone,address,city,state,pincode,gstin,updated_at")
+        .single();
+      if (error) throw error;
+      if (!data || !data.business_name) throw new Error("Supabase did not confirm the saved business profile.");
+      return data;
+    },
     async loadProducts() {
       const { data, error } = await client.from("shopify_lite_products")
         .select("*").eq("is_active", true).order("created_at", { ascending: false });
