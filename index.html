@@ -22,7 +22,7 @@
     
     <!-- Babel standalone compiler for client-side JSX resolution -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./supabase-client.js?v=20261113-exact-invoice-v7"></script>
+    <script src="./supabase-client.js?v=20261113-print-logo-fix-v8"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -161,20 +161,7 @@
           #root .max-w-7xl { width:100%; }
           #root .fixed.inset-0 > div { max-height:calc(100vh - 48px); overflow-y:auto; }
         }
-        @page { size:A4; margin:12mm; }
-        @media print {
-          @page { size:A4; margin:10mm; }
-          html,body,#root { background:#fff!important; margin:0!important; padding:0!important; width:auto!important; height:auto!important; overflow:visible!important; }
-          body * { visibility:hidden!important; }
-          #tax-invoice-printable,#tax-invoice-printable * { visibility:visible!important; }
-          #tax-invoice-printable { display:block!important; position:fixed!important; inset:0 auto auto 0!important; width:190mm!important; max-width:190mm!important; min-height:0!important; height:auto!important; overflow:visible!important; margin:0!important; padding:0!important; background:#fff!important; color:#111827!important; font-size:9pt!important; box-shadow:none!important; }
-          #tax-invoice-printable .grid { display:grid!important; grid-template-columns:repeat(2,minmax(0,1fr))!important; gap:8mm!important; }
-          #tax-invoice-printable table { width:100%!important; border-collapse:collapse!important; }
-          #tax-invoice-printable tr { break-inside:avoid!important; page-break-inside:avoid!important; }
-          #tax-invoice-printable h1 { font-size:18pt!important; }
-          #tax-invoice-printable p,#tax-invoice-printable span { overflow-wrap:anywhere!important; }
-          .no-print { display:none!important; }
-        }
+        /* Invoice-specific A4 print rules are defined with the invoice styles below. */
 
         /* Shopify-Lite premium visual refresh — presentation only */
         :root {
@@ -826,7 +813,7 @@
         .sl-invoice-sheet { position:relative; display:flex; flex-direction:column; width:100%; max-width:202mm; min-height:285mm; margin:0 auto; padding:5mm 4mm 4mm; overflow:hidden; background:#fff; color:#183f43; font-family:'Manrope',Arial,sans-serif; font-size:8.5px; line-height:1.38; }
         .sl-exact-header { display:grid; grid-template-columns:minmax(0,1fr) minmax(75mm,.95fr); gap:8mm; align-items:start; padding:1mm 3mm 4mm; }
         .sl-exact-brand { display:flex; align-items:flex-start; min-width:0; }
-        .sl-exact-logo { display:block; width:79mm; max-width:100%; height:auto; object-fit:contain; object-position:left top; }
+        .sl-exact-logo { display:block; width:79mm; max-width:100%; height:auto; overflow:visible; object-fit:contain; object-position:left top; shape-rendering:geometricPrecision; text-rendering:geometricPrecision; }
         .sl-exact-title { display:flex; flex-direction:column; align-items:flex-start; min-width:0; padding-top:1mm; }
         .sl-exact-title h1 { color:#173e43; font-family:'Manrope',Arial,sans-serif; font-size:17px; font-weight:900; letter-spacing:-.035em; line-height:1.2; white-space:nowrap; }
         .sl-exact-title > p { margin-top:2px; color:#087f75; font-size:9px; font-weight:800; }
@@ -5145,13 +5132,24 @@
                                 <div className="no-print flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 sm:px-6">
                                     <div className="flex items-center gap-2 text-xs font-bold text-slate-600"><Icon name="Receipt" className="h-4 w-4 text-teal-700"/> Shopify-Lite invoice preview</div>
                                     <div className="flex items-center gap-2">
-                                        <button type="button" onClick={() => window.print()} className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-xs font-extrabold text-white shadow-sm hover:bg-teal-800"><Icon name="Download" className="h-4 w-4"/> Print / Save PDF</button>
+                                        <span className="hidden sm:inline text-[10px] font-medium text-slate-500">For one invoice, set Copies to 1</span>
+                                        <button type="button" onClick={() => window.print()} title="Print one invoice; set Copies to 1 in the print dialog" className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-xs font-extrabold text-white shadow-sm hover:bg-teal-800"><Icon name="Download" className="h-4 w-4"/> Print / Save PDF</button>
                                         <button type="button" onClick={() => setViewingInvoiceOrder(null)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-200 hover:text-slate-800" aria-label="Close invoice"><Icon name="X" className="h-5 w-5"/></button>
                                     </div>
                                 </div>
                                 <article id="tax-invoice-printable" className="sl-invoice-sheet">
                                     <header className="sl-exact-header">
-                                        <div className="sl-exact-brand"><img src="./assets/shopify-lite-logo.webp" alt="Shopify-Lite E-Commerce Pvt. Ltd." className="sl-exact-logo"/></div>
+                                        <div className="sl-exact-brand">
+                                            <svg className="sl-exact-logo" viewBox="0 0 405 115" role="img" aria-label="Shopify-Lite E-Commerce Pvt. Ltd.">
+                                                <path d="M36 34 C36 7 82 7 82 34" fill="none" stroke="#08766f" strokeWidth="8" strokeLinecap="round"/>
+                                                <rect x="15" y="29" width="91" height="82" rx="22" fill="#08766f"/>
+                                                <path d="M37 51 Q37 46 43 46 H78 Q84 46 84 52 L80 93 Q79 99 73 99 H47 Q41 99 40 93 Z" fill="#fff"/>
+                                                <text x="61" y="84" textAnchor="middle" fontFamily="Manrope, Arial, sans-serif" fontSize="39" fontWeight="900" fill="#08766f">S</text>
+                                                <text x="128" y="58" fontFamily="Manrope, Arial, sans-serif" fontSize="43" fontWeight="900" letterSpacing="-1.7" fill="#153f43">Shopify-</text>
+                                                <text x="302" y="58" fontFamily="Manrope, Arial, sans-serif" fontSize="43" fontWeight="900" letterSpacing="-1.7" fill="#087f75">Lite</text>
+                                                <text x="130" y="91" fontFamily="Manrope, Arial, sans-serif" fontSize="18" fontWeight="600" fill="#60797d">E-Commerce Pvt. Ltd.</text>
+                                            </svg>
+                                        </div>
                                         <div className="sl-exact-title">
                                             <h1>ORDER INVOICE / RECEIPT</h1>
                                             <p>{sellerProfile.gstin ? 'Tax Invoice' : 'Customer Order Receipt'}</p>
