@@ -176,6 +176,73 @@
       if (error) throw error;
       return data;
     },
+    async loadCustomerAccounts() {
+      const [profilesResult, addressesResult, orders] = await Promise.all([
+        adminClient.from("shopify_lite_customer_profiles")
+          .select("user_id,full_name,phone,shipping_address,pincode,landmark,updated_at")
+          .order("updated_at", { ascending: false }),
+        adminClient.from("shopify_lite_customer_addresses")
+          .select("id,user_id,label,address,pincode,landmark,start_time,end_time,created_at")
+          .order("created_at", { ascending: false }),
+        window.ShopifySupabase.loadOrders(true)
+      ]);
+      if (profilesResult.error) throw profilesResult.error;
+      if (addressesResult.error) throw addressesResult.error;
+
+      const accounts = new Map();
+      const getAccount = (userId) => {
+        const id = String(userId || "");
+        if (!id) return null;
+        if (!accounts.has(id)) accounts.set(id, {
+          userId:id, name:"Customer", email:"", phone:"",
+          shippingAddress:"", pincode:"", landmark:"",
+          updatedAt:"", addresses:[], orders:[]
+        });
+        return accounts.get(id);
+      };
+
+      (profilesResult.data || []).forEach(profile => {
+        const account = getAccount(profile.user_id);
+        if (!account) return;
+        account.name = profile.full_name || account.name;
+        account.phone = profile.phone || account.phone;
+        account.shippingAddress = profile.shipping_address || account.shippingAddress;
+        account.pincode = profile.pincode || account.pincode;
+        account.landmark = profile.landmark || account.landmark;
+        account.updatedAt = profile.updated_at || account.updatedAt;
+      });
+
+      (addressesResult.data || []).forEach(address => {
+        const account = getAccount(address.user_id);
+        if (!account) return;
+        account.addresses.push({
+          id:address.id, label:address.label, address:address.address,
+          pincode:address.pincode, landmark:address.landmark || "",
+          days:address.label === "Office" ? "Monday to Friday" : "Monday to Sunday",
+          startTime:address.start_time || "", endTime:address.end_time || ""
+        });
+      });
+
+      (orders || []).forEach(order => {
+        const account = getAccount(order.customerId);
+        if (!account) return;
+        account.name = order.customerName || account.name;
+        account.email = order.customerEmail || account.email;
+        account.phone = order.customerPhone || account.phone;
+        account.orders.push(order);
+      });
+
+      return Array.from(accounts.values())
+        .map(account => ({
+          ...account,
+          email:account.email || "",
+          addresses:account.addresses,
+          orders:account.orders.slice().sort((a,b) =>
+            (Date.parse(b.createdAt || b.date || "") || 0) - (Date.parse(a.createdAt || a.date || "") || 0)
+          )
+        }))
+        .sort((a,b) => String(a.name || "").localeCompare(String(b.name || "")));
+    },
     async loadOrders(forAdmin = false) {
       const db = forAdmin ? adminClient : client;
       const { data, error } = await db.from("shopify_lite_orders")
