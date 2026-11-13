@@ -87,6 +87,22 @@
       if (error) throw error;
       return data;
     },
+    async updateCustomerAddress(userId, addressId, address) {
+      if (!userId || !addressId) throw new Error("Sign in to update this address.");
+      const row = {
+        label: address.label === "Office" ? "Office" : "Home",
+        address: String(address.address || "").trim(),
+        pincode: String(address.pincode || "").trim(),
+        landmark: String(address.landmark || "").trim(),
+        start_time: address.startTime || "",
+        end_time: address.endTime || "",
+        updated_at: new Date().toISOString()
+      };
+      const { data, error } = await client.from("shopify_lite_customer_addresses")
+        .update(row).eq("id", addressId).eq("user_id", userId).select().single();
+      if (error) throw error;
+      return data;
+    },
     async deleteCustomerAddress(userId, addressId) {
       if (!userId) throw new Error("Sign in to remove an address.");
       const { error } = await client.from("shopify_lite_customer_addresses").delete().eq("user_id", userId).eq("id", addressId);
@@ -178,7 +194,7 @@
       return rows.map(o => {
         const d = dispatchByOrder[o.id] || {};
         return {
-          id: o.order_number, orderNumber: o.order_number, invoiceNumber: o.invoice_number || "", databaseId: o.id, customerName: o.customer_name || "",
+          id: o.order_number, orderNumber: o.order_number, invoiceNumber: o.invoice_number || "", databaseId: o.id, customerId: o.customer_id || "", createdAt: o.created_at || "", customerName: o.customer_name || "",
           customerPhone: o.customer_phone || "", customerEmail: o.customer_email || "",
           items: (o.shopify_lite_order_items || []).map(i => ({
             id: i.product_id || i.id, title: i.product_title, price: Number(i.unit_price),
