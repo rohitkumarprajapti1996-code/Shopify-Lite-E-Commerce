@@ -22,7 +22,7 @@
     
     <!-- Babel standalone compiler for client-side JSX resolution -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./supabase-client.js?v=20261113-print-logo-fix-v8"></script>
+    <script src="./supabase-client.js?v=20261113-a3-bordered-invoice-v9"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -810,12 +810,15 @@
 
         
         /* Exact match to supplied Shopify-Lite invoice artwork */
-        .sl-invoice-sheet { position:relative; display:flex; flex-direction:column; width:100%; max-width:202mm; min-height:285mm; margin:0 auto; padding:5mm 4mm 4mm; overflow:hidden; background:#fff; color:#183f43; font-family:'Manrope',Arial,sans-serif; font-size:8.5px; line-height:1.38; }
+        .sl-invoice-sheet { position:relative; display:flex; flex-direction:column; box-sizing:border-box; width:100%; max-width:289mm; min-height:412mm; margin:0 auto; padding:12mm 10mm 9mm; overflow:hidden; border:0.65mm solid #087f75; border-radius:3mm; outline:0.25mm solid #b9ddd6; outline-offset:-2.2mm; background:#fff; color:#183f43; font-family:'Manrope',Arial,sans-serif; font-size:10px; line-height:1.42; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+        .sl-invoice-sheet:before { content:""; position:absolute; z-index:5; pointer-events:none; inset:4mm; border:0.25mm solid #c6e2dc; border-radius:2mm; }
+        .sl-invoice-sheet:after { content:""; position:absolute; z-index:5; pointer-events:none; inset:2mm; border-radius:2mm; background:linear-gradient(#087f75,#087f75) left top/15mm .8mm no-repeat,linear-gradient(#087f75,#087f75) left top/.8mm 15mm no-repeat,linear-gradient(#087f75,#087f75) right top/15mm .8mm no-repeat,linear-gradient(#087f75,#087f75) right top/.8mm 15mm no-repeat,linear-gradient(#087f75,#087f75) left bottom/15mm .8mm no-repeat,linear-gradient(#087f75,#087f75) left bottom/.8mm 15mm no-repeat,linear-gradient(#087f75,#087f75) right bottom/15mm .8mm no-repeat,linear-gradient(#087f75,#087f75) right bottom/.8mm 15mm no-repeat; }
+        .sl-invoice-sheet > * { position:relative; z-index:1; }
         .sl-exact-header { display:grid; grid-template-columns:minmax(0,1fr) minmax(75mm,.95fr); gap:8mm; align-items:start; padding:1mm 3mm 4mm; }
         .sl-exact-brand { display:flex; align-items:flex-start; min-width:0; }
-        .sl-exact-logo { display:block; width:79mm; max-width:100%; height:auto; overflow:visible; object-fit:contain; object-position:left top; shape-rendering:geometricPrecision; text-rendering:geometricPrecision; }
+        .sl-exact-logo { display:block; width:94mm; max-width:100%; height:auto; overflow:visible; object-fit:contain; object-position:left top; shape-rendering:geometricPrecision; text-rendering:geometricPrecision; }
         .sl-exact-title { display:flex; flex-direction:column; align-items:flex-start; min-width:0; padding-top:1mm; }
-        .sl-exact-title h1 { color:#173e43; font-family:'Manrope',Arial,sans-serif; font-size:17px; font-weight:900; letter-spacing:-.035em; line-height:1.2; white-space:nowrap; }
+        .sl-exact-title h1 { color:#173e43; font-family:'Manrope',Arial,sans-serif; font-size:22px; font-weight:900; letter-spacing:-.035em; line-height:1.2; white-space:nowrap; }
         .sl-exact-title > p { margin-top:2px; color:#087f75; font-size:9px; font-weight:800; }
         .sl-exact-invoice-number { display:flex; align-items:center; gap:9px; margin-top:5mm; border:1px solid #b7d9d3; border-radius:10px; background:#f2f9f7; padding:8px 11px; box-shadow:0 3px 9px rgba(20,80,75,.07); }
         .sl-exact-invoice-number > span { display:flex; color:#087f75; }
@@ -843,7 +846,7 @@
         .sl-exact-keep p { color:#4a656a; font-size:6.7px; font-style:italic; line-height:1.45; }
         .sl-exact-item-count { margin:3mm 1mm 1.6mm; padding-bottom:1.7mm; border-bottom:1px solid #9dc9c2; color:#087f75; font-size:8px; font-weight:900; }
         .sl-exact-table-wrap { overflow:hidden; border:1px solid #94c5bd; border-radius:8px; }
-        .sl-exact-table { width:100%; border-collapse:collapse; table-layout:fixed; font-size:7px; }
+        .sl-exact-table { width:100%; border-collapse:collapse; table-layout:fixed; font-size:9px; }
         .sl-exact-table thead { background:#08766f; color:#fff; }
         .sl-exact-table th { padding:2.5mm 1.1mm; color:#fff; font-size:6.8px; font-weight:900; line-height:1.2; text-align:left; vertical-align:middle; white-space:normal; }
         .sl-exact-table th:nth-child(1) { width:15%; }
@@ -854,8 +857,8 @@
         .sl-exact-table th:nth-child(6) { width:12%; text-align:right; }
         .sl-exact-table th:nth-child(7) { width:10%; text-align:right; }
         .sl-exact-table th:nth-child(8) { width:11%; text-align:right; }
-        .sl-exact-table td { min-width:0; height:30mm; border:1px solid #d4e5e2; padding:2mm 1.1mm; color:#435f65; vertical-align:middle; overflow-wrap:anywhere; }
-        .sl-exact-item-image { display:flex; width:24mm; height:24mm; max-width:100%; align-items:center; justify-content:center; overflow:hidden; border:1px solid #dceae7; border-radius:5px; background:#f4f8f7; color:#4b948a; }
+        .sl-exact-table td { min-width:0; height:38mm; border:1px solid #d4e5e2; padding:3mm 2mm; color:#435f65; vertical-align:middle; overflow-wrap:anywhere; }
+        .sl-exact-item-image { display:flex; width:32mm; height:32mm; max-width:100%; align-items:center; justify-content:center; overflow:hidden; border:1px solid #dceae7; border-radius:5px; background:#f4f8f7; color:#4b948a; }
         .sl-exact-item-image img { display:block; width:100%; height:100%; object-fit:contain; }
         .sl-exact-item-index { display:block; margin-top:1mm; color:#687e82; font-size:6px; text-align:center; }
         .sl-exact-table td strong { display:block; color:#163e43; font-size:7.4px; font-weight:900; line-height:1.35; }
@@ -890,6 +893,7 @@
         .sl-exact-footer-meta { margin-left:auto; color:#fff; font-size:7px; font-weight:900; white-space:nowrap; }
         @media(max-width:760px) {
           .sl-invoice-sheet { min-height:0; padding:16px!important; }
+          .sl-invoice-sheet:before,.sl-invoice-sheet:after { display:none; }
           .sl-exact-header { grid-template-columns:minmax(0,1fr); gap:5mm; }
           .sl-exact-logo { width:74mm; }
           .sl-exact-title { align-items:flex-start; text-align:left; }
@@ -903,19 +907,32 @@
         }
         @media(max-width:430px) { .sl-exact-parties { grid-template-columns:minmax(0,1fr); } }
         @media print {
-          @page { size:A4 portrait; margin:0; }
+          @page { size:A3 portrait; margin:0; }
           html,body,#root { background:#fff!important; margin:0!important; padding:0!important; width:auto!important; height:auto!important; overflow:visible!important; }
           body * { visibility:hidden!important; }
           #tax-invoice-printable,#tax-invoice-printable * { visibility:visible!important; }
-          #tax-invoice-printable { display:flex!important; flex-direction:column!important; position:absolute!important; left:0!important; top:0!important; width:210mm!important; max-width:210mm!important; height:297mm!important; min-height:297mm!important; margin:0!important; padding:5mm 4mm 4mm!important; overflow:hidden!important; background:#fff!important; color:#183f43!important; box-shadow:none!important; }
-          #tax-invoice-printable .sl-exact-header { grid-template-columns:minmax(0,1fr) minmax(75mm,.95fr)!important; }
-          #tax-invoice-printable .sl-exact-parties { grid-template-columns:1.12fr 1fr 1fr .58fr!important; }
-          #tax-invoice-printable .sl-exact-table { width:100%!important; min-width:0!important; table-layout:fixed!important; }
-          #tax-invoice-printable .sl-exact-table td { height:30mm!important; padding:2mm 1mm!important; }
-          #tax-invoice-printable .sl-exact-item-image { width:24mm!important; height:24mm!important; }
-          #tax-invoice-printable .sl-exact-total-sign { width:80mm!important; margin-top:4mm!important; }
-          #tax-invoice-printable .sl-exact-terms { margin-top:4mm!important; }
+          #tax-invoice-printable { display:flex!important; flex-direction:column!important; box-sizing:border-box!important; position:absolute!important; left:0!important; top:0!important; width:297mm!important; max-width:297mm!important; height:420mm!important; min-height:420mm!important; margin:0!important; padding:12mm 10mm 9mm!important; overflow:hidden!important; border:0.65mm solid #087f75!important; border-radius:3mm!important; outline:0.25mm solid #b9ddd6!important; outline-offset:-2.2mm!important; background:#fff!important; color:#183f43!important; box-shadow:none!important; -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
+          #tax-invoice-printable:before { content:""; position:absolute!important; z-index:5!important; inset:4mm!important; border:0.25mm solid #c6e2dc!important; border-radius:2mm!important; pointer-events:none!important; }
+          #tax-invoice-printable:after { content:""; position:absolute!important; z-index:5!important; inset:2mm!important; pointer-events:none!important; background:linear-gradient(#087f75,#087f75) left top/18mm .9mm no-repeat,linear-gradient(#087f75,#087f75) left top/.9mm 18mm no-repeat,linear-gradient(#087f75,#087f75) right top/18mm .9mm no-repeat,linear-gradient(#087f75,#087f75) right top/.9mm 18mm no-repeat,linear-gradient(#087f75,#087f75) left bottom/18mm .9mm no-repeat,linear-gradient(#087f75,#087f75) left bottom/.9mm 18mm no-repeat,linear-gradient(#087f75,#087f75) right bottom/18mm .9mm no-repeat,linear-gradient(#087f75,#087f75) right bottom/.9mm 18mm no-repeat!important; }
+          #tax-invoice-printable > * { position:relative!important; z-index:1!important; }
+          #tax-invoice-printable .sl-exact-header { grid-template-columns:minmax(0,1fr) minmax(100mm,.95fr)!important; gap:12mm!important; }
+          #tax-invoice-printable .sl-exact-logo { width:100mm!important; }
+          #tax-invoice-printable .sl-exact-title h1 { font-size:26px!important; }
+          #tax-invoice-printable .sl-exact-title > p { font-size:13px!important; }
+          #tax-invoice-printable .sl-exact-parties { grid-template-columns:1.12fr 1fr 1fr .58fr!important; gap:4mm!important; }
+          #tax-invoice-printable .sl-exact-table-wrap { overflow:visible!important; }
+          #tax-invoice-printable .sl-exact-table { width:100%!important; min-width:0!important; table-layout:fixed!important; font-size:9px!important; }
+          #tax-invoice-printable .sl-exact-table th { font-size:8px!important; padding:3mm 2mm!important; }
+          #tax-invoice-printable .sl-exact-table td { height:38mm!important; padding:3mm 2mm!important; }
+          #tax-invoice-printable .sl-exact-item-image { width:32mm!important; height:32mm!important; }
+          #tax-invoice-printable .sl-exact-total-sign { width:105mm!important; margin-top:7mm!important; }
+          #tax-invoice-printable .sl-exact-grand-total { font-size:18px!important; }
+          #tax-invoice-printable .sl-exact-grand-total strong { font-size:25px!important; }
+          #tax-invoice-printable .sl-exact-signature-line { margin-top:15mm!important; }
+          #tax-invoice-printable .sl-exact-terms { margin-top:8mm!important; }
+          #tax-invoice-printable .sl-exact-terms li { font-size:8.5px!important; }
           #tax-invoice-printable .sl-exact-footer { margin-top:auto!important; }
+          #tax-invoice-printable .sl-exact-support { padding:4mm!important; font-size:9px!important; }
           .no-print { display:none!important; }
         }
 
