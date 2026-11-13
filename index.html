@@ -660,6 +660,167 @@
           #root main .sl-trending-image { height:118px!important; }
         }
 
+        
+        /* Customer sign-in and account dashboard refresh */
+        .sl-auth-overlay { overscroll-behavior:contain; }
+        .sl-auth-modal { max-height:min(92dvh,860px); }
+        .sl-auth-modal-customer { width:min(100%,960px); }
+        .sl-auth-modal-admin { width:min(100%,448px); padding:30px; }
+        .sl-auth-layout-customer {
+          display:grid;
+          grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
+          min-height:min(690px,88dvh);
+        }
+        .sl-auth-layout-admin { display:block; }
+        .sl-auth-aside {
+          position:relative;
+          display:flex;
+          flex-direction:column;
+          justify-content:space-between;
+          overflow:hidden;
+          padding:42px 34px 28px;
+          color:#f0fdfa;
+          background:
+            radial-gradient(circle at 14% 12%,rgba(94,234,212,.22),transparent 31%),
+            linear-gradient(150deg,#0c7770 0%,#07565b 53%,#102f43 100%);
+        }
+        .sl-auth-aside-orb {
+          position:absolute;
+          border:1px solid rgba(255,255,255,.12);
+          border-radius:999px;
+          pointer-events:none;
+        }
+        .sl-auth-aside-orb-one { width:360px;height:360px;right:-185px;top:-115px; }
+        .sl-auth-aside-orb-two { width:250px;height:250px;left:-155px;bottom:-110px; }
+        .sl-auth-brand { display:flex;align-items:center;gap:9px;font-size:20px;font-weight:950;letter-spacing:-.06em;color:#fff; }
+        .sl-auth-brand > span:last-child { color:#fcd36a; }
+        .sl-auth-brand-mark { display:grid;place-items:center;width:38px;height:38px;border-radius:13px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.16); }
+        .sl-auth-eyebrow { display:inline-flex;align-items:center;border:1px solid rgba(153,246,228,.28);border-radius:999px;padding:7px 11px;background:rgba(255,255,255,.08);font-size:9px;font-weight:900;letter-spacing:.18em;color:#bff8ed; }
+        .sl-auth-benefit { display:flex;align-items:flex-start;gap:12px; }
+        .sl-auth-benefit > span { display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:11px;background:rgba(255,255,255,.12);color:#fcd36a; }
+        .sl-auth-benefit strong { display:block;font-size:12px;font-weight:850;color:#fff; }
+        .sl-auth-benefit small { display:block;margin-top:3px;font-size:10px;line-height:1.5;color:rgba(224,251,247,.7); }
+        .sl-auth-aside-foot { display:flex;align-items:center;gap:9px;border-top:1px solid rgba(255,255,255,.14);padding-top:18px;font-size:10px;line-height:1.5;color:rgba(224,251,247,.72); }
+        .sl-auth-content { min-width:0; }
+        .sl-auth-content-customer { max-height:min(690px,88dvh);overflow-y:auto;padding:44px 48px 34px;scrollbar-width:thin;scrollbar-color:#bfd8d5 transparent; }
+        .sl-auth-content-admin { padding:4px; }
+        .sl-auth-content-customer > .text-center { text-align:left!important;margin-bottom:24px!important;padding-right:34px; }
+        .sl-auth-content-customer > .text-center > div:first-child { margin-left:0!important;margin-right:0!important;width:44px!important;height:44px!important;border-radius:14px!important; }
+        .sl-auth-content-customer h2 { font-size:30px!important;line-height:1.12!important;letter-spacing:-.045em!important;color:#12343c!important; }
+        .sl-auth-content-customer > .text-center p { font-size:13px!important;color:#71828b!important; }
+        .sl-auth-account-note { background:linear-gradient(120deg,#effbf8,#f7fbfb)!important; }
+        .sl-auth-content-customer form { gap:17px!important; }
+        .sl-auth-content-customer label { display:block;margin-bottom:7px!important;font-size:10px!important;font-weight:900!important;letter-spacing:.11em!important;color:#526b73!important; }
+        .sl-auth-content-customer input {
+          min-height:52px!important;
+          border:1px solid #d8e5e7!important;
+          border-radius:14px!important;
+          padding-top:13px!important;
+          padding-bottom:13px!important;
+          background:#fff!important;
+          color:#17333a!important;
+          box-shadow:0 3px 12px rgba(18,59,66,.025);
+          transition:border-color .2s ease,box-shadow .2s ease!important;
+        }
+        .sl-auth-content-customer input:focus {
+          outline:none!important;
+          border-color:#0d9488!important;
+          box-shadow:0 0 0 4px rgba(13,148,136,.11)!important;
+        }
+        .sl-auth-code-input { font-size:21px!important;font-weight:850!important;letter-spacing:.3em!important;text-align:center!important; }
+        .sl-auth-content-customer .sl-auth-submit-customer { background:linear-gradient(100deg,#0b8f83,#08756e)!important;box-shadow:0 12px 24px rgba(8,127,117,.2)!important; }
+        .sl-auth-content-customer .sl-auth-submit-customer:hover { filter:brightness(1.06);transform:translateY(-1px); }
+        .sl-auth-submit-admin { background:#4f46e5!important; }
+        .sl-auth-content-customer .text-center.mt-4 { border-top:1px solid #edf2f3;margin-top:20px!important;padding-top:15px; }
+        .sl-auth-content-customer .text-center.mt-4 p { font-size:10px!important;color:#809198!important; }
+        .sl-auth-modal-admin .sl-auth-layout-admin { width:100%; }
+        .sl-customer-dashboard { scroll-margin-top:24px; }
+        .sl-customer-hero {
+          border:1px solid rgba(153,246,228,.14);
+          box-shadow:0 25px 58px rgba(8,57,62,.17)!important;
+        }
+        .sl-customer-dashboard > .grid.grid-cols-1.sm\:grid-cols-3 > div {
+          border-radius:20px!important;
+          box-shadow:0 8px 24px rgba(16,52,58,.055)!important;
+        }
+        .sl-customer-shortcuts {
+          display:grid;
+          grid-template-columns:repeat(4,minmax(0,1fr));
+          gap:13px;
+        }
+        .sl-customer-shortcut {
+          display:flex;
+          align-items:center;
+          gap:11px;
+          min-width:0;
+          padding:15px 14px;
+          text-align:left;
+          border:1px solid #dce9e9;
+          border-radius:18px;
+          background:linear-gradient(145deg,#fff,#f7fbfb);
+          box-shadow:0 6px 20px rgba(18,55,62,.045);
+          transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease;
+        }
+        .sl-customer-shortcut:hover {
+          transform:translateY(-3px);
+          border-color:#9bcfc9;
+          box-shadow:0 13px 26px rgba(8,127,117,.1);
+        }
+        .sl-customer-shortcut-icon {
+          display:grid;place-items:center;flex:0 0 39px;height:39px;
+          border-radius:13px;background:#e8f7f4;color:#08786f;
+        }
+        .sl-customer-shortcut strong { display:block;font-size:12px;font-weight:900;color:#183942; }
+        .sl-customer-shortcut small { display:block;margin-top:3px;font-size:10px;line-height:1.35;color:#71858b; }
+        .sl-customer-shortcut-arrow { margin-left:auto;color:#0b897f;font-weight:900; }
+        .sl-customer-card {
+          border-color:#dce8e8!important;
+          box-shadow:0 9px 26px rgba(18,55,62,.055)!important;
+          scroll-margin-top:22px;
+        }
+        .sl-customer-dashboard input:not([type=checkbox]),
+        .sl-customer-dashboard select,
+        .sl-customer-dashboard textarea {
+          border-radius:13px!important;
+          border-color:#d7e3e5!important;
+        }
+        .sl-customer-dashboard input:focus,
+        .sl-customer-dashboard select:focus,
+        .sl-customer-dashboard textarea:focus {
+          outline:none!important;border-color:#0d9488!important;box-shadow:0 0 0 3px rgba(13,148,136,.1)!important;
+        }
+        .sl-customer-orders-heading { scroll-margin-top:22px; }
+        .sl-customer-order-card {
+          border-color:#dce8e8!important;
+          border-radius:22px!important;
+          box-shadow:0 10px 28px rgba(18,55,62,.055)!important;
+        }
+        @media(max-width:900px) {
+          .sl-auth-layout-customer { grid-template-columns:minmax(0,1fr);min-height:0; }
+          .sl-auth-aside { display:none; }
+          .sl-auth-modal-customer { max-width:570px!important; }
+          .sl-auth-content-customer { max-height:min(88dvh,760px);padding:34px 32px 28px; }
+          .sl-customer-shortcuts { grid-template-columns:repeat(2,minmax(0,1fr)); }
+        }
+        @media(max-width:560px) {
+          .sl-auth-overlay { align-items:flex-start!important;padding:10px!important; }
+          .sl-auth-modal { margin:auto 0;max-height:calc(100dvh - 20px)!important;border-radius:23px!important; }
+          .sl-auth-modal-admin { padding:22px!important; }
+          .sl-auth-content-customer { max-height:calc(100dvh - 20px)!important;padding:28px 21px 23px; }
+          .sl-auth-content-customer h2 { font-size:26px!important; }
+          .sl-auth-content-customer > .text-center { padding-right:28px; }
+          .sl-customer-dashboard { padding-left:12px;padding-right:12px; }
+          .sl-customer-hero { padding:23px!important;border-radius:23px!important; }
+          .sl-customer-shortcuts { grid-template-columns:repeat(2,minmax(0,1fr));gap:9px; }
+          .sl-customer-shortcut { padding:12px 10px;gap:8px;border-radius:15px; }
+          .sl-customer-shortcut-icon { flex-basis:34px;height:34px; }
+          .sl-customer-shortcut small { font-size:9px; }
+        }
+        @media(prefers-reduced-motion:reduce) {
+          .sl-customer-shortcut { transition:none!important; }
+          .sl-customer-shortcut:hover { transform:none!important; }
+        }
+
         </style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased min-h-screen">
@@ -1825,7 +1986,7 @@
                         }
                         if (authMode === 'signup') {
                             if (!emailOtpSent) {
-                                const sent = await auth.auth.signInWithOtp({ email, options: { shouldCreateUser:false } });
+                                const sent = await auth.auth.signInWithOtp({ email, options: { shouldCreateUser:true } });
                                 if (sent.error) throw sent.error;
                                 setEmailOtpSent(true);
                                 triggerToast('A verification code was sent to your email. Enter it to continue creating your account.');
@@ -1865,7 +2026,7 @@
                             triggerToast('A one-time sign-in code has been sent to your email. Enter it to continue.');
                             return;
                         }
-                        if (!/^\\d{6,8}$/.test(authOtp.trim())) throw new Error('Enter the verification code sent to your email.');
+                        if (!/^\d{6,8}$/.test(authOtp.trim())) throw new Error('Enter the verification code sent to your email.');
                         const verifiedLogin = await auth.auth.verifyOtp({ email, token:authOtp.trim(), type:'email' });
                         if (verifiedLogin.error) throw verifiedLogin.error;
                         const user = verifiedLogin.data?.user || verifiedLogin.data?.session?.user;
@@ -3218,8 +3379,8 @@
 
                         {/* 4. Customer Workspace Dashboard */}
                         {currentView === 'customer-dashboard' && (
-                            <div className="max-w-6xl mx-auto mt-6 space-y-6 pb-8">
-                                <div className="relative overflow-hidden rounded-3xl p-7 sm:p-9 text-white shadow-xl bg-gradient-to-br from-teal-800 via-teal-900 to-slate-900">
+                            <div className="sl-customer-dashboard max-w-7xl mx-auto mt-6 space-y-6 pb-10">
+                                <div className="sl-customer-hero relative overflow-hidden rounded-3xl p-7 sm:p-9 text-white shadow-xl bg-gradient-to-br from-teal-800 via-teal-900 to-slate-900">
                                     <div className="absolute -right-12 -top-16 h-56 w-56 rounded-full bg-teal-400/10 blur-2xl pointer-events-none"></div>
                                     <div className="absolute right-20 -bottom-24 h-52 w-52 rounded-full bg-cyan-300/10 blur-2xl pointer-events-none"></div>
                                     <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-7">
@@ -3264,7 +3425,31 @@
                                     </div>
                                 </div>
 
-                                <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-sm space-y-5">
+                                <nav className="sl-customer-shortcuts" aria-label="Customer account shortcuts">
+                                    <button type="button" className="sl-customer-shortcut" onClick={() => document.getElementById('sl-customer-orders')?.scrollIntoView({behavior:'smooth',block:'start'})}>
+                                        <span className="sl-customer-shortcut-icon"><Icon name="PackageCheck" className="h-5 w-5"/></span>
+                                        <span className="min-w-0"><strong>My orders</strong><small>View purchases and invoices</small></span>
+                                        <span className="sl-customer-shortcut-arrow">→</span>
+                                    </button>
+                                    <button type="button" className="sl-customer-shortcut" onClick={() => document.getElementById('sl-customer-addresses')?.scrollIntoView({behavior:'smooth',block:'start'})}>
+                                        <span className="sl-customer-shortcut-icon"><Icon name="MapPinned" className="h-5 w-5"/></span>
+                                        <span className="min-w-0"><strong>Delivery addresses</strong><small>{savedDeliveryAddresses.length} saved · Home and Office</small></span>
+                                        <span className="sl-customer-shortcut-arrow">→</span>
+                                    </button>
+                                    <button type="button" className="sl-customer-shortcut" onClick={() => document.getElementById('sl-customer-profile')?.scrollIntoView({behavior:'smooth',block:'start'})}>
+                                        <span className="sl-customer-shortcut-icon"><Icon name="UserRound" className="h-5 w-5"/></span>
+                                        <span className="min-w-0"><strong>My profile</strong><small>Contact and saved details</small></span>
+                                        <span className="sl-customer-shortcut-arrow">→</span>
+                                    </button>
+                                    <button type="button" className="sl-customer-shortcut" onClick={() => setCurrentView('home')}>
+                                        <span className="sl-customer-shortcut-icon"><Icon name="ShoppingBag" className="h-5 w-5"/></span>
+                                        <span className="min-w-0"><strong>Shop catalogue</strong><small>Discover more products</small></span>
+                                        <span className="sl-customer-shortcut-arrow">→</span>
+                                    </button>
+                                </nav>
+
+
+                                <div id="sl-customer-addresses" className="sl-customer-card bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-sm space-y-5">
                                     <div className="flex items-start gap-3">
                                         <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700"><Icon name="MapPinned" className="h-5 w-5" /></span>
                                         <div><h3 className="text-lg font-extrabold text-slate-900">My delivery addresses</h3><p className="mt-1 text-sm text-slate-500">Save separate Home and Office addresses, then choose one at checkout.</p></div>
@@ -3290,7 +3475,7 @@
                                     </form>
                                 </div>
 
-                                <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-sm">
+                                <div id="sl-customer-profile" className="sl-customer-card bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-sm">
                                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
                                         <div className="flex items-start gap-3">
                                             <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-teal-50 text-teal-800"><Icon name="Contact" className="h-5 w-5" /></span>
@@ -3383,7 +3568,7 @@
                                     </form>
                                 </section>
 
-                                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                <h2 id="sl-customer-orders" className="sl-customer-orders-heading text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                                     <Icon name="Truck" className="h-5 w-5 text-indigo-600" />
                                     Your Order History & Invoice Archives
                                 </h2>
@@ -3397,7 +3582,7 @@
                                         {orders.filter(o => (o.customerEmail && o.customerEmail.toLowerCase() === (currentUser?.email || '').toLowerCase()) || (o.customerPhone && o.customerPhone === currentUser?.phone)).map((order) => (
                                             <div 
                                                 key={order.id} 
-                                                className="bg-white rounded-2xl border border-gray-200 p-6 shadow-xs flex flex-col gap-4"
+                                                className="sl-customer-order-card bg-white rounded-2xl border border-gray-200 p-6 shadow-xs flex flex-col gap-4"
                                             >
                                                 <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
                                                     <div>
@@ -4705,8 +4890,8 @@
 
                     {/* Separate Customer and Seller/Admin Login Screens */}
                     {showAuthModal && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 no-print">
-                            <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 relative shadow-2xl border border-gray-100">
+                        <div className="sl-auth-overlay fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-slate-950/70 p-3 backdrop-blur-md sm:p-6 no-print">
+                            <div className={`sl-auth-modal relative w-full overflow-hidden rounded-[30px] border border-white/70 bg-white shadow-[0_32px_100px_rgba(2,20,28,.38)] ${authRole === 'customer' ? 'sl-auth-modal-customer max-w-4xl' : 'sl-auth-modal-admin max-w-md'}`}>
                                 <button 
                                     onClick={() => setShowAuthModal(false)}
                                     className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition"
@@ -4714,18 +4899,40 @@
                                     <Icon name="X" className="h-5 w-5" />
                                 </button>
 
+                                <div className={authRole === 'customer' ? 'sl-auth-layout sl-auth-layout-customer' : 'sl-auth-layout sl-auth-layout-admin'}>
+                                    {authRole === 'customer' && (
+                                        <aside className="sl-auth-aside">
+                                            <div className="sl-auth-aside-orb sl-auth-aside-orb-one"></div>
+                                            <div className="sl-auth-aside-orb sl-auth-aside-orb-two"></div>
+                                            <div className="relative z-10">
+                                                <div className="sl-auth-brand"><span className="sl-auth-brand-mark"><Icon name="ShoppingBag" className="h-5 w-5"/></span> Shopify<span>.Lite</span></div>
+                                                <div className="mt-14">
+                                                    <span className="sl-auth-eyebrow">YOUR CUSTOMER SPACE</span>
+                                                    <h3 className="mt-4 text-3xl font-black leading-tight tracking-tight">Shopping made simpler. <span className="text-amber-300">Every order in one place.</span></h3>
+                                                    <p className="mt-4 text-sm leading-7 text-teal-50/85">Sign in securely to keep your purchases, delivery details and invoices together.</p>
+                                                </div>
+                                                <div className="mt-10 space-y-4">
+                                                    <div className="sl-auth-benefit"><span><Icon name="PackageCheck" className="h-4 w-4"/></span><div><strong>Track every order</strong><small>Follow dispatch and delivery updates.</small></div></div>
+                                                    <div className="sl-auth-benefit"><span><Icon name="MapPinned" className="h-4 w-4"/></span><div><strong>Save your addresses</strong><small>Keep Home and Office details ready.</small></div></div>
+                                                    <div className="sl-auth-benefit"><span><Icon name="ReceiptText" className="h-4 w-4"/></span><div><strong>Receipts in one place</strong><small>Find your order history and invoices.</small></div></div>
+                                                </div>
+                                            </div>
+                                            <div className="sl-auth-aside-foot relative z-10"><span className="h-2 w-2 rounded-full bg-emerald-300"></span> A secure account for a smoother shopping experience</div>
+                                        </aside>
+                                    )}
+                                    <div className={authRole === 'customer' ? 'sl-auth-content sl-auth-content-customer' : 'sl-auth-content sl-auth-content-admin'}>
                                 <div className="text-center mb-6">
                                     <div className={`mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl ${authRole === 'seller' ? 'bg-indigo-100 text-indigo-700' : 'bg-teal-100 text-teal-700'}`}>
                                         <Icon name={authRole === 'seller' ? 'LayoutDashboard' : 'ShoppingBag'} className="h-6 w-6" />
                                     </div>
-                                    <h2 className="text-2xl font-black text-gray-900">{authRole === 'seller' ? 'Seller / Admin Login' : 'Customer Login'}</h2>
-                                    <p className="text-xs text-gray-500 mt-1">{authRole === 'seller' ? 'Authorized store management only' : 'Sign in to shop, view orders and track deliveries'}</p>
+                                    <h2 className="text-2xl font-black text-gray-900">{authRole === 'seller' ? 'Seller / Admin Login' : authMode === 'signup' ? 'Create your account' : authMode === 'forgot' ? 'Reset your password' : emailOtpSent ? 'Verify your email' : 'Welcome back'}</h2>
+                                    <p className="text-xs leading-relaxed text-gray-500 mt-2">{authRole === 'seller' ? 'Authorized store management only' : emailOtpSent ? 'Enter the one-time code we sent to your email address.' : 'Sign in with a one-time email code to shop, view orders and track deliveries.'}</p>
                                 </div>
 
                                 {authRole === 'customer' && (
-                                    <div className="mb-6 rounded-xl border border-teal-100 bg-teal-50 px-4 py-3 text-left">
-                                        <div className="text-xs font-extrabold uppercase tracking-wider">Customer account</div>
-                                        <p className="mt-1 text-xs text-gray-600">Shop products, manage your profile and track your own orders.</p>
+                                    <div className="sl-auth-account-note mb-5 rounded-2xl border border-teal-100 bg-teal-50 px-4 py-3.5 text-left">
+                                        <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-teal-900"><Icon name="ShieldCheck" className="h-4 w-4"/> {emailOtpSent ? 'Email verification' : 'Customer account'}</div>
+                                        <p className="mt-1.5 text-xs leading-relaxed text-teal-900/75">{emailOtpSent ? 'Your one-time code is ready. Enter it below to securely continue.' : 'One-time email verification keeps your account secure without asking you to remember another password.'}</p>
                                     </div>
                                 )}
 
@@ -4742,7 +4949,8 @@
                                             {(authMode === 'login' && emailOtpSent || authMode === 'forgot' && emailOtpSent || authMode === 'signup' && emailOtpSent) && (
                                                 <div>
                                                     <label className="block text-[10px] font-extrabold text-gray-500 uppercase mb-1 tracking-wider">Email verification code</label>
-                                                    <input type="text" inputMode="numeric" autoComplete="one-time-code" required value={authOtp} onChange={e=>setAuthOtp(e.target.value)} placeholder="Enter code from email" className="w-full px-4 py-3 border rounded-xl text-sm" />
+                                                    <input type="text" inputMode="numeric" autoComplete="one-time-code" required maxLength={8} value={authOtp} onChange={e=>{setAuthOtp(e.target.value.replace(/\D/g, '').slice(0,8)); if(authError) setAuthError('');}} placeholder="Enter 6-digit code" className="sl-auth-code-input w-full px-4 py-3 border rounded-xl text-sm" />
+                                                    <p className="mt-2 text-xs leading-relaxed text-slate-500">{emailOtpSent ? `A sign-in code was sent to ${customerEmail}. Enter the code from your inbox to continue.` : 'We will email you a one-time code. No password is needed to sign in.'}</p>
                                                 </div>
                                             )}
                                             {(authMode === 'signup' || authMode === 'forgot') && emailOtpSent ? (
@@ -4805,7 +5013,7 @@
                                     )}
                                     {authError && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3 py-3 text-sm font-semibold text-red-700 break-words">{authError}</div>}
                                     <div className="pt-2">
-                                        <button type="submit" disabled={authBusy} className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-wait text-white font-bold py-3 px-4 rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2">
+                                        <button type="submit" disabled={authBusy} className={`sl-auth-submit w-full disabled:opacity-60 disabled:cursor-wait text-white font-bold py-3.5 px-4 rounded-2xl text-sm shadow-lg transition flex items-center justify-center gap-2 ${authRole === 'customer' ? 'sl-auth-submit-customer' : 'sl-auth-submit-admin'}`}>
                                             <Icon name="Lock" className="h-4 w-4" />
                                             {authBusy ? 'Please wait…' : authRole === 'customer'
                                                 ? (authMode === 'signup' ? (!emailOtpSent ? 'Send email code' : 'Verify code & create account') : authMode === 'forgot' ? (!emailOtpSent ? 'Send recovery code' : 'Verify code & reset password') : (!emailOtpSent ? 'Send sign-in code' : 'Verify code & sign in'))
@@ -4816,8 +5024,9 @@
 
                                 <div className="text-center mt-4">
                                     <p className="text-[10px] text-gray-400 leading-relaxed">
-                                        Credential validations are safely processed under an automated, encrypted session environment.
+                                        {authRole === 'customer' ? 'Your sign-in code is time-limited. Never share it with anyone.' : 'Admin credentials are verified securely.'}
                                     </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
