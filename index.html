@@ -22,7 +22,7 @@
     
     <!-- Babel standalone compiler for client-side JSX resolution -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./supabase-client.js?v=20261113-black-border-terms-v10"></script>
+    <script src="./supabase-client.js?v=20261113-a3-clear-print-v11"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -940,6 +940,110 @@
           #tax-invoice-printable .sl-exact-footer { margin-top:auto!important; }
           #tax-invoice-printable .sl-exact-support { padding:4mm!important; font-size:9px!important; }
           .no-print { display:none!important; }
+        }
+
+
+        /* Clear & bright print profile based on the uploaded warehouse order sheet */
+        .sl-invoice-sheet { color:#111827; font-size:12px; line-height:1.48; background:#fff; }
+        .sl-exact-title h1 { color:#111827; font-size:27px; }
+        .sl-exact-title > p { font-size:12px; }
+        .sl-exact-invoice-number small { color:#374151; font-size:9px; }
+        .sl-exact-invoice-number strong { color:#111827; font-size:16px; }
+        .sl-exact-seller { color:#1f2937; font-size:10.5px; line-height:1.55; }
+        .sl-exact-seller > strong { color:#111827; font-size:12.5px; }
+        .sl-exact-order,.sl-exact-address { color:#1f2937; font-size:10px; line-height:1.5; }
+        .sl-exact-order h2,.sl-exact-address h2 { color:#111827; font-size:12px; }
+        .sl-exact-order dt { color:#374151; font-size:9px; }
+        .sl-exact-order dd { color:#111827; font-size:10px; }
+        .sl-exact-address > strong { color:#111827; font-size:12px; }
+        .sl-exact-address-copy { color:#1f2937; }
+        .sl-exact-keep p { color:#1f2937; font-size:9px; }
+        .sl-exact-item-count { color:#075e59; font-size:11px; }
+        .sl-exact-table { color:#111827; font-size:11px; }
+        .sl-exact-table th { font-size:9.5px; font-weight:900; }
+        .sl-exact-table td { color:#111827; }
+        .sl-exact-table td strong { color:#111827; font-size:11px; }
+        .sl-exact-table td small { color:#374151; font-size:9px; }
+        .sl-exact-table tfoot td { color:#111827; font-size:10.5px; }
+        .sl-exact-grand-total { color:#111827; font-size:19px; }
+        .sl-exact-grand-total strong { font-size:25px; }
+        .sl-exact-total-sign > p,.sl-exact-total-sign > small { color:#111827; font-size:9px; }
+        .sl-exact-payment-status { font-size:9px; }
+        .sl-exact-terms h2 { color:#111827; font-size:12px; }
+        .sl-exact-terms li { color:#111827; font-size:10px; line-height:1.5; }
+        .sl-exact-support { color:#111827; font-size:10px; }
+        .sl-exact-support > strong,.sl-exact-support > b { color:#111827; font-size:10px; }
+        .sl-exact-footer-meta { font-size:9px; }
+
+        @media print {
+          @page { size:A3 portrait; margin:5mm; }
+          html,body,#root { background:#fff!important; color:#111!important; }
+          #tax-invoice-printable {
+            box-sizing:border-box!important; width:287mm!important; max-width:287mm!important;
+            height:410mm!important; min-height:410mm!important; margin:0!important;
+            padding:10mm 9mm 8mm!important; overflow:hidden!important;
+            border:0.8mm solid #111!important; outline:0.25mm solid #111!important;
+            outline-offset:-2mm!important; border-radius:0!important;
+            background:#fff!important; color:#111!important; font-size:12px!important;
+            line-height:1.48!important; -webkit-print-color-adjust:exact!important;
+            print-color-adjust:exact!important;
+          }
+          #tax-invoice-printable:before { inset:4mm!important; border:0.25mm solid #111!important; border-radius:0!important; }
+          #tax-invoice-printable:after { inset:2mm!important; background:
+            linear-gradient(#111,#111) left top/18mm .9mm no-repeat,
+            linear-gradient(#111,#111) left top/.9mm 18mm no-repeat,
+            linear-gradient(#111,#111) right top/18mm .9mm no-repeat,
+            linear-gradient(#111,#111) right top/.9mm 18mm no-repeat,
+            linear-gradient(#111,#111) left bottom/18mm .9mm no-repeat,
+            linear-gradient(#111,#111) left bottom/.9mm 18mm no-repeat,
+            linear-gradient(#111,#111) right bottom/18mm .9mm no-repeat,
+            linear-gradient(#111,#111) right bottom/.9mm 18mm no-repeat!important;
+          }
+          #tax-invoice-printable .sl-exact-top-panel { border:.4mm solid #111!important; padding:5mm 6mm 4mm!important; margin-bottom:5mm!important; }
+          #tax-invoice-printable .sl-exact-header { grid-template-columns:minmax(0,1fr) minmax(105mm,.95fr)!important; gap:14mm!important; padding:2mm 4mm 5mm!important; border-bottom:.3mm solid #111!important; }
+          #tax-invoice-printable .sl-exact-logo { width:112mm!important; }
+          #tax-invoice-printable .sl-exact-title h1 { color:#111!important; font-size:30px!important; }
+          #tax-invoice-printable .sl-exact-title > p { font-size:14px!important; }
+          #tax-invoice-printable .sl-exact-invoice-number { padding:4mm 5mm!important; border-color:#111!important; background:#fff!important; }
+          #tax-invoice-printable .sl-exact-invoice-number small { color:#111!important; font-size:10px!important; }
+          #tax-invoice-printable .sl-exact-invoice-number strong { color:#111!important; font-size:18px!important; }
+          #tax-invoice-printable .sl-exact-seller { color:#111!important; font-size:11px!important; padding:4mm 3mm 2mm!important; }
+          #tax-invoice-printable .sl-exact-seller > strong { color:#111!important; font-size:13px!important; }
+          #tax-invoice-printable .sl-exact-seller p { color:#111!important; }
+          #tax-invoice-printable .sl-exact-parties { grid-template-columns:1.12fr 1fr 1fr .58fr!important; gap:4mm!important; padding:5mm 0!important; }
+          #tax-invoice-printable .sl-exact-order,#tax-invoice-printable .sl-exact-address { color:#111!important; font-size:10.5px!important; padding:4mm!important; border-color:#777!important; }
+          #tax-invoice-printable .sl-exact-order h2,#tax-invoice-printable .sl-exact-address h2 { color:#111!important; font-size:13px!important; }
+          #tax-invoice-printable .sl-exact-order dt { color:#333!important; font-size:9.5px!important; }
+          #tax-invoice-printable .sl-exact-order dd { color:#111!important; font-size:10.5px!important; }
+          #tax-invoice-printable .sl-exact-address > strong { color:#111!important; font-size:13px!important; }
+          #tax-invoice-printable .sl-exact-address p { color:#111!important; font-size:10px!important; }
+          #tax-invoice-printable .sl-exact-keep { border-color:#777!important; background:#fff!important; }
+          #tax-invoice-printable .sl-exact-keep p { color:#111!important; font-size:9.5px!important; }
+          #tax-invoice-printable .sl-exact-item-count { color:#111!important; font-size:12px!important; padding-bottom:3mm!important; }
+          #tax-invoice-printable .sl-exact-table-wrap { overflow:visible!important; border-color:#555!important; }
+          #tax-invoice-printable .sl-exact-table { width:100%!important; min-width:0!important; table-layout:fixed!important; font-size:11px!important; }
+          #tax-invoice-printable .sl-exact-table th { color:#fff!important; background:#075e59!important; font-size:10px!important; padding:4mm 2mm!important; }
+          #tax-invoice-printable .sl-exact-table td { color:#111!important; font-size:11px!important; height:40mm!important; padding:3mm 2mm!important; border-color:#999!important; }
+          #tax-invoice-printable .sl-exact-table td strong { color:#111!important; font-size:12px!important; }
+          #tax-invoice-printable .sl-exact-table td small { color:#222!important; font-size:9.5px!important; }
+          #tax-invoice-printable .sl-exact-table tfoot td { color:#111!important; font-size:11px!important; padding:4mm 2mm!important; }
+          #tax-invoice-printable .sl-exact-item-image { width:34mm!important; height:34mm!important; border-color:#777!important; background:#fff!important; }
+          #tax-invoice-printable .sl-exact-total-sign { width:112mm!important; margin-top:9mm!important; }
+          #tax-invoice-printable .sl-exact-grand-total { border-color:#111!important; color:#111!important; background:#f4f7f6!important; font-size:21px!important; padding:3mm!important; }
+          #tax-invoice-printable .sl-exact-grand-total strong { background:#075e59!important; color:#fff!important; font-size:28px!important; padding:4mm 6mm!important; }
+          #tax-invoice-printable .sl-exact-total-sign > p { color:#111!important; font-size:10px!important; }
+          #tax-invoice-printable .sl-exact-signature-line { margin-top:17mm!important; border-color:#111!important; }
+          #tax-invoice-printable .sl-exact-total-sign > small { color:#111!important; font-size:9px!important; }
+          #tax-invoice-printable .sl-exact-payment-status { color:#111!important; font-size:10px!important; }
+          #tax-invoice-printable .sl-exact-terms { margin-top:8mm!important; border:.4mm solid #111!important; border-radius:0!important; padding:5mm 6mm!important; background:#fff!important; }
+          #tax-invoice-printable .sl-exact-terms h2 { color:#111!important; border-bottom:.3mm solid #111!important; font-size:13px!important; padding-bottom:3mm!important; }
+          #tax-invoice-printable .sl-exact-terms li { color:#111!important; font-size:10.5px!important; line-height:1.5!important; }
+          #tax-invoice-printable .sl-exact-terms li:before { color:#111!important; }
+          #tax-invoice-printable .sl-exact-footer { margin-top:auto!important; padding-top:7mm!important; }
+          #tax-invoice-printable .sl-exact-footer:before { border-top:.3mm solid #111!important; }
+          #tax-invoice-printable .sl-exact-support { border-color:#111!important; background:#f2f7f6!important; color:#111!important; padding:5mm!important; font-size:10.5px!important; }
+          #tax-invoice-printable .sl-exact-support > strong,#tax-invoice-printable .sl-exact-support > b { color:#111!important; font-size:10.5px!important; }
+          #tax-invoice-printable .sl-exact-footer-meta { color:#111!important; font-size:9.5px!important; }
         }
 
 </style>
@@ -5155,7 +5259,7 @@
                                 <div className="no-print flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 sm:px-6">
                                     <div className="flex items-center gap-2 text-xs font-bold text-slate-600"><Icon name="Receipt" className="h-4 w-4 text-teal-700"/> Shopify-Lite invoice preview</div>
                                     <div className="flex items-center gap-2">
-                                        <span className="hidden sm:inline text-[10px] font-medium text-slate-500">For one invoice, set Copies to 1</span>
+                                        <span className="hidden sm:inline text-[10px] font-medium text-slate-500">A3 Portrait · Copies 1 · High quality</span>
                                         <button type="button" onClick={() => window.print()} title="Print one invoice; set Copies to 1 in the print dialog" className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-xs font-extrabold text-white shadow-sm hover:bg-teal-800"><Icon name="Download" className="h-4 w-4"/> Print / Save PDF</button>
                                         <button type="button" onClick={() => setViewingInvoiceOrder(null)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-200 hover:text-slate-800" aria-label="Close invoice"><Icon name="X" className="h-5 w-5"/></button>
                                     </div>
