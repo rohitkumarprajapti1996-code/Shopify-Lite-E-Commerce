@@ -22,7 +22,7 @@
     
     <!-- Babel standalone compiler for client-side JSX resolution -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./supabase-client.js?v=20261113-reference-invoice-v5"></script>
+    <script src="./supabase-client.js?v=20261113-reference-invoice-v6"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -822,94 +822,105 @@
         }
 
         
-        /* Reference-matched Shopify-Lite A4 invoice */
-        .sl-invoice-sheet { position:relative; isolation:isolate; width:100%; max-width:194mm; margin:0 auto; padding:7mm 6mm 5mm; overflow:hidden; background:#fff; color:#172f38; font-family:'DM Sans',Arial,sans-serif; font-size:9px; line-height:1.35; }
-        .sl-ref-header { position:relative; display:grid; grid-template-columns:minmax(0,1fr) minmax(230px,.95fr); gap:18px; align-items:center; border-bottom:2px solid #087f75; padding:4mm 3mm 5mm; }
+        /* Exact-reference Shopify-Lite A4 invoice */
+        .sl-invoice-sheet { position:relative; isolation:isolate; display:flex; flex-direction:column; width:100%; max-width:196mm; min-height:283mm; margin:0 auto; padding:7mm 6mm 5mm; overflow:hidden; background:#fff; color:#172f38; font-family:'DM Sans',Arial,sans-serif; font-size:9.5px; line-height:1.45; }
+        .sl-ref-header { position:relative; display:grid; grid-template-columns:minmax(0,1fr) minmax(230px,.95fr); gap:18px; align-items:center; border-bottom:2px solid #087f75; padding:5mm 3mm 6mm; }
         .sl-ref-header:after { position:absolute; content:""; right:-8mm; top:-8mm; z-index:-1; width:42mm; height:27mm; background:linear-gradient(135deg,#e6f5f2,#087f75); clip-path:polygon(38% 0,100% 0,100% 100%,0 100%); opacity:.95; }
-        .sl-ref-brand { display:flex; align-items:center; gap:12px; min-width:0; }
-        .sl-ref-logo { position:relative; display:flex; width:19mm; height:19mm; flex:0 0 19mm; align-items:center; justify-content:center; border-radius:5mm; background:#087f75; color:#fff; }
-        .sl-ref-logo svg { position:absolute; width:12mm; height:12mm; opacity:.95; }
-        .sl-ref-logo b { position:relative; z-index:1; display:flex; width:6mm; height:6mm; align-items:center; justify-content:center; border-radius:50%; background:#fff; color:#087f75; font-size:11px; font-weight:900; }
-        .sl-ref-brand > div { display:flex; flex-direction:column; gap:4px; min-width:0; }
-        .sl-ref-brand strong { color:#103e43; font-size:24px; font-weight:950; line-height:1; letter-spacing:-.05em; }
-        .sl-ref-brand small { color:#688187; font-size:9px; font-weight:700; letter-spacing:.04em; }
+        .sl-ref-brand { display:flex; align-items:center; gap:13px; min-width:0; }
+        .sl-ref-logo { position:relative; display:flex; width:21mm; height:21mm; flex:0 0 21mm; align-items:center; justify-content:center; border-radius:5mm; background:#087f75; color:#fff; box-shadow:0 4px 12px rgba(8,127,117,.16); }
+        .sl-ref-logo svg { display:block; width:16mm; height:16mm; }
+        .sl-ref-brand > div { display:flex; flex-direction:column; gap:5px; min-width:0; }
+        .sl-ref-brand strong { color:#103e43; font-size:27px; font-weight:950; line-height:1; letter-spacing:-.05em; }
+        .sl-ref-brand small { color:#688187; font-size:9.5px; font-weight:700; letter-spacing:.04em; }
         .sl-ref-title { position:relative; z-index:1; text-align:right; }
-        .sl-ref-title h1 { color:#153a40; font-size:17px; font-weight:950; letter-spacing:.015em; }
-        .sl-ref-title > p { margin-top:3px; color:#087f75; font-size:12px; font-weight:800; }
-        .sl-ref-invoice-number { display:inline-flex; align-items:center; gap:10px; margin-top:12px; border:1px solid #b8d9d4; border-radius:11px; background:#eff8f6; padding:9px 12px; text-align:left; box-shadow:0 5px 15px rgba(14,70,69,.07); }
+        .sl-ref-title h1 { color:#153a40; font-size:19px; font-weight:950; letter-spacing:.015em; }
+        .sl-ref-title > p { margin-top:4px; color:#087f75; font-size:13px; font-weight:800; }
+        .sl-ref-invoice-number { display:inline-flex; align-items:center; gap:11px; margin-top:13px; border:1px solid #b8d9d4; border-radius:12px; background:#eff8f6; padding:11px 14px; text-align:left; box-shadow:0 5px 15px rgba(14,70,69,.07); }
         .sl-ref-invoice-number > span { display:flex; color:#087f75; }
-        .sl-ref-invoice-number > div { display:flex; flex-direction:column; gap:3px; }
-        .sl-ref-invoice-number small { color:#60777d; font-size:8px; font-weight:800; }
-        .sl-ref-invoice-number strong { color:#123b40; font-size:15px; font-weight:950; letter-spacing:.01em; }
-        .sl-ref-seller { border-bottom:1px solid #b9d7d3; padding:4mm 3mm; color:#536d73; font-size:8.5px; line-height:1.5; overflow-wrap:anywhere; }
-        .sl-ref-seller strong { display:block; margin-bottom:2px; color:#143f45; font-size:10px; font-weight:900; }
-        .sl-ref-seller p+p { margin-top:2px; }
-        .sl-ref-party-grid { display:grid; grid-template-columns:1.05fr 1fr 1fr .58fr; gap:8px; align-items:stretch; padding:4mm 0; border-bottom:1px solid #b9d7d3; }
-        .sl-ref-order-card,.sl-ref-address-card { min-width:0; border:1px solid #d6e8e5; border-radius:10px; background:#fff; padding:10px; color:#4d6870; font-size:8px; line-height:1.45; overflow-wrap:anywhere; }
-        .sl-ref-order-card h2,.sl-ref-address-card h2 { display:flex; align-items:center; gap:6px; margin-bottom:8px; color:#16464c; font-size:10px; font-weight:900; }
+        .sl-ref-invoice-number > div { display:flex; flex-direction:column; gap:4px; }
+        .sl-ref-invoice-number small { color:#60777d; font-size:8.5px; font-weight:800; }
+        .sl-ref-invoice-number strong { color:#123b40; font-size:16px; font-weight:950; letter-spacing:.01em; }
+        .sl-ref-seller { border-bottom:1px solid #b9d7d3; padding:5mm 3mm; color:#536d73; font-size:9px; line-height:1.55; overflow-wrap:anywhere; }
+        .sl-ref-seller strong { display:block; margin-bottom:3px; color:#143f45; font-size:10.5px; font-weight:900; }
+        .sl-ref-seller p+p { margin-top:3px; }
+        .sl-ref-party-grid { display:grid; grid-template-columns:1.05fr 1fr 1fr .58fr; gap:9px; align-items:stretch; padding:5mm 0; border-bottom:1px solid #b9d7d3; }
+        .sl-ref-order-card,.sl-ref-address-card { min-width:0; border:1px solid #d6e8e5; border-radius:11px; background:#fff; padding:12px; color:#4d6870; font-size:8.6px; line-height:1.5; overflow-wrap:anywhere; }
+        .sl-ref-order-card h2,.sl-ref-address-card h2 { display:flex; align-items:center; gap:7px; margin-bottom:10px; color:#16464c; font-size:10.5px; font-weight:900; }
         .sl-ref-order-card h2 svg,.sl-ref-address-card h2 svg { color:#087f75; flex:0 0 auto; }
-        .sl-ref-order-card dl { display:grid; gap:4px; }
-        .sl-ref-order-card dl div { display:grid; grid-template-columns:75px minmax(0,1fr); gap:5px; }
-        .sl-ref-order-card dt { color:#89999d; font-size:7px; font-weight:800; }
-        .sl-ref-order-card dd { color:#24484f; font-size:8px; font-weight:800; }
+        .sl-ref-order-card dl { display:grid; gap:5px; }
+        .sl-ref-order-card dl div { display:grid; grid-template-columns:78px minmax(0,1fr); gap:5px; }
+        .sl-ref-order-card dt { color:#89999d; font-size:7.5px; font-weight:800; }
+        .sl-ref-order-card dd { color:#24484f; font-size:8.5px; font-weight:800; }
         .sl-ref-paid { color:#087f75!important; }
         .sl-ref-pending { color:#b45309!important; }
-        .sl-ref-address-card > strong { display:block; margin:3px 0; color:#193f46; font-size:10px; font-weight:900; }
-        .sl-ref-address-card p { margin-top:3px; }
+        .sl-ref-address-card > strong { display:block; margin:4px 0; color:#193f46; font-size:10.5px; font-weight:900; }
+        .sl-ref-address-card p { margin-top:4px; }
         .sl-ref-address { color:#5c747a; white-space:pre-line; }
-        .sl-ref-shipping-meta { color:#087f75; font-size:7px; font-weight:800; }
-        .sl-ref-keep-card { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; border:1px solid #d1e5e1; border-radius:10px; background:linear-gradient(145deg,#f8fcfb,#e5f4f1); padding:10px 8px; text-align:center; color:#3d6066; }
+        .sl-ref-shipping-meta { color:#087f75; font-size:7.5px; font-weight:800; }
+        .sl-ref-keep-card { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; border:1px solid #d1e5e1; border-radius:11px; background:linear-gradient(145deg,#f8fcfb,#e5f4f1); padding:12px 9px; text-align:center; color:#3d6066; }
         .sl-ref-keep-card span { color:#087f75; }
-        .sl-ref-keep-card p { font-size:8px; font-style:italic; line-height:1.5; }
-        .sl-ref-item-count { margin:3mm 2mm 2mm; padding-bottom:6px; border-bottom:1px solid #a9cbc6; color:#087f75; font-size:9px; font-weight:900; }
+        .sl-ref-keep-card p { font-size:8.7px; font-style:italic; line-height:1.55; }
+        .sl-ref-item-count { margin:4mm 2mm 2.5mm; padding-bottom:8px; border-bottom:1px solid #a9cbc6; color:#087f75; font-size:9.5px; font-weight:900; }
         .sl-ref-table-wrap { overflow:hidden; border:1px solid #99c9c2; border-radius:9px; }
         .sl-ref-table { width:100%; border-collapse:collapse; table-layout:fixed; font-size:8px; }
         .sl-ref-table thead { background:#087f75; color:#fff; }
-        .sl-ref-table th { padding:9px 5px; color:#fff; font-size:7.5px; font-weight:900; line-height:1.25; text-align:left; vertical-align:middle; }
-        .sl-ref-table th:nth-child(1) { width:7%; }
-        .sl-ref-table th:nth-child(2) { width:28%; }
-        .sl-ref-table th:nth-child(3) { width:7%; text-align:center; }
-        .sl-ref-table th:nth-child(n+4) { width:14.5%; text-align:right; }
-        .sl-ref-table td { min-width:0; border:1px solid #d6e6e3; padding:9px 5px; color:#456168; vertical-align:middle; overflow-wrap:anywhere; }
-        .sl-ref-table td strong { display:block; color:#173f46; font-size:8px; font-weight:900; }
-        .sl-ref-table td small { display:block; margin-top:2px; color:#829398; font-size:6.7px; }
-        .sl-ref-table tbody tr:nth-child(even) { background:#f8fbfa; }
+        .sl-ref-table th { padding:10px 5px; color:#fff; font-size:7.8px; font-weight:900; line-height:1.25; text-align:left; vertical-align:middle; }
+        .sl-ref-table th:nth-child(1) { width:5%; }
+        .sl-ref-table th:nth-child(2) { width:26%; }
+        .sl-ref-table th:nth-child(3) { width:6%; text-align:center; }
+        .sl-ref-table th:nth-child(4) { width:12%; text-align:right; }
+        .sl-ref-table th:nth-child(5) { width:10%; text-align:right; }
+        .sl-ref-table th:nth-child(6) { width:13%; text-align:right; }
+        .sl-ref-table th:nth-child(7) { width:13%; text-align:right; }
+        .sl-ref-table th:nth-child(8) { width:15%; text-align:right; }
+        .sl-ref-table td { min-width:0; border:1px solid #d6e6e3; padding:8px 5px; color:#456168; vertical-align:middle; overflow-wrap:anywhere; }
+        .sl-ref-table tbody tr { min-height:30mm; }
+        .sl-ref-table tbody td { height:30mm; }
+        .sl-ref-table td strong { display:block; color:#173f46; font-size:8.5px; font-weight:900; }
+        .sl-ref-table td small { display:block; margin-top:3px; color:#829398; font-size:7px; }
+        .sl-ref-product-cell { display:flex; align-items:center; gap:8px; min-width:0; }
+        .sl-ref-product-image { display:flex; width:24mm; height:24mm; flex:0 0 24mm; align-items:center; justify-content:center; overflow:hidden; border:1px solid #dcebe8; border-radius:7px; background:#f3f8f7; color:#6d9b94; }
+        .sl-ref-product-image img { display:block; width:100%; height:100%; object-fit:contain; }
+        .sl-ref-product-copy { min-width:0; overflow-wrap:anywhere; }
+        .sl-ref-product-copy strong { line-height:1.35; }
         .sl-ref-table tfoot { background:#dff1ed; color:#123f44; font-weight:900; }
-        .sl-ref-table tfoot td { border-color:#9ccac3; padding:9px 5px; color:#153f43; font-size:8.5px; font-weight:900; }
+        .sl-ref-table tfoot td { border-color:#9ccac3; padding:10px 5px; color:#153f43; font-size:8.5px; font-weight:900; }
         .sl-ref-total-label { text-align:right; }
         .sl-ref-center { text-align:center!important; }
         .sl-ref-money { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
         .sl-ref-bold { color:#123c41!important; font-weight:950!important; }
-        .sl-ref-bottom-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(245px,.7fr); gap:14px; align-items:start; margin-top:4mm; }
+        .sl-ref-bottom-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(245px,.7fr); gap:16px; align-items:start; margin-top:6mm; }
         .sl-ref-terms { min-width:0; }
-        .sl-ref-terms h2 { display:inline-flex; border:1px solid #b8d8d3; border-radius:8px; background:#eaf6f3; padding:7px 12px; color:#14545a; font-size:10px; font-weight:900; }
-        .sl-ref-terms ul { display:grid; gap:5px; margin-top:9px; padding:0; list-style:none; }
-        .sl-ref-terms li { position:relative; padding-left:14px; color:#597177; font-size:7.5px; line-height:1.4; }
-        .sl-ref-terms li:before { position:absolute; left:0; top:0; content:"●"; color:#087f75; font-size:8px; }
+        .sl-ref-terms h2 { display:inline-flex; border:1px solid #b8d8d3; border-radius:8px; background:#eaf6f3; padding:8px 14px; color:#14545a; font-size:11px; font-weight:900; }
+        .sl-ref-terms ul { display:grid; gap:7px; margin-top:11px; padding:0; list-style:none; }
+        .sl-ref-terms li { position:relative; padding-left:15px; color:#597177; font-size:8px; line-height:1.45; }
+        .sl-ref-terms li:before { position:absolute; left:0; top:0; content:"●"; color:#087f75; font-size:9px; }
         .sl-ref-total-sign { min-width:0; display:flex; flex-direction:column; align-items:stretch; }
-        .sl-ref-grand-total { display:flex; align-items:center; justify-content:space-between; gap:12px; border:1px solid #acd4ce; border-radius:10px; background:#e8f5f2; padding:7px; color:#15545a; font-size:15px; font-weight:950; }
-        .sl-ref-grand-total strong { display:block; border-radius:8px; background:#087f75; padding:10px 13px; color:#fff; font-size:19px; font-weight:950; white-space:nowrap; }
-        .sl-ref-total-sign > p:not(.sl-ref-amount-state) { margin-top:11px; color:#405d63; font-size:8px; font-weight:800; text-align:right; }
-        .sl-ref-sign-line { width:58%; margin:22px 0 4px auto; border-bottom:1px solid #80979b; }
-        .sl-ref-total-sign > small { color:#587177; font-size:7.5px; text-align:right; }
-        .sl-ref-amount-state { margin-top:10px; color:#087f75; font-size:8px; font-weight:900; text-align:right; }
-        .sl-ref-footer { margin-top:5mm; border-top:1px solid #9bc8c2; padding-top:3mm; }
-        .sl-ref-support { display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; border:1px solid #b6d8d2; border-radius:10px; background:linear-gradient(105deg,#eff8f6 0%,#e0f2ee 75%,#087f75 75%,#087f75 100%); padding:10px 12px; color:#17464b; font-size:8.5px; }
+        .sl-ref-grand-total { display:flex; align-items:center; justify-content:space-between; gap:12px; border:1px solid #acd4ce; border-radius:11px; background:#e8f5f2; padding:8px; color:#15545a; font-size:16px; font-weight:950; }
+        .sl-ref-grand-total strong { display:block; border-radius:9px; background:#087f75; padding:11px 15px; color:#fff; font-size:21px; font-weight:950; white-space:nowrap; }
+        .sl-ref-total-sign > p:not(.sl-ref-amount-state) { margin-top:14px; color:#405d63; font-size:8.5px; font-weight:800; text-align:right; }
+        .sl-ref-sign-line { width:58%; margin:28px 0 5px auto; border-bottom:1px solid #80979b; }
+        .sl-ref-total-sign > small { color:#587177; font-size:8px; text-align:right; }
+        .sl-ref-amount-state { margin-top:12px; color:#087f75; font-size:8.5px; font-weight:900; text-align:right; }
+        .sl-ref-footer { margin-top:auto; padding-top:5mm; }
+        .sl-ref-footer:before { display:block; content:""; margin-bottom:3mm; border-top:1px solid #9bc8c2; }
+        .sl-ref-support { display:flex; flex-wrap:wrap; align-items:center; gap:9px 11px; border:1px solid #b6d8d2; border-radius:11px; background:linear-gradient(105deg,#eff8f6 0%,#e0f2ee 75%,#087f75 75%,#087f75 100%); padding:12px 14px; color:#17464b; font-size:9px; }
         .sl-ref-headset { display:flex; align-items:center; color:#087f75; }
-        .sl-ref-support > strong { color:#173f44; font-size:9px; font-weight:950; }
-        .sl-ref-support > b { color:#1d474c; font-size:9px; font-weight:900; }
+        .sl-ref-support > strong { color:#173f44; font-size:9.5px; font-weight:950; }
+        .sl-ref-support > b { color:#1d474c; font-size:9.5px; font-weight:900; }
         .sl-ref-support > svg { color:#087f75; flex:0 0 auto; }
         .sl-ref-separator { color:#8aa3a5; }
         .sl-ref-email { overflow-wrap:anywhere; }
-        .sl-ref-footer-right { margin-left:auto; color:#fff; font-size:8px; font-weight:900; white-space:nowrap; }
+        .sl-ref-footer-right { margin-left:auto; color:#fff; font-size:8.5px; font-weight:900; white-space:nowrap; }
         @media(max-width:760px) {
-          .sl-invoice-sheet { padding:16px!important; }
+          .sl-invoice-sheet { padding:16px!important; min-height:0; }
           .sl-ref-header { grid-template-columns:minmax(0,1fr); gap:14px; }
           .sl-ref-title { text-align:left; }
           .sl-ref-party-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
           .sl-ref-bottom-row { grid-template-columns:minmax(0,1fr); }
           .sl-ref-table-wrap { overflow-x:auto; }
           .sl-ref-table { min-width:720px; }
+          .sl-ref-table tbody td { height:auto; }
         }
         @media(max-width:430px) {
           .sl-ref-party-grid { grid-template-columns:minmax(0,1fr); }
@@ -917,16 +928,20 @@
           .sl-ref-footer-right { margin-left:0; color:#087f75; }
         }
         @media print {
-          @page { size:A4; margin:7mm; }
+          @page { size:A4; margin:5mm; }
           html,body,#root { background:#fff!important; margin:0!important; padding:0!important; width:auto!important; height:auto!important; overflow:visible!important; }
           body * { visibility:hidden!important; }
           #tax-invoice-printable,#tax-invoice-printable * { visibility:visible!important; }
-          #tax-invoice-printable { display:block!important; position:absolute!important; left:0!important; top:0!important; width:196mm!important; max-width:196mm!important; margin:0!important; padding:0!important; overflow:visible!important; background:#fff!important; color:#172f38!important; font-size:8pt!important; box-shadow:none!important; }
+          #tax-invoice-printable { display:flex!important; flex-direction:column!important; position:absolute!important; left:0!important; top:0!important; width:200mm!important; max-width:200mm!important; min-height:287mm!important; height:auto!important; margin:0!important; padding:6mm!important; overflow:visible!important; background:#fff!important; color:#172f38!important; font-size:8.5pt!important; box-shadow:none!important; }
           #tax-invoice-printable .sl-ref-header { grid-template-columns:minmax(0,1fr) minmax(80mm,.95fr)!important; }
           #tax-invoice-printable .sl-ref-party-grid { grid-template-columns:1.05fr 1fr 1fr .58fr!important; }
           #tax-invoice-printable .sl-ref-bottom-row { grid-template-columns:minmax(0,1fr) minmax(70mm,.7fr)!important; }
           #tax-invoice-printable .sl-ref-table { width:100%!important; min-width:0!important; table-layout:fixed!important; }
-          #tax-invoice-printable .sl-ref-table th,#tax-invoice-printable .sl-ref-table td { padding:6px 4px!important; }
+          #tax-invoice-printable .sl-ref-table th,#tax-invoice-printable .sl-ref-table td { padding:8px 4px!important; }
+          #tax-invoice-printable .sl-ref-table tbody td { height:30mm!important; }
+          #tax-invoice-printable .sl-ref-product-image { width:22mm!important; height:22mm!important; flex-basis:22mm!important; }
+          #tax-invoice-printable .sl-ref-footer { margin-top:auto!important; }
+          #tax-invoice-printable .sl-ref-support { background:#e8f5f2!important; }
           #tax-invoice-printable tr,#tax-invoice-printable .sl-ref-party-grid > div,#tax-invoice-printable .sl-ref-keep-card { break-inside:avoid!important; page-break-inside:avoid!important; }
           #tax-invoice-printable .sl-ref-footer { break-inside:avoid!important; page-break-inside:avoid!important; }
           .no-print { display:none!important; }
@@ -5153,7 +5168,13 @@
                                 <article id="tax-invoice-printable" className="sl-invoice-sheet">
                                     <header className="sl-ref-header">
                                         <div className="sl-ref-brand">
-                                            <span className="sl-ref-logo"><Icon name="ShoppingBag" className="h-8 w-8"/><b>S</b></span>
+                                            <span className="sl-ref-logo" aria-label="Shopify-Lite logo">
+                                                <svg viewBox="0 0 42 42" aria-hidden="true">
+                                                    <path d="M10 14h22l-2 23H12L10 14Z" fill="#fff"/>
+                                                    <path d="M15 15V11a6 6 0 0 1 12 0v4" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round"/>
+                                                    <text x="21" y="30" textAnchor="middle" fontSize="17" fontWeight="900" fill="#087f75">S</text>
+                                                </svg>
+                                            </span>
                                             <div><strong>Shopify-Lite</strong><small>{sellerProfile.business_name || 'E-Commerce Pvt. Ltd.'}</small></div>
                                         </div>
                                         <div className="sl-ref-title">
@@ -5215,9 +5236,16 @@
                                                     const qty=Number(item.quantity||0);
                                                     const gross=Number(item.price||0)*qty;
                                                     const lineTotal=Number(item.lineTotal != null ? item.lineTotal : gross);
+                                                    const catalogProduct=Array.isArray(products) ? products.find(p => String(p.id||'')===String(item.id||'') || (item.sku && String(p.sku||'').toLowerCase()===String(item.sku).toLowerCase())) : null;
+                                                    const productImage=catalogProduct?.image || catalogProduct?.image_url || item.image || item.image_url || '';
                                                     return <tr key={item.id || index}>
                                                         <td>{index+1}</td>
-                                                        <td><strong>{item.title || 'Product'}</strong>{item.sku && <small>SKU: {item.sku}</small>}{(item.hsnSac || item.hsn_sac) && <small>HSN/SAC: {item.hsnSac || item.hsn_sac}</small>}</td>
+                                                        <td>
+                                                            <div className="sl-ref-product-cell">
+                                                                <div className="sl-ref-product-image">{productImage ? <img src={productImage} alt={item.title || 'Product'} onError={e=>{e.currentTarget.style.display='none';}}/> : <Icon name="Package" className="h-8 w-8"/>}</div>
+                                                                <div className="sl-ref-product-copy"><strong>{item.title || 'Product'}</strong>{item.sku && <small>SKU: {item.sku}</small>}{(item.hsnSac || item.hsn_sac || catalogProduct?.hsnCode || catalogProduct?.hsn_code) && <small>HSN/SAC: {item.hsnSac || item.hsn_sac || catalogProduct?.hsnCode || catalogProduct?.hsn_code}</small>}</div>
+                                                            </div>
+                                                        </td>
                                                         <td className="sl-ref-center">{qty}</td>
                                                         <td className="sl-ref-money">₹{gross.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                                                         <td className="sl-ref-money">{item.discountAmount != null ? '₹'+Number(item.discountAmount).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
