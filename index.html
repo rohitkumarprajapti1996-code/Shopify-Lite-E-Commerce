@@ -22,7 +22,7 @@
     
     <!-- Babel standalone compiler for client-side JSX resolution -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./supabase-client.js?v=20261113-a3-spacing-bold-v12"></script>
+    <script src="./supabase-client.js?v=20261113-black-table-head-v13"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -1206,6 +1206,26 @@
             color:#111!important;
             font-size:10pt!important;
             font-weight:900!important;
+          }
+        }
+
+
+        /* Table column headings: black text on a light background for clear reading */
+        #tax-invoice-printable .sl-exact-table thead th {
+          color:#111111!important;
+          background:#e8f3f1!important;
+          font-size:10px!important;
+          font-weight:950!important;
+          text-shadow:none!important;
+        }
+        @media print {
+          #tax-invoice-printable .sl-exact-table thead th {
+            color:#111111!important;
+            background:#e8f3f1!important;
+            font-size:10pt!important;
+            font-weight:950!important;
+            -webkit-print-color-adjust:exact!important;
+            print-color-adjust:exact!important;
           }
         }
 
