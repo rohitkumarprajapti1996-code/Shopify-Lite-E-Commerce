@@ -3657,10 +3657,6 @@
                                     <input type="search" value={customerOrderSearch} onChange={e=>setCustomerOrderSearch(e.target.value)} placeholder="Search order number, product or AWB…" className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm"/>
                                     <select value={customerOrderFilter} onChange={e=>setCustomerOrderFilter(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm"><option>All</option><option>Active</option><option>Delivered</option><option>Returns</option></select>
                                 </div>
-                                    <Icon name="Truck" className="h-5 w-5 text-indigo-600" />
-                                    Your Order History & Invoice Archives
-                                </h2>
-
                                 {customerOrders.length === 0 ? (
                                     <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center text-gray-500">
                                         <Icon name="PackageOpen" className="mx-auto mb-3 h-9 w-9 text-slate-300"/>
