@@ -22,7 +22,7 @@
     
     <!-- Babel standalone compiler for client-side JSX resolution -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./supabase-client.js?v=20261113-shared-invoice-v3"></script>
+    <script src="./supabase-client.js?v=20261113-shared-invoice-v4"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -3717,7 +3717,7 @@
                                                 <p className="text-sm text-slate-500 mt-1">Your information is reused at checkout for a smoother purchase.</p>
                                             </div>
                                         </div>
-                                        <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1.5 text-xs font-bold"><Icon name="CheckCircle2" className="h-4 w-4" /> Account profile</span>
+                                        <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1.5 text-xs font-bold"><Icon name="ShieldCheck" className="h-4 w-4" /> Account profile</span>
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                                         <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4"><span className="block text-xs text-slate-500 mb-2">Customer name</span><strong className="text-slate-900">{profileDisplayName || currentUser?.name || 'Not saved yet'}</strong></div>
@@ -4627,7 +4627,7 @@
                                                 <input type="text" maxLength="15" value={sellerProfile.gstin} onChange={e=>setSellerProfile(prev=>({...prev,gstin:e.target.value.toUpperCase()}))} placeholder="15-character GSTIN, if registered" className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm font-medium uppercase text-slate-900"/>
                                             </label>
                                             <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4 sm:col-span-2">
-                                                <button type="submit" disabled={sellerProfileBusy} className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-5 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-teal-800 disabled:cursor-wait disabled:opacity-60"><Icon name="CheckCircle2" className="h-4 w-4"/>{sellerProfileBusy ? "Saving business details…" : "Save Business Details"}</button>
+                                                <button type="submit" disabled={sellerProfileBusy} className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-5 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-teal-800 disabled:cursor-wait disabled:opacity-60"><Icon name="ShieldCheck" className="h-4 w-4"/>{sellerProfileBusy ? "Saving business details…" : "Save Business Details"}</button>
                                                 {sellerProfileMessage && <p role="status" className="text-sm font-semibold text-slate-600">{sellerProfileMessage}</p>}
                                             </div>
                                         </form>
@@ -4805,7 +4805,7 @@
                                                             </div>
 
                                                             <div className="flex flex-col items-stretch gap-2 w-full sm:w-64">
-                                                                <button type="button" onClick={() => setViewingInvoiceOrder(ord)} className="inline-flex items-center justify-center gap-2 rounded-xl border border-teal-200 bg-white px-3 py-2.5 text-xs font-extrabold text-teal-800 hover:bg-teal-50"><Icon name="FileText" className="h-4 w-4"/> View / Print Invoice</button>
+                                                                <button type="button" onClick={() => setViewingInvoiceOrder(ord)} className="inline-flex items-center justify-center gap-2 rounded-xl border border-teal-200 bg-white px-3 py-2.5 text-xs font-extrabold text-teal-800 hover:bg-teal-50"><Icon name="Receipt" className="h-4 w-4"/> View / Print Invoice</button>
                                                                 <div className="w-full rounded-xl border-2 border-teal-600 bg-teal-50 px-3 py-3 text-sm font-extrabold text-teal-900" aria-label={`Logistics partner for order ${ord.id}`}>
                                                                     <span className="inline-flex items-center gap-2"><Icon name="Truck" className="h-4 w-4" /> Shiprocket</span>
                                                                     <span className="block text-[10px] font-medium text-teal-700 mt-1">Only available dispatch partner</span>
@@ -4978,7 +4978,7 @@
                                     {savedDeliveryAddresses.length > 0 && <div className="rounded-2xl border border-teal-100 bg-teal-50/50 p-4 space-y-3">
                                         <div><h3 className="text-sm font-extrabold text-slate-900">Choose delivery address</h3><p className="mt-1 text-xs text-slate-600">Select where this order should be delivered.</p></div>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{savedDeliveryAddresses.map(address => <button key={address.id} type="button" onClick={() => handleSelectDeliveryAddress(address)} className={`rounded-xl border p-3 text-left transition ${selectedDeliveryAddressId === address.id ? 'border-teal-600 bg-white ring-2 ring-teal-100' : 'border-slate-200 bg-white hover:border-teal-300'}`}>
-                                            <span className="flex items-center gap-2 font-extrabold text-sm text-slate-900"><Icon name={address.label === 'Office' ? 'BriefcaseBusiness' : 'House'} className="h-4 w-4 text-teal-700" /> {address.label} {selectedDeliveryAddressId === address.id && <Icon name="CheckCircle2" className="ml-auto h-4 w-4 text-teal-700" />}</span>
+                                            <span className="flex items-center gap-2 font-extrabold text-sm text-slate-900"><Icon name={address.label === 'Office' ? 'BriefcaseBusiness' : 'House'} className="h-4 w-4 text-teal-700" /> {address.label} {selectedDeliveryAddressId === address.id && <Icon name="ShieldCheck" className="ml-auto h-4 w-4 text-teal-700" />}</span>
                                             <span className="mt-2 block text-xs text-slate-600">{address.address}</span><span className="mt-1 block text-[11px] text-slate-500">PIN {address.pincode} · {address.days}</span>
                                             {address.label === 'Office' && <span className="mt-1 block text-[11px] font-semibold text-teal-800">Office hours {address.startTime}–{address.endTime}</span>}
                                         </button>)}</div>
@@ -5137,9 +5137,9 @@
                         <div className="sl-invoice-modal fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-slate-950/65 p-2 sm:p-5 backdrop-blur-sm">
                             <div className="my-auto w-full max-w-5xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
                                 <div className="no-print flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 sm:px-6">
-                                    <div className="flex items-center gap-2 text-xs font-bold text-slate-600"><Icon name="FileText" className="h-4 w-4 text-teal-700"/> Shopify-Lite invoice preview</div>
+                                    <div className="flex items-center gap-2 text-xs font-bold text-slate-600"><Icon name="Receipt" className="h-4 w-4 text-teal-700"/> Shopify-Lite invoice preview</div>
                                     <div className="flex items-center gap-2">
-                                        <button type="button" onClick={() => window.print()} className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-xs font-extrabold text-white shadow-sm hover:bg-teal-800"><Icon name="Printer" className="h-4 w-4"/> Print / Save PDF</button>
+                                        <button type="button" onClick={() => window.print()} className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-xs font-extrabold text-white shadow-sm hover:bg-teal-800"><Icon name="Download" className="h-4 w-4"/> Print / Save PDF</button>
                                         <button type="button" onClick={() => setViewingInvoiceOrder(null)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-200 hover:text-slate-800" aria-label="Close invoice"><Icon name="X" className="h-5 w-5"/></button>
                                     </div>
                                 </div>
@@ -5159,7 +5159,7 @@
                                         </div>
 
                                         <div className="sl-invoice-seller">
-                                            <div className="sl-invoice-seller-label"><span className="sl-invoice-mini-icon"><Icon name="Store" className="h-4 w-4"/></span><div><small>SOLD BY</small><strong>{sellerProfile.business_name || 'Seller details not configured'}</strong></div></div>
+                                            <div className="sl-invoice-seller-label"><span className="sl-invoice-mini-icon"><Icon name="Building" className="h-4 w-4"/></span><div><small>SOLD BY</small><strong>{sellerProfile.business_name || 'Seller details not configured'}</strong></div></div>
                                             <div className="sl-invoice-seller-body">
                                                 <p>{[sellerProfile.address,sellerProfile.city,sellerProfile.state,sellerProfile.pincode ? 'PIN '+sellerProfile.pincode : ''].filter(Boolean).join(', ') || 'Registered business address not provided'}</p>
                                                 <p>{sellerProfile.contact_name ? sellerProfile.contact_name+' · ' : ''}{sellerProfile.phone || ''}{sellerProfile.email ? ' · '+sellerProfile.email : ''}</p>
@@ -5177,7 +5177,7 @@
 
                                     <section className="sl-invoice-parties">
                                         <div className="sl-invoice-party">
-                                            <div className="sl-invoice-party-title"><span className="sl-invoice-party-icon"><Icon name="ClipboardList" className="h-4 w-4"/></span><strong>ORDER DETAILS</strong></div>
+                                            <div className="sl-invoice-party-title"><span className="sl-invoice-party-icon"><Icon name="Receipt" className="h-4 w-4"/></span><strong>ORDER DETAILS</strong></div>
                                             <p><small>Reference</small><strong>{viewingInvoiceOrder.invoiceNumber || viewingInvoiceOrder.orderNumber || viewingInvoiceOrder.id || '—'}</strong></p>
                                             <p><small>Payment mode</small><strong>{viewingInvoiceOrder.paymentMethod || 'Not recorded'}</strong></p>
                                             {viewingInvoiceOrder.transactionId && <p><small>Transaction reference</small><strong className="break-all">{viewingInvoiceOrder.transactionId}</strong></p>}
@@ -5233,7 +5233,7 @@
                                     </section>
 
                                     <footer className="sl-invoice-footer">
-                                        <div className="sl-invoice-thankyou"><span className="sl-invoice-thank-icon"><Icon name="CheckCircle2" className="h-6 w-6"/></span><div><strong>Thank you for your order!</strong><p>We appreciate your business. For support or assistance, contact our support team.</p></div></div>
+                                        <div className="sl-invoice-thankyou"><span className="sl-invoice-thank-icon"><Icon name="ShieldCheck" className="h-6 w-6"/></span><div><strong>Thank you for your order!</strong><p>We appreciate your business. For support or assistance, contact our support team.</p></div></div>
                                         <div className="sl-invoice-footnote">
                                             <p>{sellerProfile.gstin ? 'GSTIN is displayed as saved in the seller profile. Tax is shown only as recorded for this order; no additional tax breakup is inferred.' : 'No GSTIN is saved in the seller profile. This document is an order receipt and should not be treated as a GST tax invoice.'}</p>
                                             <p>{sellerProfile.phone || ''}{sellerProfile.email ? ' · '+sellerProfile.email : ''}</p>
