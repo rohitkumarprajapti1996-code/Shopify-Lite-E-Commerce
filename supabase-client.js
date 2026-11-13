@@ -43,28 +43,28 @@
       return data || null;
     },
     async saveSellerBusinessProfile(profile) {
-      const allowed = await this.isAdmin();
-      if (!allowed) throw new Error("Only an active administrator can save business invoice details.");
-      const payload = {
-        id: true,
-        business_name: String(profile.business_name || "").trim(),
-        contact_name: String(profile.contact_name || "").trim(),
-        email: String(profile.email || "").trim(),
-        phone: String(profile.phone || "").trim(),
-        address: String(profile.address || "").trim(),
-        city: String(profile.city || "").trim(),
-        state: String(profile.state || "").trim(),
-        pincode: String(profile.pincode || "").trim(),
-        gstin: String(profile.gstin || "").trim().toUpperCase(),
-        updated_at: new Date().toISOString()
-      };
-      const { data, error } = await adminClient.from("shopify_lite_seller_profile")
-        .upsert(payload, { onConflict: "id" })
-        .select("business_name,contact_name,email,phone,address,city,state,pincode,gstin,updated_at")
-        .single();
-      if (error) throw error;
-      if (!data || !data.business_name) throw new Error("Supabase did not confirm the saved business profile.");
-      return data;
+      const { data, error } = await adminClient.rpc("shopify_lite_save_seller_profile", {
+        p_profile: {
+          business_name: String(profile.business_name || "").trim(),
+          contact_name: String(profile.contact_name || "").trim(),
+          email: String(profile.email || "").trim(),
+          phone: String(profile.phone || "").trim(),
+          address: String(profile.address || "").trim(),
+          city: String(profile.city || "").trim(),
+          state: String(profile.state || "").trim(),
+          pincode: String(profile.pincode || "").trim(),
+          gstin: String(profile.gstin || "").trim().toUpperCase()
+        }
+      });
+      if (error) {
+        const message = error.message || "Supabase could not save the seller business profile.";
+        throw new Error(message);
+      }
+      const saved = data && typeof data === "object" ? data : null;
+      if (!saved || saved.business_name !== String(profile.business_name || "").trim()) {
+        throw new Error("The server did not confirm the saved business name. Please retry.");
+      }
+      return saved;
     },
     async loadProducts() {
       const { data, error } = await client.from("shopify_lite_products")
