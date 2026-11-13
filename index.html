@@ -821,7 +821,61 @@
           .sl-customer-shortcut:hover { transform:none!important; }
         }
 
-        </style>
+        
+        /* Professional customer invoice */
+        .sl-invoice-sheet { width:100%; max-width:190mm; margin:0 auto; background:#fff; color:#172f38; font-family:'DM Sans',Arial,sans-serif; font-size:12px; line-height:1.5; }
+        .sl-invoice-header { border-bottom:1px solid #dbe7e8; padding-bottom:20px; }
+        .sl-invoice-logo { display:flex; width:48px; height:48px; flex:0 0 48px; align-items:center; justify-content:center; border-radius:15px; background:#087f75; color:#fff; font-size:22px; font-weight:900; }
+        .sl-invoice-label { color:#087f75; font-size:9px; font-weight:900; letter-spacing:.15em; }
+        .sl-invoice-meta-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+        .sl-invoice-meta-grid > div { min-width:0; border:1px solid #e0ebec; border-radius:10px; background:#f8fbfb; padding:10px 12px; }
+        .sl-invoice-meta-grid span { display:block; color:#768990; font-size:9px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
+        .sl-invoice-meta-grid strong { display:block; margin-top:4px; overflow-wrap:anywhere; color:#183640; font-size:11px; font-weight:800; }
+        .sl-invoice-barcode { display:flex; align-items:flex-end; justify-content:flex-end; gap:12px; }
+        .sl-invoice-barcode span { color:#9aa9ae; font-size:9px; }
+        .sl-invoice-party-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+        .sl-invoice-party-card { min-width:0; border:1px solid #dce8e9; border-radius:13px; background:#fff; padding:16px; }
+        .sl-invoice-section-title { display:flex; align-items:center; gap:8px; color:#63777e; font-size:9px; font-weight:900; letter-spacing:.11em; text-transform:uppercase; }
+        .sl-invoice-section-index { display:inline-flex; width:24px; height:24px; align-items:center; justify-content:center; border-radius:8px; background:#e8f5f3; color:#087f75; font-size:9px; }
+        .sl-invoice-table th { background:#edf5f4; color:#526971; font-size:9px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; padding:11px 10px; }
+        .sl-invoice-table td { border-top:1px solid #e7eeee; padding:12px 10px; color:#455c64; vertical-align:top; }
+        .sl-invoice-table tbody tr:nth-child(even) { background:#fbfdfd; }
+        .sl-invoice-bottom-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(260px,.82fr); gap:16px; align-items:start; }
+        .sl-invoice-payment-card { border:1px solid #dce8e9; border-radius:13px; padding:16px; background:#fbfdfd; }
+        .sl-invoice-totals { border:1px solid #dce8e9; border-radius:13px; padding:16px; background:#fff; color:#5c7178; font-size:11px; }
+        .sl-invoice-totals > div:not(.sl-invoice-grand-total) { display:flex; justify-content:space-between; gap:16px; margin-bottom:9px; }
+        .sl-invoice-totals strong { color:#1b3640; }
+        .sl-invoice-grand-total { display:flex; align-items:center; justify-content:space-between; gap:12px; border-top:1px solid #dce8e9; border-bottom:1px solid #dce8e9; padding:13px 0; color:#193640; font-size:13px; font-weight:900; }
+        .sl-invoice-grand-total strong { color:#087f75; font-size:20px; letter-spacing:-.03em; }
+        .sl-invoice-footer { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; border-top:1px solid #dce8e9; padding-top:16px; color:#73858b; font-size:9px; line-height:1.6; }
+        .sl-invoice-footer > div:first-child { max-width:65%; }
+        .sl-invoice-thanks { display:flex; flex-direction:column; gap:4px; text-align:right; color:#087f75; }
+        .sl-invoice-thanks span { color:#97a5aa; font-size:8px; }
+        @media(max-width:640px) {
+          .sl-invoice-sheet { padding:16px!important; }
+          .sl-invoice-meta-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+          .sl-invoice-party-grid,.sl-invoice-bottom-grid { grid-template-columns:minmax(0,1fr); }
+          .sl-invoice-footer { flex-direction:column; }
+          .sl-invoice-footer > div:first-child { max-width:100%; }
+          .sl-invoice-thanks { text-align:left; }
+          .sl-invoice-table { min-width:560px; }
+          .sl-invoice-heading { text-align:left; }
+        }
+        @media print {
+          @page { size:A4; margin:10mm; }
+          html,body,#root { background:#fff!important; margin:0!important; padding:0!important; width:auto!important; height:auto!important; overflow:visible!important; }
+          body * { visibility:hidden!important; }
+          #tax-invoice-printable,#tax-invoice-printable * { visibility:visible!important; }
+          #tax-invoice-printable { position:absolute!important; inset:0 auto auto 0!important; width:190mm!important; max-width:190mm!important; margin:0!important; padding:0!important; overflow:visible!important; box-shadow:none!important; }
+          #tax-invoice-printable .sl-invoice-party-grid { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
+          #tax-invoice-printable .sl-invoice-bottom-grid { grid-template-columns:minmax(0,1fr) minmax(70mm,.82fr)!important; }
+          #tax-invoice-printable .sl-invoice-table { min-width:0!important; width:100%!important; }
+          #tax-invoice-printable tr { break-inside:avoid!important; page-break-inside:avoid!important; }
+          #tax-invoice-printable .sl-invoice-party-card,#tax-invoice-printable .sl-invoice-payment-card,#tax-invoice-printable .sl-invoice-totals { break-inside:avoid!important; page-break-inside:avoid!important; }
+          .no-print { display:none!important; }
+        }
+
+</style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased min-h-screen">
 
@@ -5026,123 +5080,127 @@
                         </div>
                     )}
 
-                    {/* Tax Invoice Presentation Overlay */}
+                    {/* Professional Customer Invoice / Order Receipt */}
                     {viewingInvoiceOrder && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
-                            <div className="bg-white rounded-2xl max-w-2xl w-full p-6 sm:p-8 relative shadow-2xl border border-gray-100 my-8">
-                                <button 
-                                    onClick={() => setViewingInvoiceOrder(null)}
-                                    className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition no-print"
-                                >
-                                    <Icon name="X" className="h-5 w-5" />
-                                </button>
-
-                                <div id="tax-invoice-printable" className="space-y-6">
-                                    <div className="flex justify-between items-start border-b border-gray-200 pb-4">
-                                        <div>
-                                            <div className="flex items-center gap-2"><span className="flex items-center justify-center rounded-xl bg-teal-700 text-white w-10 h-10 font-black text-lg">S</span><div><h1 className="text-xl font-black text-teal-800">Shopify-Lite</h1><p className="text-[10px] text-gray-500">shopify-lite online store</p></div></div>
-                                            <p className="text-[10px] text-gray-500 mt-2">Website: https://rohitkumarprajapti1996-code.github.io/Shopify-Lite-E-Commerce/</p>
-                                            <p className="text-[10px] text-gray-400">Order Invoice / Purchase Summary</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <h2 className="text-sm font-bold text-gray-900">CUSTOMER INVOICE / ORDER RECEIPT</h2>
-                                            <p className="text-[10px] text-gray-500 font-bold mt-1">Invoice Reference: {viewingInvoiceOrder.invoiceNumber || viewingInvoiceOrder.orderNumber || viewingInvoiceOrder.id || viewingInvoiceOrder.databaseId || "Reference unavailable"}</p>
-                                            <p className="text-[10px] text-gray-500">Date: {viewingInvoiceOrder.date}</p>
-                                            <div className="mt-2 flex flex-col items-end">
-                                                <InvoiceBarcode value={viewingInvoiceOrder.invoiceNumber || viewingInvoiceOrder.orderNumber || viewingInvoiceOrder.transactionId || 'INVOICE'} />
-                                                <span className="text-[8px] text-gray-400 mt-1">Scan for invoice reference</span>
-                                            </div>
-                                        </div>
+                        <div className="sl-invoice-modal fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-slate-950/65 p-3 sm:p-5 backdrop-blur-sm">
+                            <div className="my-auto w-full max-w-4xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
+                                <div className="no-print flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-5 py-3">
+                                    <div className="flex items-center gap-2 text-xs font-bold text-slate-600"><Icon name="FileText" className="h-4 w-4 text-teal-700"/> Invoice preview</div>
+                                    <div className="flex items-center gap-2">
+                                        <button type="button" onClick={() => window.print()} className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-xs font-extrabold text-white shadow-sm hover:bg-teal-800"><Icon name="Printer" className="h-4 w-4"/> Print / Save PDF</button>
+                                        <button type="button" onClick={() => setViewingInvoiceOrder(null)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-200 hover:text-slate-800" aria-label="Close invoice"><Icon name="X" className="h-5 w-5"/></button>
                                     </div>
-
-                                    <div className="grid grid-cols-2 gap-6 text-xs border-b border-gray-200 pb-4">
-                                        <div>
-                                            <h3 className="font-extrabold text-gray-400 uppercase text-[9px] mb-1">Sold By (Merchant)</h3>
-                                            <strong className="text-gray-900 block font-bold">{sellerProfile.business_name || 'Seller business details not configured'}</strong>
-                                            {sellerProfile.contact_name && <span className="text-gray-600 block">Contact: {sellerProfile.contact_name}</span>}
-                                            {sellerProfile.email && <span className="text-gray-600 block break-all">Email: {sellerProfile.email}</span>}
-                                            {sellerProfile.phone && <span className="text-gray-600 block">Phone: {sellerProfile.phone}</span>}
-                                            {sellerProfile.address && <span className="text-gray-600 block leading-tight">{sellerProfile.address}, {sellerProfile.city}, {sellerProfile.state} - {sellerProfile.pincode}</span>}
-                                            {sellerProfile.gstin && <span className="text-gray-600 block font-bold">GSTIN: {sellerProfile.gstin}</span>}
-                                            {!sellerProfile.business_name && <span className="text-amber-700 block mt-1">Complete Seller / Business Details in the admin dashboard before using this as a tax invoice.</span>}
-                                        </div>
-                                        <div>
-                                            <h3 className="font-extrabold text-gray-400 uppercase text-[9px] mb-1">Billing To (Buyer)</h3>
-                                            <strong className="text-gray-900 block font-bold">{viewingInvoiceOrder.customerName}</strong>
-                                            <span className="text-gray-500 block">Phone: {viewingInvoiceOrder.customerPhone}</span>
-                                            <span className="text-gray-500 block">Email: {viewingInvoiceOrder.customerEmail}</span>
-                                            <span className="text-gray-500 block leading-tight">{viewingInvoiceOrder.shippingAddress}</span>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <table className="w-full text-xs text-left border-collapse">
-                                            <thead>
-                                                <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 font-extrabold text-[9px] uppercase tracking-wider">
-                                                    <th className="p-2">Product Description</th>
-                                                    <th className="p-2 text-right">Unit Price</th>
-                                                    <th className="p-2 text-center">Qty</th>
-                                                    <th className="p-2 text-right">Line Total</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-100 text-gray-700">
-                                                {viewingInvoiceOrder.items.map((it, idx) => (
-                                                    <tr key={idx}>
-                                                        <td className="p-2 font-semibold text-gray-900">{it.title}</td>
-                                                        <td className="p-2 text-right">₹{Number(it.price || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                                        <td className="p-2 text-center">{it.quantity}</td>
-                                                        <td className="p-2 text-right">₹{(Number(it.price || 0) * Number(it.quantity || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    <div className="flex justify-end pt-4 border-t border-gray-200">
-                                        <div className="w-64 text-xs space-y-1.5 text-gray-600">
-                                            <div className="flex justify-between">
-                                                <span>Order Total</span>
-                                                <span className="font-medium text-gray-900">₹{Number(viewingInvoiceOrder.total || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span>GST</span>
-                                                <span>Not separately stated — seller not GST registered</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span>Shipping Charges</span>
-                                                <span className="text-emerald-600 font-bold">FREE</span>
-                                            </div>
-                                            <div className="flex justify-between border-t border-gray-200 pt-1.5 font-bold text-gray-900 text-sm">
-                                                <span>Grand Total</span>
-                                                <span className="text-indigo-700 font-black">₹{viewingInvoiceOrder.total.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-xs">
-                                        <div>
-                                            <h4 className="font-bold text-gray-900 uppercase">Payment Summary Acknowledgement</h4>
-                                            <p className="text-gray-500 mt-0.5">Mode of Payment: <strong>{viewingInvoiceOrder.paymentMethod}</strong></p>
-                                            <p className="text-gray-500">Transaction Ref Number: <strong>{viewingInvoiceOrder.transactionId}</strong></p>
-                                        </div>
-                                        <div className="text-center bg-white border border-gray-200 p-2 rounded-lg font-bold">
-                                            <span className="text-emerald-600 block">{String(viewingInvoiceOrder.paymentStatus || viewingInvoiceOrder.payment_status || 'pending').toUpperCase()}</span>
-                                            <span className="text-gray-400 text-[8px]">SHOPIFY-LITE ORDER RECEIPT</span>
-                                        </div>
-                                    </div>
-
-                                    <p className="text-[9px] text-gray-500 text-center leading-relaxed">
-                                        Computer-generated customer invoice / order receipt. Seller has indicated that the business is not GST registered; no GSTIN or GST amount is represented on this document. Confirm the checkout pricing and applicable tax treatment before issuing this document as a final commercial invoice.
-                                    </p>
                                 </div>
 
-                                <div className="mt-6 pt-4 border-t border-gray-100 flex justify-end no-print">
-                                    <button
-                                        onClick={() => window.print()}
-                                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-xl text-xs transition flex items-center gap-1.5"
-                                    >
-                                        <Icon name="Download" className="h-4 w-4" /> Print / Save Customer Invoice
-                                    </button>
+                                <div id="tax-invoice-printable" className="sl-invoice-sheet space-y-6 p-5 sm:p-8">
+                                    <div className="sl-invoice-header">
+                                        <div className="flex flex-wrap items-start justify-between gap-5">
+                                            <div className="flex min-w-0 items-center gap-3">
+                                                <span className="sl-invoice-logo">S</span>
+                                                <div className="min-w-0">
+                                                    <h1 className="text-2xl font-black tracking-tight text-slate-900">Shopify-Lite</h1>
+                                                    <p className="text-xs font-medium text-slate-500">Online store · Customer order document</p>
+                                                </div>
+                                            </div>
+                                            <div className="sl-invoice-heading text-right">
+                                                <span className="sl-invoice-label">CUSTOMER DOCUMENT</span>
+                                                <h2 className="mt-1 text-xl font-black tracking-tight text-slate-900">Order Invoice / Receipt</h2>
+                                                <span className={String(viewingInvoiceOrder.paymentStatus || viewingInvoiceOrder.payment_status || 'pending').toLowerCase() === 'paid' ? 'mt-2 inline-flex rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-emerald-800' : 'mt-2 inline-flex rounded-full bg-amber-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-amber-800'}>{String(viewingInvoiceOrder.paymentStatus || viewingInvoiceOrder.payment_status || 'pending').toUpperCase()}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="sl-invoice-meta-grid mt-6">
+                                            <div><span>Invoice reference</span><strong>{viewingInvoiceOrder.invoiceNumber || viewingInvoiceOrder.orderNumber || viewingInvoiceOrder.id || 'Not available'}</strong></div>
+                                            <div><span>Order number</span><strong>{viewingInvoiceOrder.orderNumber || viewingInvoiceOrder.id || 'Not available'}</strong></div>
+                                            <div><span>Invoice date</span><strong>{viewingInvoiceOrder.date || 'Not available'}</strong></div>
+                                            <div><span>Payment method</span><strong>{viewingInvoiceOrder.paymentMethod || 'Not recorded'}</strong></div>
+                                        </div>
+                                        <div className="sl-invoice-barcode mt-4">
+                                            <InvoiceBarcode value={viewingInvoiceOrder.invoiceNumber || viewingInvoiceOrder.orderNumber || viewingInvoiceOrder.transactionId || 'INVOICE'} />
+                                            <span>Reference barcode</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="sl-invoice-party-grid">
+                                        <section className="sl-invoice-party-card">
+                                            <div className="sl-invoice-section-title"><span className="sl-invoice-section-index">01</span><span>Sold by · Merchant</span></div>
+                                            <h3 className="mt-3 text-base font-black text-slate-900">{sellerProfile.business_name || 'Seller details not configured'}</h3>
+                                            {sellerProfile.contact_name && <p className="mt-1 text-sm text-slate-600">Attn: {sellerProfile.contact_name}</p>}
+                                            <p className="mt-2 text-xs leading-5 text-slate-600">{[sellerProfile.address,sellerProfile.city,sellerProfile.state,sellerProfile.pincode ? 'PIN '+sellerProfile.pincode : ''].filter(Boolean).join(', ') || 'Business address not provided'}</p>
+                                            <div className="mt-3 space-y-1 text-xs text-slate-600">
+                                                {sellerProfile.email && <p><span className="font-bold text-slate-500">Email:</span> <span className="break-all">{sellerProfile.email}</span></p>}
+                                                {sellerProfile.phone && <p><span className="font-bold text-slate-500">Phone:</span> {sellerProfile.phone}</p>}
+                                                {sellerProfile.gstin && <p className="font-bold text-slate-800">GSTIN: {sellerProfile.gstin}</p>}
+                                            </div>
+                                            {!sellerProfile.business_name && <p className="mt-3 rounded-lg bg-amber-50 p-2 text-[11px] font-semibold text-amber-800">Seller business details have not been configured.</p>}
+                                        </section>
+
+                                        <section className="sl-invoice-party-card">
+                                            <div className="sl-invoice-section-title"><span className="sl-invoice-section-index">02</span><span>Bill to · Customer</span></div>
+                                            <h3 className="mt-3 text-base font-black text-slate-900">{viewingInvoiceOrder.customerName || 'Customer'}</h3>
+                                            <div className="mt-2 space-y-1 text-xs leading-5 text-slate-600">
+                                                {viewingInvoiceOrder.customerPhone && <p><span className="font-bold text-slate-500">Phone:</span> {viewingInvoiceOrder.customerPhone}</p>}
+                                                {viewingInvoiceOrder.customerEmail && <p><span className="font-bold text-slate-500">Email:</span> <span className="break-all">{viewingInvoiceOrder.customerEmail}</span></p>}
+                                                <p className="mt-2 whitespace-pre-line">{viewingInvoiceOrder.shippingAddress || 'Delivery address not recorded'}</p>
+                                            </div>
+                                        </section>
+                                    </div>
+
+                                    <section>
+                                        <div className="mb-3 flex items-end justify-between gap-3">
+                                            <div><div className="sl-invoice-label">ORDER SUMMARY</div><h3 className="mt-1 text-base font-black text-slate-900">Items purchased</h3></div>
+                                            <span className="text-xs font-semibold text-slate-500">{Array.isArray(viewingInvoiceOrder.items) ? viewingInvoiceOrder.items.length : 0} line item(s)</span>
+                                        </div>
+                                        <div className="overflow-hidden rounded-xl border border-slate-200">
+                                            <table className="sl-invoice-table w-full border-collapse text-left text-xs">
+                                                <thead><tr><th className="w-10">#</th><th>Product description</th><th className="text-right">Unit price</th><th className="text-center">Qty</th><th className="text-right">Line total</th></tr></thead>
+                                                <tbody>
+                                                    {(Array.isArray(viewingInvoiceOrder.items) ? viewingInvoiceOrder.items : []).map((item,index) => (
+                                                        <tr key={index}>
+                                                            <td className="text-slate-400">{index+1}</td>
+                                                            <td><strong className="block font-bold text-slate-800">{item.title || 'Product'}</strong>{item.sku && <span className="mt-0.5 block text-[10px] text-slate-400">SKU: {item.sku}</span>}</td>
+                                                            <td className="text-right tabular-nums">₹{Number(item.price || 0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                                                            <td className="text-center tabular-nums">{Number(item.quantity || 0)}</td>
+                                                            <td className="text-right font-bold tabular-nums text-slate-900">₹{(Number(item.price || 0)*Number(item.quantity || 0)).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </section>
+
+                                    <div className="sl-invoice-bottom-grid">
+                                        <section className="sl-invoice-payment-card">
+                                            <div className="sl-invoice-section-title"><span className="sl-invoice-section-index">03</span><span>Payment details</span></div>
+                                            <div className="mt-3 space-y-2 text-xs">
+                                                <div className="flex justify-between gap-3"><span className="text-slate-500">Payment method</span><strong className="text-right text-slate-800">{viewingInvoiceOrder.paymentMethod || 'Not recorded'}</strong></div>
+                                                <div className="flex justify-between gap-3"><span className="text-slate-500">Payment status</span><strong className="text-right text-slate-800">{String(viewingInvoiceOrder.paymentStatus || viewingInvoiceOrder.payment_status || 'pending').toUpperCase()}</strong></div>
+                                                {viewingInvoiceOrder.transactionId && <div className="flex justify-between gap-3"><span className="text-slate-500">Transaction reference</span><strong className="max-w-[65%] break-all text-right text-slate-800">{viewingInvoiceOrder.transactionId}</strong></div>}
+                                            </div>
+                                        </section>
+
+                                        <section className="sl-invoice-totals">
+                                            <div className="flex justify-between gap-4"><span>Subtotal</span><strong>₹{Number(viewingInvoiceOrder.subtotal != null ? viewingInvoiceOrder.subtotal : Math.max(0,Number(viewingInvoiceOrder.total || 0)-Number(viewingInvoiceOrder.gstAmount || 0))).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></div>
+                                            {Number(viewingInvoiceOrder.gstAmount || 0) > 0 ? (
+                                                <div className="flex justify-between gap-4"><span>Tax amount (as recorded)</span><strong>₹{Number(viewingInvoiceOrder.gstAmount).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></div>
+                                            ) : (
+                                                <div className="flex justify-between gap-4"><span>Tax</span><span className="max-w-[60%] text-right text-slate-500">{sellerProfile.gstin ? 'No tax amount recorded' : 'Not separately stated'}</span></div>
+                                            )}
+                                            <div className="sl-invoice-grand-total mt-3">
+                                                <span>Grand total</span>
+                                                <strong>₹{Number(viewingInvoiceOrder.total || 0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong>
+                                            </div>
+                                            <div className="mt-2 flex justify-between gap-4 text-xs"><span className="text-slate-500">{String(viewingInvoiceOrder.paymentStatus || viewingInvoiceOrder.payment_status || '').toLowerCase() === 'paid' ? 'Amount received' : 'Amount due'}</span><strong className="text-slate-900">₹{Number(viewingInvoiceOrder.total || 0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></div>
+                                        </section>
+                                    </div>
+
+                                    <div className="sl-invoice-footer">
+                                        <div className="flex items-start gap-2"><Icon name="Info" className="mt-0.5 h-4 w-4 shrink-0 text-teal-700"/><div>
+                                            <strong className="text-slate-700">Important information</strong>
+                                            <p className="mt-1">{sellerProfile.gstin ? 'Seller GSTIN is recorded above. Tax amount is shown only as stored with this order; this receipt does not provide a separate CGST, SGST or IGST breakup.' : 'No GSTIN is saved in the seller profile. This document is an order receipt and should not be treated as a GST tax invoice.'}</p>
+                                        </div></div>
+                                        <div className="sl-invoice-thanks"><strong>Thank you for shopping with us.</strong><span>Computer-generated document · No signature required</span></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
