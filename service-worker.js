@@ -1,5 +1,5 @@
-const CACHE_NAME = 'shopify-lite-shell-v7';
-const APP_SHELL = ['./', './index.html', './manifest.json', './icon.svg', './assets/shopify-lite-logo.webp'];
+const CACHE_NAME = 'shopify-lite-shell-v8';
+const APP_SHELL = ['./', './index.html', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
